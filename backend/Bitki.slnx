@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Bitki.Api/Bitki.Api.csproj" />
+  <Project Path="Bitki.Core/Bitki.Core.csproj" />
+  <Project Path="Bitki.Infrastructure/Bitki.Infrastructure.csproj" />
+</Solution>
