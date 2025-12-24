@@ -61,3 +61,4 @@
 /Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Infrastructure/bin/Debug/net10.0/BuildHost-netcore/zh-Hant/System.CommandLine.resources.dll
 /Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Infrastructure/bin/Debug/net10.0/Bitki.Infrastructure.runtimeconfig.json
 /Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Infrastructure/obj/Debug/net10.0/Bitki.Infrastructure.genruntimeconfig.cache
+/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Infrastructure/obj/Debug/net10.0/Bitki.Infrastructure.sourcelink.json

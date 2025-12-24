@@ -9,3 +9,4 @@
 /Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Core/obj/Debug/net10.0/refint/Bitki.Core.dll
 /Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Core/obj/Debug/net10.0/Bitki.Core.pdb
 /Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Core/obj/Debug/net10.0/ref/Bitki.Core.dll
+/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Core/obj/Debug/net10.0/Bitki.Core.sourcelink.json
