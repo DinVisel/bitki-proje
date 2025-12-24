@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "Bitki.Blazor/1.0.0": {
+        "runtime": {
+          "Bitki.Blazor.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Bitki.Blazor/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
