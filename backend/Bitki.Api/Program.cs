@@ -5,6 +5,50 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+// Register IDbConnectionFactory
+builder.Services.AddSingleton<Bitki.Core.Interfaces.IDbConnectionFactory, Bitki.Infrastructure.Data.DbConnectionFactory>();
+
+// Register Repositories and Services
+// Bitki
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.IBitkiRepository, Bitki.Infrastructure.Repositories.BitkiRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IBitkiService, Bitki.Infrastructure.Services.BitkiService>();
+
+// Auth
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Auth.IAuthUserRepository, Bitki.Infrastructure.Repositories.Auth.AuthUserRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IAuthService, Bitki.Infrastructure.Services.AuthService>();
+
+// System
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.System.IDjangoAdminLogRepository, Bitki.Infrastructure.Repositories.System.DjangoAdminLogRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Services.ISystemService, Bitki.Infrastructure.Services.SystemService>();
+
+// MasterData
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.MasterData.IUlkeRepository, Bitki.Infrastructure.Repositories.MasterData.UlkeRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IMasterDataService, Bitki.Infrastructure.Services.MasterDataService>();
+
+// Aktivite
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Aktivite.IAktiviteRepository, Bitki.Infrastructure.Repositories.Aktivite.AktiviteRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IAktiviteService, Bitki.Infrastructure.Services.AktiviteService>();
+
+// Etnobotanik
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Etnobotanik.IEtnobitkilitRepository, Bitki.Infrastructure.Repositories.Etnobotanik.EtnobitkilitRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IEtnobotanikService, Bitki.Infrastructure.Services.EtnobotanikService>();
+
+// Ucuyag
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Ucuyag.IUcuyagRepository, Bitki.Infrastructure.Repositories.Ucuyag.UcuyagRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IUcuyagService, Bitki.Infrastructure.Services.UcuyagService>();
+
+// Literatur
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Literatur.ILiteraturRepository, Bitki.Infrastructure.Repositories.Literatur.LiteraturRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Services.ILiteraturService, Bitki.Infrastructure.Services.LiteraturService>();
+
+// Ozellik
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Ozellik.IOzellikRepository, Bitki.Infrastructure.Repositories.Ozellik.OzellikRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IOzellikService, Bitki.Infrastructure.Services.OzellikService>();
+
+// Rapor
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Rapor.IRaporRepository, Bitki.Infrastructure.Repositories.Rapor.RaporRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IRaporService, Bitki.Infrastructure.Services.RaporService>();
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")

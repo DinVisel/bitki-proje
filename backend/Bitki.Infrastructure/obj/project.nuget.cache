@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "6AsLpOP74m8=",
+  "dgSpecHash": "doHKzKDtqA8=",
   "success": true,
   "projectFilePath": "/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Infrastructure/Bitki.Infrastructure.csproj",
   "expectedPackageFiles": [
+    "/Users/ardaozcan/.nuget/packages/dapper/2.1.66/dapper.2.1.66.nupkg.sha512",
     "/Users/ardaozcan/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
     "/Users/ardaozcan/.nuget/packages/microsoft.build/17.7.2/microsoft.build.17.7.2.nupkg.sha512",
     "/Users/ardaozcan/.nuget/packages/microsoft.build.framework/17.14.28/microsoft.build.framework.17.14.28.nupkg.sha512",

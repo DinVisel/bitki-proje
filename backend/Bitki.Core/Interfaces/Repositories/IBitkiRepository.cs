@@ -1,0 +1,13 @@
+using Bitki.Core.Entities;
+
+namespace Bitki.Core.Interfaces.Repositories
+{
+    public interface IBitkiRepository
+    {
+        Task<IEnumerable<Plant>> GetAllAsync();
+        Task<Plant?> GetByIdAsync(int id);
+        Task<int> AddAsync(Plant plant);
+        Task UpdateAsync(Plant plant);
+        Task DeleteAsync(int id);
+    }
+}

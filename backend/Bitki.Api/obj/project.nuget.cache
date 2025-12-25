@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "8r+uTYl9Wqk=",
+  "dgSpecHash": "tBZls2U85zQ=",
   "success": true,
   "projectFilePath": "/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Api/Bitki.Api.csproj",
   "expectedPackageFiles": [
+    "/Users/ardaozcan/.nuget/packages/dapper/2.1.66/dapper.2.1.66.nupkg.sha512",
     "/Users/ardaozcan/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
     "/Users/ardaozcan/.nuget/packages/microsoft.aspnetcore.openapi/10.0.1/microsoft.aspnetcore.openapi.10.0.1.nupkg.sha512",
     "/Users/ardaozcan/.nuget/packages/microsoft.build/17.7.2/microsoft.build.17.7.2.nupkg.sha512",
