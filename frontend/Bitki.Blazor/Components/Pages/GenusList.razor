@@ -1,0 +1,44 @@
+@page "/genus"
+@using Bitki.Blazor.Models
+@inject HttpClient Http
+
+<h3>Genus (Cins) Listesi</h3>
+
+@if (items == null)
+{
+    <p><em>Yükleniyor...</em></p>
+}
+else
+{
+    <p>Kayıt Sayısı: @items.Length</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Ad</th>
+                <th>Familya Id</th>
+                <th>Açıklama</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in items)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Name</td>
+                    <td>@item.FamilyId</td>
+                    <td>@item.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private GenusViewModel[]? items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        items = await Http.GetFromJsonAsync<GenusViewModel[]>("api/genus");
+    }
+}

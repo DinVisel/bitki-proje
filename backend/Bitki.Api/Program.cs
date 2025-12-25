@@ -21,8 +21,14 @@ builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IAuthService, Bitki.In
 builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.System.IDjangoAdminLogRepository, Bitki.Infrastructure.Repositories.System.DjangoAdminLogRepository>();
 builder.Services.AddScoped<Bitki.Core.Interfaces.Services.ISystemService, Bitki.Infrastructure.Services.SystemService>();
 
+// Taxonomy
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Taxonomy.IFamilyaRepository, Bitki.Infrastructure.Repositories.Taxonomy.FamilyaRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Taxonomy.IGenusRepository, Bitki.Infrastructure.Repositories.Taxonomy.GenusRepository>();
+
 // MasterData
 builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.MasterData.IUlkeRepository, Bitki.Infrastructure.Repositories.MasterData.UlkeRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.MasterData.ISehirRepository, Bitki.Infrastructure.Repositories.MasterData.SehirRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.MasterData.IIlceRepository, Bitki.Infrastructure.Repositories.MasterData.IlceRepository>();
 builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IMasterDataService, Bitki.Infrastructure.Services.MasterDataService>();
 
 // Aktivite
