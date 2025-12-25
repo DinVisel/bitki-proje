@@ -1,0 +1,181 @@
+@using Bitki.Blazor.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@inject HttpClient Http
+
+<div class="image-gallery">
+    <div class="gallery-header">
+        <h6>Images</h6>
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                @if (isEditMode)
+                {
+                    <button class="btn btn-sm btn-success" @onclick="SaveImages">Save</button>
+                    <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button>
+                }
+                else
+                {
+                    <button class="btn btn-sm btn-primary" @onclick="EnableEditMode">Edit Images</button>
+                }
+            </Authorized>
+        </AuthorizeView>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading images...</span>
+            </div>
+        </div>
+    }
+    else if (images == null || !images.Any())
+    {
+        <div class="no-images">No images available</div>
+    }
+    else
+    {
+        <div class="thumbnail-grid">
+            @foreach (var image in images)
+            {
+                <div class="thumbnail-item">
+                    <img src="@image.ImageLocation" alt="@image.Description" @onclick="() => OpenLightbox(image)"
+                        class="thumbnail-img" />
+                    @if (isEditMode)
+                    {
+                        <button class="btn btn-sm btn-danger remove-btn" @onclick="() => RemoveImage(image)">×</button>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    @if (isEditMode)
+    {
+        <div class="add-image-form">
+            <input type="text" class="form-control form-control-sm" placeholder="Image URL" @bind="newImageUrl" />
+            <input type="text" class="form-control form-control-sm mt-1" placeholder="Description (optional)"
+                @bind="newImageDescription" />
+            <button class="btn btn-sm btn-primary mt-1" @onclick="AddImage">Add Image</button>
+        </div>
+    }
+
+    @if (showLightbox && selectedImage != null)
+    {
+        <div class="lightbox" @onclick="CloseLightbox">
+            <div class="lightbox-content" @onclick:stopPropagation="true">
+                <button class="lightbox-close" @onclick="CloseLightbox">×</button>
+                <img src="@selectedImage.ImageLocation" alt="@selectedImage.Description" />
+                @if (!string.IsNullOrEmpty(selectedImage.Description))
+                {
+                    <div class="lightbox-caption">@selectedImage.Description</div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int PlantId { get; set; }
+
+    private List<BitkiResimleriViewModel>? images;
+    private List<BitkiResimleriViewModel>? originalImages;
+    private bool isLoading = true;
+    private bool isEditMode = false;
+    private bool showLightbox = false;
+    private BitkiResimleriViewModel? selectedImage;
+    private string newImageUrl = string.Empty;
+    private string newImageDescription = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (PlantId > 0)
+        {
+            await LoadImages();
+        }
+    }
+
+    private async Task LoadImages()
+    {
+        isLoading = true;
+        try
+        {
+            images = await Http.GetFromJsonAsync<List<BitkiResimleriViewModel>>($"api/bitkiResimleri/plant/{PlantId}");
+            originalImages = images?.Select(i => new BitkiResimleriViewModel
+            {
+                Id = i.Id,
+                PlantId = i.PlantId,
+                ImageLocation = i.ImageLocation,
+                Description = i.Description
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading images: {ex.Message}");
+            images = new List<BitkiResimleriViewModel>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void OpenLightbox(BitkiResimleriViewModel image)
+    {
+        if (!isEditMode)
+        {
+            selectedImage = image;
+            showLightbox = true;
+        }
+    }
+
+    private void CloseLightbox()
+    {
+        showLightbox = false;
+        selectedImage = null;
+    }
+
+    private void EnableEditMode()
+    {
+        isEditMode = true;
+    }
+
+    private async Task SaveImages()
+    {
+        // TODO: Implement save logic via API
+        isEditMode = false;
+        await LoadImages();
+    }
+
+    private void CancelEdit()
+    {
+        isEditMode = false;
+        images = originalImages?.Select(i => new BitkiResimleriViewModel
+        {
+            Id = i.Id,
+            PlantId = i.PlantId,
+            ImageLocation = i.ImageLocation,
+            Description = i.Description
+        }).ToList();
+    }
+
+    private void AddImage()
+    {
+        if (!string.IsNullOrWhiteSpace(newImageUrl))
+        {
+            images ??= new List<BitkiResimleriViewModel>();
+            images.Add(new BitkiResimleriViewModel
+            {
+                PlantId = PlantId,
+                ImageLocation = newImageUrl,
+                Description = newImageDescription
+            });
+            newImageUrl = string.Empty;
+            newImageDescription = string.Empty;
+        }
+    }
+
+    private void RemoveImage(BitkiResimleriViewModel image)
+    {
+        images?.Remove(image);
+    }
+}

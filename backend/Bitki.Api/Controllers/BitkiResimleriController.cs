@@ -21,5 +21,12 @@ namespace Bitki.Api.Controllers
             var data = await _repository.GetAllAsync();
             return Ok(data);
         }
+
+        [HttpGet("plant/{plantId}")]
+        public async Task<ActionResult<IEnumerable<BitkiResimleri>>> GetByPlantId(int plantId)
+        {
+            var images = await _repository.GetByPlantIdAsync(plantId);
+            return Ok(images);
+        }
     }
 }

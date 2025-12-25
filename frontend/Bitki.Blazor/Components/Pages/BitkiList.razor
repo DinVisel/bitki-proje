@@ -1,72 +1,139 @@
 @page "/bitki"
+@rendermode InteractiveServer
 @using Bitki.Blazor.Models
 @using Bitki.Blazor.Components.Common
+@using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.BitkiViewModel>
 @inject HttpClient Http
 @inject IJSRuntime JS
 
-@if (bitkiler == null)
-{
-    if (isLoading)
+<PageTitle>Bitkiler</PageTitle>
+
+<div class="page-container">
+    <h1>Bitkiler Veritabanı</h1>
+
+    @if (isLoading)
     {
-        <div class="d-flex justify-content-center align-items-center" style="height: 400px;">
+        <div class="loading-state">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
         </div>
     }
-    else
+    else if (errorMessage != null)
     {
         <div class="alert alert-danger">@errorMessage</div>
     }
-}
-else
-{
-    <div class="container-fluid mt-4">
-        <DataGrid TItem="BitkiViewModel" Items="bitkiler" Columns="columns" Title="Bitkiler Veritabanı" OnEdit="HandleEdit"
-            OnDelete="HandleDelete" />
-    </div>
-}
+    else
+    {
+        <RecordExplorer TItem="BitkiViewModel" Items="bitkiler" Columns="columns" Title="Bitki Kayıtları" ShowSearch="true">
+            <InspectorContent Context="selectedBitki">
+                <RecordInspector TItem="BitkiViewModel" Item="selectedBitki"
+                    Title="@($"Bitki Detayları - {selectedBitki.Name}")" Fields="inspectorFields" OnSave="HandleSave"
+                    OnDelete="HandleDelete">
+                    <AdditionalContent Context="bitki">
+                        @if (bitki.Id > 0)
+                        {
+                            <ImageGallery PlantId="bitki.Id" />
+                        }
+                    </AdditionalContent>
+                </RecordInspector>
+            </InspectorContent>
+        </RecordExplorer>
+    }
+</div>
 
 @code {
     private List<BitkiViewModel>? bitkiler;
     private bool isLoading = true;
-    private string errorMessage = "No data returned";
+    private string? errorMessage;
 
     private List<ColumnDef> columns = new()
 {
-new ColumnDef { Title = "Ad", PropertyName = "Name" },
+new ColumnDef { Title = "ID", PropertyName = "Id" },
+new ColumnDef { Title = "Türkçe Ad", PropertyName = "Name" },
 new ColumnDef { Title = "Latince Ad", PropertyName = "LatinName" },
-new ColumnDef { Title = "Aile", PropertyName = "Family" },
 new ColumnDef { Title = "Açıklama", PropertyName = "Description" }
+};
+
+    private List<InspectorField> inspectorFields = new()
+{
+new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
+new InspectorField { Label = "Türkçe Ad", PropertyName = "Name", Editable = true },
+new InspectorField { Label = "Latince Ad", PropertyName = "LatinName", Editable = true },
+new InspectorField { Label = "Aile", PropertyName = "Family", Editable = true },
+new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true },
+new InspectorField { Label = "Habitat", PropertyName = "Habitat", Editable = true }
 };
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = null;
+
         try
         {
             bitkiler = await Http.GetFromJsonAsync<List<BitkiViewModel>>("api/bitki");
-            isLoading = false;
         }
         catch (Exception ex)
         {
-            isLoading = false;
-            errorMessage = $"Error fetching data: {ex.Message}";
+            errorMessage = $"Error loading data: {ex.Message}";
             Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 
-    private async Task HandleEdit(BitkiViewModel item)
+    private async Task HandleSave(BitkiViewModel item)
     {
-        // Placeholder for edit logic
-        await JS.InvokeVoidAsync("alert", $"Edit requested for: {item.Name} (ID: {item.Id})");
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"api/bitki/{item.Id}", item);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
+                await LoadData();
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", $"Güncelleme hatası: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
     }
 
     private async Task HandleDelete(BitkiViewModel item)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete {item.Name}?"))
+        if (await JS.InvokeAsync<bool>("confirm", $"{item.Name} kaydını silmek istediğinizden emin misiniz?"))
         {
-            // Placeholder for delete logic
-            await JS.InvokeVoidAsync("alert", $"Delete requested for ID: {item.Id}");
+            try
+            {
+                var response = await Http.DeleteAsync($"api/bitki/{item.Id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
+                    await LoadData();
+                }
+                else
+                {
+                    await JS.InvokeVoidAsync("alert", $"Silme hatası: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+            }
         }
     }
 }

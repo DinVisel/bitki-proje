@@ -1,0 +1,172 @@
+@typeparam TItem
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="record-inspector">
+    @if (Item == null)
+    {
+        <div class="no-data">No record selected</div>
+    }
+    else
+    {
+        <div class="inspector-header">
+            <h5>@Title</h5>
+            <AuthorizeView Roles="Admin">
+                <Authorized>
+                    @if (!isEditMode)
+                    {
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-primary" @onclick="EnableEditMode">Edit</button>
+                            @if (OnDelete.HasDelegate)
+                            {
+                                <button class="btn btn-sm btn-danger" @onclick="HandleDelete">Delete</button>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-success" @onclick="HandleSave">Save</button>
+                            <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button>
+                        </div>
+                    }
+                </Authorized>
+            </AuthorizeView>
+        </div>
+
+        <div class="inspector-body">
+            @if (Fields != null && Fields.Any())
+            {
+                @foreach (var field in Fields)
+                {
+                    <div class="field-row">
+                        <div class="field-label">@field.Label:</div>
+                        <div class="field-value">
+                            @if (isEditMode && field.Editable)
+                            {
+                                @if (field.RenderEditControl != null)
+                                {
+                                    @field.RenderEditControl(Item)
+                                }
+                                else
+                                {
+                                    <input type="text" class="form-control form-control-sm"
+                                        value="@GetPropertyValue(Item, field.PropertyName)"
+                                        @onchange="(e) => SetPropertyValue(Item, field.PropertyName, e.Value)" />
+                                }
+                            }
+                            else
+                            {
+                                @if (field.RenderValue != null)
+                                {
+                                    @field.RenderValue(Item)
+                                }
+                                else
+                                {
+                                    @GetPropertyValue(Item, field.PropertyName)
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="auto-fields">
+                    @foreach (var prop in typeof(TItem).GetProperties())
+                    {
+                        <div class="field-row">
+                            <div class="field-label">@prop.Name:</div>
+                            <div class="field-value">@prop.GetValue(Item)</div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        @if (AdditionalContent != null)
+        {
+            <div class="inspector-additional">
+                @AdditionalContent(Item)
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public TItem? Item { get; set; }
+    [Parameter] public string Title { get; set; } = "Record Details";
+    [Parameter] public List<InspectorField>? Fields { get; set; }
+    [Parameter] public RenderFragment<TItem>? AdditionalContent { get; set; }
+    [Parameter] public EventCallback<TItem> OnSave { get; set; }
+    [Parameter] public EventCallback<TItem> OnDelete { get; set; }
+
+    private bool isEditMode = false;
+    private TItem? editingItem;
+
+    private async Task EnableEditMode()
+    {
+        isEditMode = true;
+        // Create a copy for editing
+        editingItem = Item;
+    }
+
+    private async Task HandleSave()
+    {
+        if (OnSave.HasDelegate && Item != null)
+        {
+            await OnSave.InvokeAsync(Item);
+        }
+        isEditMode = false;
+    }
+
+    private void CancelEdit()
+    {
+        isEditMode = false;
+        // Revert changes by reloading
+        StateHasChanged();
+    }
+
+    private async Task HandleDelete()
+    {
+        if (OnDelete.HasDelegate && Item != null)
+        {
+            await OnDelete.InvokeAsync(Item);
+        }
+    }
+
+    private object? GetPropertyValue(TItem item, string propertyName)
+    {
+        if (item == null) return null;
+        var property = typeof(TItem).GetProperty(propertyName);
+        return property?.GetValue(item);
+    }
+
+    private void SetPropertyValue(TItem item, string propertyName, object? value)
+    {
+        if (item == null) return;
+        var property = typeof(TItem).GetProperty(propertyName);
+        if (property != null && property.CanWrite)
+        {
+            // Handle type conversion
+            try
+            {
+                var convertedValue = Convert.ChangeType(value, property.PropertyType);
+                property.SetValue(item, convertedValue);
+            }
+            catch
+            {
+                // Type conversion failed, ignore
+            }
+        }
+    }
+
+    public class InspectorField
+    {
+        public string Label { get; set; } = string.Empty;
+        public string PropertyName { get; set; } = string.Empty;
+        public bool Editable { get; set; } = true;
+        public RenderFragment<TItem>? RenderValue { get; set; }
+        public RenderFragment<TItem>? RenderEditControl { get; set; }
+    }
+}

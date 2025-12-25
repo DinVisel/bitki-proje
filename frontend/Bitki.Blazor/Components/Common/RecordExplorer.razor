@@ -1,0 +1,162 @@
+@typeparam TItem
+@using Microsoft.AspNetCore.Components.Authorization
+
+<div class="record-explorer">
+    <div class="record-list-panel">
+        <div class="panel-header">
+            <h4>@Title</h4>
+            <div class="record-count">@Items?.Count() ?? 0 records</div>
+        </div>
+
+        @if (ShowSearch)
+        {
+            <div class="search-box">
+                <input type="text" class="form-control" placeholder="Search..." @bind="searchTerm" @bind:event="oninput"
+                    @onkeyup="HandleSearch" />
+            </div>
+        }
+
+        <div class="record-table-container">
+            @if (Items == null)
+            {
+                <div class="loading-state">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else if (!FilteredItems.Any())
+            {
+                <div class="empty-state">No records found</div>
+            }
+            else
+            {
+                <table class="record-table">
+                    <thead>
+                        <tr>
+                            @foreach (var column in Columns)
+                            {
+                                <th @onclick="() => SortByColumn(column.PropertyName)">
+                                    @column.Title
+                                    @if (sortColumn == column.PropertyName)
+                                    {
+                                        <span class="sort-indicator">@(sortAscending ? "▲" : "▼")</span>
+                                    }
+                                </th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in FilteredItems)
+                        {
+                            var isSelected = SelectedItem?.Equals(item) ?? false;
+                            <tr class="@(isSelected ? "selected" : "")" @onclick="() => SelectRecord(item)">
+                                @foreach (var column in Columns)
+                                {
+                                    <td>@GetPropertyValue(item, column.PropertyName)</td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+
+    <div class="record-inspector-panel">
+        @if (SelectedItem == null)
+        {
+            <div class="no-selection">
+                <p>Select a record to view details</p>
+            </div>
+        }
+        else
+        {
+            @InspectorContent(SelectedItem)
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public IEnumerable<TItem>? Items { get; set; }
+    [Parameter] public List<ColumnDef> Columns { get; set; } = new();
+    [Parameter] public string Title { get; set; } = "Records";
+    [Parameter] public bool ShowSearch { get; set; } = true;
+    [Parameter] public RenderFragment<TItem> InspectorContent { get; set; } = null!;
+    [Parameter] public EventCallback<TItem> OnRecordSelected { get; set; }
+
+    private TItem? SelectedItem { get; set; }
+    private string searchTerm = string.Empty;
+    private string sortColumn = string.Empty;
+    private bool sortAscending = true;
+
+    private IEnumerable<TItem> FilteredItems
+    {
+        get
+        {
+            if (Items == null) return Enumerable.Empty<TItem>();
+
+            var filtered = Items.AsEnumerable();
+
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                filtered = filtered.Where(item =>
+                {
+                    foreach (var column in Columns)
+                    {
+                        var value = GetPropertyValue(item, column.PropertyName);
+                        if (value?.ToString()?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+                            return true;
+                    }
+                    return false;
+                });
+            }
+
+            // Apply sorting
+            if (!string.IsNullOrEmpty(sortColumn))
+            {
+                filtered = sortAscending
+                ? filtered.OrderBy(item => GetPropertyValue(item, sortColumn))
+                : filtered.OrderByDescending(item => GetPropertyValue(item, sortColumn));
+            }
+
+            return filtered;
+        }
+    }
+
+    private async Task SelectRecord(TItem item)
+    {
+        SelectedItem = item;
+        if (OnRecordSelected.HasDelegate)
+        {
+            await OnRecordSelected.InvokeAsync(item);
+        }
+    }
+
+    private void SortByColumn(string columnName)
+    {
+        if (sortColumn == columnName)
+        {
+            sortAscending = !sortAscending;
+        }
+        else
+        {
+            sortColumn = columnName;
+            sortAscending = true;
+        }
+    }
+
+    private void HandleSearch()
+    {
+        // Search is reactive through FilteredItems
+        StateHasChanged();
+    }
+
+    private object? GetPropertyValue(TItem item, string propertyName)
+    {
+        if (item == null) return null;
+        var property = typeof(TItem).GetProperty(propertyName);
+        return property?.GetValue(item);
+    }
+}

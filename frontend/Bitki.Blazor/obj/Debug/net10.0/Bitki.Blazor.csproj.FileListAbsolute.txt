@@ -83,4 +83,4 @@
 /Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/Bitki.Blazor.pdb
 /Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/Bitki.Blazor.genruntimeconfig.cache
 /Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/ref/Bitki.Blazor.dll
-/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/compressed/pobcja2242-{0}-2l0rxfs4li-2l0rxfs4li.gz
+/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/compressed/pobcja2242-{0}-cyah4i8xj0-cyah4i8xj0.gz
