@@ -1,0 +1,67 @@
+@page "/bitki"
+@using Bitki.Blazor.Models
+@inject HttpClient Http
+
+<h3>Bitkiler</h3>
+
+@if (bitkiler == null)
+{
+    if (isLoading)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <p class="text-danger">@errorMessage</p>
+    }
+}
+else
+{
+    <p class="text-success">Data loaded successfully</p>
+    <p>Total records: @bitkiler.Count</p>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Ad</th>
+                <th>Latince Ad</th>
+                <th>Aile</th>
+                <th>Açıklama</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var bitki in bitkiler)
+            {
+                <tr>
+                    <td>@bitki.Name</td>
+                    <td>@bitki.LatinName</td>
+                    <td>@bitki.Family</td>
+                    <td>@bitki.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<BitkiViewModel>? bitkiler;
+    private bool isLoading = true;
+    private string errorMessage = "No data returned";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Fetch directly from relative path, using BaseAddress from Program.cs
+            bitkiler = await Http.GetFromJsonAsync<List<BitkiViewModel>>("api/bitki");
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            isLoading = false;
+            errorMessage = $"Error fetching data: {ex.Message}";
+            // In a real app we would log this
+            Console.WriteLine(ex);
+        }
+    }
+}
