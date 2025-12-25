@@ -20,19 +20,18 @@
         <RecordExplorer TItem="UcuyagViewModel" Items="items" Columns="columns" Title="Uçucu Yağ Kayıtları"
             ShowSearch="true" IsLoading="isLoading" TotalCount="totalCount" FilteredCount="filteredCount"
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
-            <PaginationContent>
-                <PaginationControls CurrentPage="@paginationState.PageNumber" PageSize="@paginationState.PageSize"
-                    TotalPages="@paginationState.TotalPages" TotalRecords="@paginationState.FilteredCount"
-                    StartRecord="@paginationState.StartRecord" EndRecord="@paginationState.EndRecord"
-                    HasPreviousPage="@paginationState.HasPreviousPage" HasNextPage="@paginationState.HasNextPage"
-                    IsLoading="@isLoading" OnPageChanged="HandlePageChanged" />
-            </PaginationContent>
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="UcuyagViewModel" Item="selectedItem"
                     Title="@($"Uçucu Yağ Detayları - {selectedItem.Name}")" Fields="inspectorFields" OnSave="HandleSave"
                     OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
+
+        <PaginationControls CurrentPage="@paginationState.PageNumber" PageSize="@paginationState.PageSize"
+            TotalPages="@paginationState.TotalPages" TotalRecords="@paginationState.FilteredCount"
+            StartRecord="@paginationState.StartRecord" EndRecord="@paginationState.EndRecord"
+            HasPreviousPage="@paginationState.HasPreviousPage" HasNextPage="@paginationState.HasNextPage"
+            IsLoading="@isLoading" OnPageChanged="HandlePageChanged" />
     }
 </div>
 
