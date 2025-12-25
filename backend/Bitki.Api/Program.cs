@@ -35,6 +35,13 @@ builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IMasterDataService, Bi
 
 // Aktivite
 builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Aktivite.IAktiviteRepository, Bitki.Infrastructure.Repositories.Aktivite.AktiviteRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Aktivite.IAktiviteBitkilitRepository, Bitki.Infrastructure.Repositories.Aktivite.AktiviteBitkilitRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Aktivite.IAktiviteCalismaRepository, Bitki.Infrastructure.Repositories.Aktivite.AktiviteCalismaRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Aktivite.IAktiviteEtkiRepository, Bitki.Infrastructure.Repositories.Aktivite.AktiviteEtkiRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Aktivite.IAktiviteLokaliteRepository, Bitki.Infrastructure.Repositories.Aktivite.AktiviteLokaliteRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Aktivite.IAktiviteSaflastirmaRepository, Bitki.Infrastructure.Repositories.Aktivite.AktiviteSaflastirmaRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Aktivite.IAktiviteTestYeriRepository, Bitki.Infrastructure.Repositories.Aktivite.AktiviteTestYeriRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Aktivite.IAktiviteYontemRepository, Bitki.Infrastructure.Repositories.Aktivite.AktiviteYontemRepository>();
 builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IAktiviteService, Bitki.Infrastructure.Services.AktiviteService>();
 
 // Etnobotanik
