@@ -1,0 +1,44 @@
+@page "/etnolokalite"
+@using Bitki.Blazor.Models
+@inject HttpClient Http
+
+<h3>Etnobotanik Lokalite Listesi</h3>
+
+@if (items == null)
+{
+    <p><em>Yükleniyor...</em></p>
+}
+else
+{
+    <p>Kayıt Sayısı: @items.Length</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Yerel Ad</th>
+                <th>Mevki</th>
+                <th>Kullanım</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in items)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.LocalName</td>
+                    <td>@item.Location</td>
+                    <td>@item.Usage</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private EtnolokaliteViewModel[]? items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        items = await Http.GetFromJsonAsync<EtnolokaliteViewModel[]>("api/etnolokalite");
+    }
+}
