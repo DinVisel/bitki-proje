@@ -1,5 +1,6 @@
-using Bitki.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
+using Bitki.Core.Entities;
+using Bitki.Core.Interfaces.Repositories.Literatur;
 
 namespace Bitki.Api.Controllers
 {
@@ -7,11 +8,18 @@ namespace Bitki.Api.Controllers
     [ApiController]
     public class LiteraturController : ControllerBase
     {
-        private readonly ILiteraturService _service;
+        private readonly ILiteraturRepository _repository;
 
-        public LiteraturController(ILiteraturService service)
+        public LiteraturController(ILiteraturRepository repository)
         {
-            _service = service;
+            _repository = repository;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Bitki.Core.Entities.Literatur>>> Get()
+        {
+            var data = await _repository.GetAllAsync();
+            return Ok(data);
         }
     }
 }

@@ -62,6 +62,9 @@ builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IUcuyagService, Bitki.
 
 // Literatur
 builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Literatur.ILiteraturRepository, Bitki.Infrastructure.Repositories.Literatur.LiteraturRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Literatur.ILiteraturHatalariRepository, Bitki.Infrastructure.Repositories.Literatur.LiteraturHatalariRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Literatur.ILiteraturKonularRepository, Bitki.Infrastructure.Repositories.Literatur.LiteraturKonularRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Literatur.IOtorRepository, Bitki.Infrastructure.Repositories.Literatur.OtorRepository>();
 builder.Services.AddScoped<Bitki.Core.Interfaces.Services.ILiteraturService, Bitki.Infrastructure.Services.LiteraturService>();
 
 // Ozellik

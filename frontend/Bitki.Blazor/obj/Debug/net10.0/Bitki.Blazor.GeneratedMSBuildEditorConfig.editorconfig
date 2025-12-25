@@ -114,8 +114,24 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9MaXRlcmF0dXJCaWxlc2lrTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/LiteraturHatalariList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9MaXRlcmF0dXJIYXRhbGFyaUxpc3QucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/LiteraturKonularList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9MaXRlcmF0dXJLb251bGFyTGlzdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/LiteraturList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9MaXRlcmF0dXJMaXN0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/NotFound.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Ob3RGb3VuZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/OtorList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9PdG9yTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/SehirList.razor]
