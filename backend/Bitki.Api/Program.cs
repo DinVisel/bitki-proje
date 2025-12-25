@@ -44,6 +44,12 @@ builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Aktivite.IAktivite
 builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Aktivite.IAktiviteYontemRepository, Bitki.Infrastructure.Repositories.Aktivite.AktiviteYontemRepository>();
 builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IAktiviteService, Bitki.Infrastructure.Services.AktiviteService>();
 
+// Compounds (Bilesikler)
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Compounds.IBilesiklerRepository, Bitki.Infrastructure.Repositories.Compounds.BilesiklerRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Compounds.IBitkiBilesikRepository, Bitki.Infrastructure.Repositories.Compounds.BitkiBilesikRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Compounds.ILiteraturBilesikRepository, Bitki.Infrastructure.Repositories.Compounds.LiteraturBilesikRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Compounds.IUcucuYagBilesikRepository, Bitki.Infrastructure.Repositories.Compounds.UcucuYagBilesikRepository>();
+
 // Etnobotanik
 builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Etnobotanik.IEtnobitkilitRepository, Bitki.Infrastructure.Repositories.Etnobotanik.EtnobitkilitRepository>();
 builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Etnobotanik.IEtnokullanimRepository, Bitki.Infrastructure.Repositories.Etnobotanik.EtnokullanimRepository>();
