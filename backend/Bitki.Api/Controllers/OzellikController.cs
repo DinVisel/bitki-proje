@@ -1,5 +1,6 @@
-using Bitki.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
+using Bitki.Core.Entities;
+using Bitki.Core.Interfaces.Repositories.Cleanup;
 
 namespace Bitki.Api.Controllers
 {
@@ -7,11 +8,18 @@ namespace Bitki.Api.Controllers
     [ApiController]
     public class OzellikController : ControllerBase
     {
-        private readonly IOzellikService _service;
+        private readonly IOzellikRepository _repository;
 
-        public OzellikController(IOzellikService service)
+        public OzellikController(IOzellikRepository repository)
         {
-            _service = service;
+            _repository = repository;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Bitki.Core.Entities.Ozellik>>> Get()
+        {
+            var data = await _repository.GetAllAsync();
+            return Ok(data);
         }
     }
 }

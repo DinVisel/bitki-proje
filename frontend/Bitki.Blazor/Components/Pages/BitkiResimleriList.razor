@@ -1,0 +1,44 @@
+@page "/bitkiresimleri"
+@using Bitki.Blazor.Models
+@inject HttpClient Http
+
+<h3>Bitki Resimleri Listesi</h3>
+
+@if (items == null)
+{
+    <p><em>Yükleniyor...</em></p>
+}
+else
+{
+    <p>Kayıt Sayısı: @items.Length</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Bitki Id</th>
+                <th>Resim Yeri</th>
+                <th>Açıklama</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in items)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.PlantId</td>
+                    <td>@item.ImageLocation</td>
+                    <td>@item.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private BitkiResimleriViewModel[]? items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        items = await Http.GetFromJsonAsync<BitkiResimleriViewModel[]>("api/bitkiresimleri");
+    }
+}

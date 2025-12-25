@@ -67,6 +67,12 @@ builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Literatur.ILiterat
 builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Literatur.IOtorRepository, Bitki.Infrastructure.Repositories.Literatur.OtorRepository>();
 builder.Services.AddScoped<Bitki.Core.Interfaces.Services.ILiteraturService, Bitki.Infrastructure.Services.LiteraturService>();
 
+// Cleanup (Batch 6)
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Cleanup.IBitkiResimleriRepository, Bitki.Infrastructure.Repositories.Cleanup.BitkiResimleriRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Cleanup.IEtkilerRepository, Bitki.Infrastructure.Repositories.Cleanup.EtkilerRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Cleanup.IOzellikRepository, Bitki.Infrastructure.Repositories.Cleanup.OzellikRepository>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Cleanup.IUcuyagRepository, Bitki.Infrastructure.Repositories.Cleanup.UcuyagRepository>();
+
 // Ozellik
 builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Ozellik.IOzellikRepository, Bitki.Infrastructure.Repositories.Ozellik.OzellikRepository>();
 builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IOzellikService, Bitki.Infrastructure.Services.OzellikService>();

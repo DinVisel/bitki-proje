@@ -66,12 +66,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9CaXRraUxpc3QucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/BitkiResimleriList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9CaXRraVJlc2ltbGVyaUxpc3QucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Counter.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Db3VudGVyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Error.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9FcnJvci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/EtkilerList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9FdGtpbGVyTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/EtnobitkilitList.razor]
@@ -134,12 +142,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9PdG9yTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/OzellikList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9PemVsbGlrTGlzdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/SehirList.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9TZWhpckxpc3QucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/UcucuYagBilesikList.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9VY3VjdVlhZ0JpbGVzaWtMaXN0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/UcuyagList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9VY3V5YWdMaXN0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/UlkeList.razor]

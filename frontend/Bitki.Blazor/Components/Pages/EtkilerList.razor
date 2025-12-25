@@ -1,0 +1,46 @@
+@page "/etkiler"
+@using Bitki.Blazor.Models
+@inject HttpClient Http
+
+<h3>Etkiler Listesi</h3>
+
+@if (items == null)
+{
+    <p><em>Yükleniyor...</em></p>
+}
+else
+{
+    <p>Kayıt Sayısı: @items.Length</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Adı</th>
+                <th>Latince</th>
+                <th>İngilizce</th>
+                <th>Açıklama</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in items)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Name</td>
+                    <td>@item.LatinName</td>
+                    <td>@item.EnglishName</td>
+                    <td>@item.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private EtkilerViewModel[]? items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        items = await Http.GetFromJsonAsync<EtkilerViewModel[]>("api/etkiler");
+    }
+}
