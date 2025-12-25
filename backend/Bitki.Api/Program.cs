@@ -22,4 +22,17 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 
+app.MapGet("/health/db", async (AppDbContext db) =>
+{
+    try
+    {
+        await db.Database.ExecuteSqlRawAsync("SELECT 1");
+        return Results.Ok("Database connection is healthy");
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"Database connection failed: {ex.Message}");
+    }
+});
+
 app.Run();
