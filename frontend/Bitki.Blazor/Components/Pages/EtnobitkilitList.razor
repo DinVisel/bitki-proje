@@ -1,6 +1,4 @@
-@page "/etnobitkil
-
-it"
+@page "/etnobitkiliit"
 @rendermode InteractiveServer
 @using Bitki.Blazor.Models
 @using Bitki.Blazor.Components.Common
@@ -27,11 +25,12 @@ it"
     }
     else
     {
-        <RecordExplorer TItem="EtnobitkilitViewModel" Items="items" Columns="columns" Title="Etno Bitki Literatür Kayıtları" ShowSearch="true">
+        <RecordExplorer TItem="EtnobitkilitViewModel" Items="items" Columns="columns" Title="Etno Bitki Literatür Kayıtları"
+            ShowSearch="true">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="EtnobitkilitViewModel" Item="selectedItem"
-                    Title="@($"Etno Bitki Literatür - {selectedItem.TurkishName}")" Fields="inspectorFields" OnSave="HandleSave"
-                    OnDelete="HandleDelete" />
+                    Title="@($"Etno Bitki Literatür - {selectedItem.TurkishName}")" Fields="inspectorFields"
+                    OnSave="HandleSave" OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
     }
@@ -43,20 +42,20 @@ it"
     private string? errorMessage;
 
     private List<ColumnDef> columns = new()
-    {
-        new ColumnDef { Title = "ID", PropertyName = "Id" },
-        new ColumnDef { Title = "Türkçe Ad", PropertyName = "TurkishName" },
-        new ColumnDef { Title = "Durum", PropertyName = "Status" },
-        new ColumnDef { Title = "Literatür ID", PropertyName = "LiteratureId" }
-    };
+{
+new ColumnDef { Title = "ID", PropertyName = "Id" },
+new ColumnDef { Title = "Türkçe Ad", PropertyName = "TurkishName" },
+new ColumnDef { Title = "Durum", PropertyName = "Status" },
+new ColumnDef { Title = "Literatür ID", PropertyName = "LiteratureId" }
+};
 
     private List<InspectorField> inspectorFields = new()
-    {
-        new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
-        new InspectorField { Label = "Türkçe Ad", PropertyName = "TurkishName", Editable = true },
-        new InspectorField { Label = "Durum", PropertyName = "Status", Editable = true },
-        new InspectorField { Label = "Literatür ID", PropertyName = "LiteratureId", Editable = true }
-    };
+{
+new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
+new InspectorField { Label = "Türkçe Ad", PropertyName = "TurkishName", Editable = true },
+new InspectorField { Label = "Durum", PropertyName = "Status", Editable = true },
+new InspectorField { Label = "Literatür ID", PropertyName = "LiteratureId", Editable = true }
+};
 
     protected override async Task OnInitializedAsync()
     {
@@ -70,9 +69,7 @@ it"
 
         try
         {
-            items = await Http.GetFromJsonAsync<EtnobitkilitViewModel[]>("api/etnobitkil
-
-it");
+            items = await Http.GetFromJsonAsync<EtnobitkilitViewModel[]>("api/etnobitkiliit");
         }
         catch (Exception ex)
         {
@@ -89,9 +86,7 @@ it");
     {
         try
         {
-            var response = await Http.PutAsJsonAsync($"api/etnobitkil
-
-it/{item.Id}", item);
+            var response = await Http.PutAsJsonAsync($"api/etnobitkiliit/{item.Id}", item);
 
             if (response.IsSuccessStatusCode)
             {
@@ -115,9 +110,7 @@ it/{item.Id}", item);
         {
             try
             {
-                var response = await Http.DeleteAsync($"api/etnobitkil
-
-it/{item.Id}");
+                var response = await Http.DeleteAsync($"api/etnobitkiliit/{item.Id}");
 
                 if (response.IsSuccessStatusCode)
                 {

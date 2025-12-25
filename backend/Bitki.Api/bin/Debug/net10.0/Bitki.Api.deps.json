@@ -732,6 +732,9 @@
         }
       },
       "Bitki.Core/1.0.0": {
+        "dependencies": {
+          "Dapper": "2.1.66"
+        },
         "runtime": {
           "Bitki.Core.dll": {
             "assemblyVersion": "1.0.0.0",

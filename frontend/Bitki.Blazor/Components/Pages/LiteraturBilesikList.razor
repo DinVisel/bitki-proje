@@ -1,6 +1,4 @@
-@page "/literaturbiles
-
-ik"
+@page "/literaturbilesik"
 @rendermode InteractiveServer
 @using Bitki.Blazor.Models
 @using Bitki.Blazor.Components.Common
@@ -27,11 +25,12 @@ ik"
     }
     else
     {
-        <RecordExplorer TItem="LiteraturBilesikViewModel" Items="items" Columns="columns" Title="Literatür-Bileşik Kayıtları" ShowSearch="true">
+        <RecordExplorer TItem="LiteraturBilesikViewModel" Items="items" Columns="columns"
+            Title="Literatür-Bileşik Kayıtları" ShowSearch="true">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="LiteraturBilesikViewModel" Item="selectedItem"
-                    Title="@($"Literatür-Bileşik Detayları - ID: {selectedItem.Id}")" Fields="inspectorFields" OnSave="HandleSave"
-                    OnDelete="HandleDelete" />
+                    Title="@($"Literatür-Bileşik Detayları - ID: {selectedItem.Id}")" Fields="inspectorFields"
+                    OnSave="HandleSave" OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
     }
@@ -43,19 +42,19 @@ ik"
     private string? errorMessage;
 
     private List<ColumnDef> columns = new()
-    {
-        new ColumnDef { Title = "ID", PropertyName = "Id" },
-        new ColumnDef { Title = "Literatür ID", PropertyName = "LiteratureId" },
-        new ColumnDef { Title = "Bileşik ID", PropertyName = "CompoundId" }
-    };
+{
+new ColumnDef { Title = "ID", PropertyName = "Id" },
+new ColumnDef { Title = "Literatür ID", PropertyName = "LiteratureId" },
+new ColumnDef { Title = "Bileşik ID", PropertyName = "CompoundId" }
+};
 
     private List<InspectorField> inspectorFields = new()
-    {
-        new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
-        new InspectorField { Label = "Literatür ID", PropertyName = "LiteratureId", Editable = true },
-        new InspectorField { Label = "Bileşik ID", PropertyName = "CompoundId", Editable = true },
-        new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true }
-    };
+{
+new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
+new InspectorField { Label = "Literatür ID", PropertyName = "LiteratureId", Editable = true },
+new InspectorField { Label = "Bileşik ID", PropertyName = "CompoundId", Editable = true },
+new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true }
+};
 
     protected override async Task OnInitializedAsync()
     {
@@ -69,9 +68,7 @@ ik"
 
         try
         {
-            items = await Http.GetFromJsonAsync<LiteraturBilesikViewModel[]>("api/literaturbiles
-
-ik");
+            items = await Http.GetFromJsonAsync<LiteraturBilesikViewModel[]>("api/literaturbilesik");
         }
         catch (Exception ex)
         {
@@ -88,9 +85,7 @@ ik");
     {
         try
         {
-            var response = await Http.PutAsJsonAsync($"api/literaturbiles
-
-ik/{item.Id}", item);
+            var response = await Http.PutAsJsonAsync($"api/literaturbilesik/{item.Id}", item);
 
             if (response.IsSuccessStatusCode)
             {
@@ -114,9 +109,7 @@ ik/{item.Id}", item);
         {
             try
             {
-                var response = await Http.DeleteAsync($"api/literaturbiles
-
-ik/{item.Id}");
+                var response = await Http.DeleteAsync($"api/literaturbilesik/{item.Id}");
 
                 if (response.IsSuccessStatusCode)
                 {

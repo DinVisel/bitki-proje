@@ -2,6 +2,8 @@ using System.Data;
 using Bitki.Core.Entities;
 using Bitki.Core.Interfaces;
 using Bitki.Core.Interfaces.Repositories;
+using Bitki.Core.Models;
+using Bitki.Core.Utilities;
 using Dapper;
 
 namespace Bitki.Infrastructure.Repositories
@@ -9,10 +11,16 @@ namespace Bitki.Infrastructure.Repositories
     public class BitkiRepository : IBitkiRepository
     {
         private readonly IDbConnectionFactory _connectionFactory;
+        private readonly QueryBuilder _queryBuilder;
 
         public BitkiRepository(IDbConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
+
+            // Define allowed and searchable columns
+            var allowedColumns = new[] { "bitkiid", "turkce", "bitki", "aciklama" };
+            var searchableColumns = new[] { "turkce", "bitki", "aciklama" };
+            _queryBuilder = new QueryBuilder("bitki", allowedColumns, searchableColumns);
         }
 
         public async Task<IEnumerable<Plant>> GetAllAsync()
@@ -69,6 +77,49 @@ namespace Bitki.Infrastructure.Repositories
             using var connection = _connectionFactory.CreateConnection();
             var sql = "DELETE FROM dbo.bitki WHERE bitkiid = @Id";
             await connection.ExecuteAsync(sql, new { Id = id });
+        }
+
+        public async Task<FilterResponse<Plant>> QueryAsync(FilterRequest request)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var parameters = new DynamicParameters();
+
+            // Build SELECT query
+            var selectColumns = "bitkiid AS Id, turkce AS Name, bitki AS LatinName, aciklama AS Description";
+            var selectSql = _queryBuilder.BuildSelectQuery(
+                selectColumns,
+                request.SearchText,
+                request.Filters,
+                request.SortColumn,
+                request.SortDirection,
+                parameters,
+                request.IncludeDeleted
+            );
+
+            // Build COUNT query for total records
+            var totalCountSql = "SELECT COUNT(*) FROM dbo.bitki";
+
+            // Build COUNT query for filtered records
+            var filteredCountSql = _queryBuilder.BuildCountQuery(
+                request.SearchText,
+                request.Filters,
+                parameters,
+                request.IncludeDeleted
+            );
+
+            // Execute queries
+            var data = await connection.QueryAsync<Plant>(selectSql, parameters);
+            var totalCount = await connection.ExecuteScalarAsync<int>(totalCountSql);
+            var filteredCount = await connection.ExecuteScalarAsync<int>(filteredCountSql, parameters);
+
+            return new FilterResponse<Plant>
+            {
+                Data = data,
+                TotalCount = totalCount,
+                FilteredCount = filteredCount,
+                PageNumber = request.PageNumber,
+                PageSize = request.PageSize
+            };
         }
     }
 }

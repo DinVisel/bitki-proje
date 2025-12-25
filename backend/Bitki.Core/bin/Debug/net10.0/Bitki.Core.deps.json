@@ -7,8 +7,19 @@
   "targets": {
     ".NETCoreApp,Version=v10.0": {
       "Bitki.Core/1.0.0": {
+        "dependencies": {
+          "Dapper": "2.1.35"
+        },
         "runtime": {
           "Bitki.Core.dll": {}
+        }
+      },
+      "Dapper/2.1.35": {
+        "runtime": {
+          "lib/net7.0/Dapper.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "2.1.35.13827"
+          }
         }
       }
     }
@@ -18,6 +29,13 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "Dapper/2.1.35": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-YKRwjVfrG7GYOovlGyQoMvr1/IJdn+7QzNXJxyMh0YfFF5yvDmTYaJOVYWsckreNjGsGSEtrMTpnzxTUq/tZQw==",
+      "path": "dapper/2.1.35",
+      "hashPath": "dapper.2.1.35.nupkg.sha512"
     }
   }
 }

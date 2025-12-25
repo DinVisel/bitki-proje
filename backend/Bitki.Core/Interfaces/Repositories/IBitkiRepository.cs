@@ -1,4 +1,5 @@
 using Bitki.Core.Entities;
+using Bitki.Core.Models;
 
 namespace Bitki.Core.Interfaces.Repositories
 {
@@ -9,5 +10,6 @@ namespace Bitki.Core.Interfaces.Repositories
         Task<int> AddAsync(Plant plant);
         Task UpdateAsync(Plant plant);
         Task DeleteAsync(int id);
+        Task<FilterResponse<Plant>> QueryAsync(FilterRequest request);
     }
 }

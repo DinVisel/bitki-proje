@@ -11,22 +11,15 @@
 <div class="page-container">
     <h1>Uçucu Yağ Veritabanı</h1>
 
-    @if (isLoading)
-    {
-        <div class="loading-state">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    }
-    else if (errorMessage != null)
+    @if (errorMessage != null)
     {
         <div class="alert alert-danger">@errorMessage</div>
     }
     else
     {
         <RecordExplorer TItem="UcuyagViewModel" Items="items" Columns="columns" Title="Uçucu Yağ Kayıtları"
-            ShowSearch="true">
+            ShowSearch="true" IsLoading="isLoading" TotalCount="totalCount" FilteredCount="filteredCount"
+            OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="UcuyagViewModel" Item="selectedItem"
                     Title="@($"Uçucu Yağ Detayları - {selectedItem.Name}")" Fields="inspectorFields" OnSave="HandleSave"
@@ -40,6 +33,10 @@
     private UcuyagViewModel[]? items;
     private bool isLoading = true;
     private string? errorMessage;
+    private int? totalCount;
+    private int? filteredCount;
+
+    private FilterRequest currentFilter = new FilterRequest();
 
     private List<ColumnDef> columns = new()
 {
@@ -59,17 +56,32 @@ new InspectorField { Label = "Kullanım", PropertyName = "Usage", Editable = tru
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadData();
+        await LoadDataWithFilter();
     }
 
-    private async Task LoadData()
+    private async Task LoadDataWithFilter()
     {
         isLoading = true;
         errorMessage = null;
 
         try
         {
-            items = await Http.GetFromJsonAsync<UcuyagViewModel[]>("api/ucuyag");
+            var response = await Http.PostAsJsonAsync("api/ucuyag/query", currentFilter);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var filterResponse = await response.Content.ReadFromJsonAsync<FilterResponse<UcuyagViewModel>>();
+                if (filterResponse != null)
+                {
+                    items = filterResponse.Data.ToArray();
+                    totalCount = filterResponse.TotalCount;
+                    filteredCount = filterResponse.FilteredCount;
+                }
+            }
+            else
+            {
+                errorMessage = $"Error loading data: {response.StatusCode}";
+            }
         }
         catch (Exception ex)
         {
@@ -82,6 +94,19 @@ new InspectorField { Label = "Kullanım", PropertyName = "Usage", Editable = tru
         }
     }
 
+    private async Task HandleSearchChanged(string searchText)
+    {
+        currentFilter.SearchText = searchText;
+        await LoadDataWithFilter();
+    }
+
+    private async Task HandleSortChanged((string column, bool ascending) sort)
+    {
+        currentFilter.SortColumn = sort.column;
+        currentFilter.SortDirection = sort.ascending ? "ASC" : "DESC";
+        await LoadDataWithFilter();
+    }
+
     private async Task HandleSave(UcuyagViewModel item)
     {
         try
@@ -91,7 +116,7 @@ new InspectorField { Label = "Kullanım", PropertyName = "Usage", Editable = tru
             if (response.IsSuccessStatusCode)
             {
                 await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
-                await LoadData();
+                await LoadDataWithFilter();
             }
             else
             {
@@ -115,7 +140,7 @@ new InspectorField { Label = "Kullanım", PropertyName = "Usage", Editable = tru
                 if (response.IsSuccessStatusCode)
                 {
                     await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
-                    await LoadData();
+                    await LoadDataWithFilter();
                 }
                 else
                 {

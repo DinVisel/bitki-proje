@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Bitki.Core.Entities;
 using Bitki.Core.Interfaces.Repositories;
+using Bitki.Core.Models;
 
 namespace Bitki.Api.Controllers
 {
@@ -55,6 +56,20 @@ namespace Bitki.Api.Controllers
         {
             await _repository.DeleteAsync(id);
             return NoContent();
+        }
+
+        [HttpPost("query")]
+        public async Task<ActionResult<FilterResponse<Plant>>> Query([FromBody] FilterRequest request)
+        {
+            try
+            {
+                var result = await _repository.QueryAsync(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
     }
 }

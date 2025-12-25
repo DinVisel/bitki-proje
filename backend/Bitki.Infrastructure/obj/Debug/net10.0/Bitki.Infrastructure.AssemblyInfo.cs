@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Bitki.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+83e478119f573637ac8d1a2632287770c86c3766")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7128e2fd0d4d54dd48112ff462d5c3f90c52554d")]
 [assembly: System.Reflection.AssemblyProductAttribute("Bitki.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Bitki.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

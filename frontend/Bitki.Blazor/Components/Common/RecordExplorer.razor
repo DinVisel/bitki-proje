@@ -1,23 +1,40 @@
 @typeparam TItem
 @using Microsoft.AspNetCore.Components.Authorization
+@using System.Timers
 
 <div class="record-explorer">
     <div class="record-list-panel">
         <div class="panel-header">
             <h4>@Title</h4>
-            <div class="record-count">@Items?.Count() ?? 0 records</div>
+            <div class="record-count">
+                @if (TotalCount.HasValue && FilteredCount.HasValue)
+                {
+                    @if (TotalCount == FilteredCount)
+                    {
+                        <text>@TotalCount records</text>
+                    }
+                    else
+                    {
+                        <text>@FilteredCount of @TotalCount records</text>
+                    }
+                }
+                else
+                {
+                    <text>@(Items?.Count() ?? 0) records</text>
+                }
+            </div>
         </div>
 
         @if (ShowSearch)
         {
             <div class="search-box">
-                <input type="text" class="form-control" placeholder="Search..." @bind="searchTerm" @bind:event="oninput"
-                    @onkeyup="HandleSearch" />
+                <input type="text" class="form-control" placeholder="Search..." @bind="searchTerm"
+                    @oninput="HandleSearchInput" />
             </div>
         }
 
         <div class="record-table-container">
-            @if (Items == null)
+            @if (IsLoading)
             {
                 <div class="loading-state">
                     <div class="spinner-border text-primary" role="status">
@@ -25,7 +42,7 @@
                     </div>
                 </div>
             }
-            else if (!FilteredItems.Any())
+            else if (Items == null || !Items.Any())
             {
                 <div class="empty-state">No records found</div>
             }
@@ -36,18 +53,18 @@
                         <tr>
                             @foreach (var column in Columns)
                             {
-                                <th @onclick="() => SortByColumn(column.PropertyName)">
+                                <th @onclick="() => HandleSortClick(column.PropertyName)">
                                     @column.Title
-                                    @if (sortColumn == column.PropertyName)
+                                    @if (CurrentSortColumn == column.PropertyName)
                                     {
-                                        <span class="sort-indicator">@(sortAscending ? "▲" : "▼")</span>
+                                        <span class="sort-indicator">@(CurrentSortAscending ? "▲" : "▼")</span>
                                     }
                                 </th>
                             }
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in FilteredItems)
+                        @foreach (var item in Items)
                         {
                             var isSelected = SelectedItem?.Equals(item) ?? false;
                             <tr class="@(isSelected ? "selected" : "")" @onclick="() => SelectRecord(item)">
@@ -84,45 +101,44 @@
     [Parameter] public bool ShowSearch { get; set; } = true;
     [Parameter] public RenderFragment<TItem> InspectorContent { get; set; } = null!;
     [Parameter] public EventCallback<TItem> OnRecordSelected { get; set; }
+    [Parameter] public EventCallback<string> OnSearchChanged { get; set; }
+    [Parameter] public EventCallback<(string column, bool ascending)> OnSortChanged { get; set; }
+    [Parameter] public bool IsLoading { get; set; } = false;
+    [Parameter] public int? TotalCount { get; set; }
+    [Parameter] public int? FilteredCount { get; set; }
 
     private TItem? SelectedItem { get; set; }
     private string searchTerm = string.Empty;
-    private string sortColumn = string.Empty;
-    private bool sortAscending = true;
+    private string CurrentSortColumn = string.Empty;
+    private bool CurrentSortAscending = true;
+    private System.Timers.Timer? debounceTimer;
 
-    private IEnumerable<TItem> FilteredItems
+    protected override void OnInitialized()
     {
-        get
+        // Initialize debounce timer for search
+        debounceTimer = new System.Timers.Timer(500); // 500ms debounce
+        debounceTimer.Elapsed += OnDebounceElapsed;
+        debounceTimer.AutoReset = false;
+    }
+
+    private void HandleSearchInput(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? string.Empty;
+
+        // Reset and start debounce timer
+        debounceTimer?.Stop();
+        debounceTimer?.Start();
+    }
+
+    private async void OnDebounceElapsed(object? sender, ElapsedEventArgs e)
+    {
+        await InvokeAsync(async () =>
         {
-            if (Items == null) return Enumerable.Empty<TItem>();
-
-            var filtered = Items.AsEnumerable();
-
-            // Apply search filter
-            if (!string.IsNullOrWhiteSpace(searchTerm))
+            if (OnSearchChanged.HasDelegate)
             {
-                filtered = filtered.Where(item =>
-                {
-                    foreach (var column in Columns)
-                    {
-                        var value = GetPropertyValue(item, column.PropertyName);
-                        if (value?.ToString()?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-                            return true;
-                    }
-                    return false;
-                });
+                await OnSearchChanged.InvokeAsync(searchTerm);
             }
-
-            // Apply sorting
-            if (!string.IsNullOrEmpty(sortColumn))
-            {
-                filtered = sortAscending
-                ? filtered.OrderBy(item => GetPropertyValue(item, sortColumn))
-                : filtered.OrderByDescending(item => GetPropertyValue(item, sortColumn));
-            }
-
-            return filtered;
-        }
+        });
     }
 
     private async Task SelectRecord(TItem item)
@@ -134,23 +150,22 @@
         }
     }
 
-    private void SortByColumn(string columnName)
+    private async Task HandleSortClick(string columnName)
     {
-        if (sortColumn == columnName)
+        if (CurrentSortColumn == columnName)
         {
-            sortAscending = !sortAscending;
+            CurrentSortAscending = !CurrentSortAscending;
         }
         else
         {
-            sortColumn = columnName;
-            sortAscending = true;
+            CurrentSortColumn = columnName;
+            CurrentSortAscending = true;
         }
-    }
 
-    private void HandleSearch()
-    {
-        // Search is reactive through FilteredItems
-        StateHasChanged();
+        if (OnSortChanged.HasDelegate)
+        {
+            await OnSortChanged.InvokeAsync((CurrentSortColumn, CurrentSortAscending));
+        }
     }
 
     private object? GetPropertyValue(TItem item, string propertyName)
@@ -158,5 +173,10 @@
         if (item == null) return null;
         var property = typeof(TItem).GetProperty(propertyName);
         return property?.GetValue(item);
+    }
+
+    public void Dispose()
+    {
+        debounceTimer?.Dispose();
     }
 }

@@ -1,6 +1,4 @@
-@page "/bitkires
-
-imleri"
+@page "/bitkiresimleri"
 @rendermode InteractiveServer
 @using Bitki.Blazor.Models
 @using Bitki.Blazor.Components.Common
@@ -27,7 +25,8 @@ imleri"
     }
     else
     {
-        <RecordExplorer TItem="BitkiResimleriViewModel" Items="items" Columns="columns" Title="Bitki Resim Kayıtları" ShowSearch="true">
+        <RecordExplorer TItem="BitkiResimleriViewModel" Items="items" Columns="columns" Title="Bitki Resim Kayıtları"
+            ShowSearch="true">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="BitkiResimleriViewModel" Item="selectedItem"
                     Title="@($"Bitki Resim Detayları - ID: {selectedItem.Id}")" Fields="inspectorFields" OnSave="HandleSave"
@@ -37,7 +36,8 @@ imleri"
                         {
                             <div class="mt-3">
                                 <h6>Resim Önizleme</h6>
-                                <ImageRenderer ImageValue="@item.ImageLocation" AltText="@item.Description" ThumbnailMode="false" />
+                                <ImageRenderer ImageValue="@item.ImageLocation" AltText="@item.Description"
+                                    ThumbnailMode="false" />
                             </div>
                         }
                     </AdditionalContent>
@@ -53,19 +53,19 @@ imleri"
     private string? errorMessage;
 
     private List<ColumnDef> columns = new()
-    {
-        new ColumnDef { Title = "ID", PropertyName = "Id" },
-        new ColumnDef { Title = "Bitki ID", PropertyName = "PlantId" },
-        new ColumnDef { Title = "Açıklama", PropertyName = "Description" }
-    };
+{
+new ColumnDef { Title = "ID", PropertyName = "Id" },
+new ColumnDef { Title = "Bitki ID", PropertyName = "PlantId" },
+new ColumnDef { Title = "Açıklama", PropertyName = "Description" }
+};
 
     private List<InspectorField> inspectorFields = new()
-    {
-        new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
-        new InspectorField { Label = "Bitki ID", PropertyName = "PlantId", Editable = true },
-        new InspectorField { Label = "Resim Konumu", PropertyName = "ImageLocation", Editable = true },
-        new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true }
-    };
+{
+new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
+new InspectorField { Label = "Bitki ID", PropertyName = "PlantId", Editable = true },
+new InspectorField { Label = "Resim Konumu", PropertyName = "ImageLocation", Editable = true },
+new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true }
+};
 
     protected override async Task OnInitializedAsync()
     {
@@ -79,9 +79,7 @@ imleri"
 
         try
         {
-            items = await Http.GetFromJsonAsync<BitkiResimleriViewModel[]>("api/bitkires
-
-imleri");
+            items = await Http.GetFromJsonAsync<BitkiResimleriViewModel[]>("api/bitkiresimleri");
         }
         catch (Exception ex)
         {
@@ -98,9 +96,7 @@ imleri");
     {
         try
         {
-            var response = await Http.PutAsJsonAsync($"api/bitkires
-
-imleri/{item.Id}", item);
+            var response = await Http.PutAsJsonAsync($"api/bitkiresimleri/{item.Id}", item);
 
             if (response.IsSuccessStatusCode)
             {
@@ -124,9 +120,7 @@ imleri/{item.Id}", item);
         {
             try
             {
-                var response = await Http.DeleteAsync($"api/bitkires
-
-imleri/{item.Id}");
+                var response = await Http.DeleteAsync($"api/bitkiresimleri/{item.Id}");
 
                 if (response.IsSuccessStatusCode)
                 {
