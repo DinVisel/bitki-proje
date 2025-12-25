@@ -1,0 +1,140 @@
+@* Pagination controls component for database explorer *@
+<div class="pagination-controls">
+    <div class="pagination-info">
+        @if (TotalRecords > 0)
+        {
+            <span>Showing @StartRecord–@EndRecord of @TotalRecords records</span>
+        }
+        else
+        {
+            <span>No records found</span>
+        }
+    </div>
+
+    <div class="pagination-buttons">
+        <button class="btn btn-sm btn-outline-primary" @onclick="PreviousPage"
+            disabled="@(!HasPreviousPage || IsLoading)">
+            ← Previous
+        </button>
+        <span class="page-indicator">Page @CurrentPage of @TotalPages</span>
+        <button class="btn btn-sm btn-outline-primary" @onclick="NextPage" disabled="@(!HasNextPage || IsLoading)">
+            Next →
+        </button>
+    </div>
+
+    <div class="page-size-selector">
+        <select class="form-select form-select-sm" value="@SelectedPageSize" @onchange="HandlePageSizeChange"
+            disabled="@IsLoading">
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+        </select>
+        <span>per page</span>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public int PageSize { get; set; } = 20;
+    [Parameter] public int TotalPages { get; set; }
+    [Parameter] public int TotalRecords { get; set; }
+    [Parameter] public int StartRecord { get; set; }
+    [Parameter] public int EndRecord { get; set; }
+    [Parameter] public bool HasPreviousPage { get; set; }
+    [Parameter] public bool HasNextPage { get; set; }
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public EventCallback<(int page, int pageSize)> OnPageChanged { get; set; }
+
+    private int SelectedPageSize { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        SelectedPageSize = PageSize;
+    }
+
+    private async Task PreviousPage()
+    {
+        if (HasPreviousPage && !IsLoading)
+        {
+            await OnPageChanged.InvokeAsync((CurrentPage - 1, PageSize));
+        }
+    }
+
+    private async Task NextPage()
+    {
+        if (HasNextPage && !IsLoading)
+        {
+            await OnPageChanged.InvokeAsync((CurrentPage + 1, PageSize));
+        }
+    }
+
+    private async Task HandlePageSizeChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int newPageSize))
+        {
+            await OnPageChanged.InvokeAsync((1, newPageSize)); // Reset to page 1 when changing page size
+        }
+    }
+}
+
+<style>
+    .pagination-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-top: 1px solid #dee2e6;
+        background-color: #f8f9fa;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .pagination-info {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .pagination-buttons {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .page-indicator {
+        font-size: 0.875rem;
+        color: #495057;
+        min-width: 100px;
+        text-align: center;
+    }
+
+    .page-size-selector {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .page-size-selector select {
+        width: auto;
+    }
+
+    .page-size-selector span {
+        color: #6c757d;
+    }
+
+    @@media (max-width: 768px) {
+        .pagination-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .pagination-buttons {
+            justify-content: center;
+        }
+
+        .page-size-selector {
+            justify-content: center;
+        }
+    }
+</style>

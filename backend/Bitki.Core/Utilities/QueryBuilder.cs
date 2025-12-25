@@ -95,7 +95,7 @@ namespace Bitki.Core.Utilities
         }
 
         /// <summary>
-        /// Builds a complete SELECT query with filters, search, and sorting
+        /// Builds a complete SELECT query with filters, search, sorting, and pagination
         /// </summary>
         public string BuildSelectQuery(
             string selectColumns,
@@ -104,7 +104,9 @@ namespace Bitki.Core.Utilities
             string? sortColumn,
             string sortDirection,
             DynamicParameters parameters,
-            bool includeDeleted = false)
+            bool includeDeleted = false,
+            int? pageNumber = null,
+            int? pageSize = null)
         {
             var sql = new StringBuilder();
             sql.AppendLine($"SELECT {selectColumns}");
@@ -140,6 +142,15 @@ namespace Bitki.Core.Utilities
             if (!string.IsNullOrEmpty(orderBy))
             {
                 sql.AppendLine(orderBy);
+            }
+
+            // Add pagination (LIMIT and OFFSET)
+            if (pageNumber.HasValue && pageSize.HasValue && pageSize.Value > 0)
+            {
+                var offset = (pageNumber.Value - 1) * pageSize.Value;
+                sql.AppendLine($"LIMIT @PageSize OFFSET @Offset");
+                parameters.Add("PageSize", pageSize.Value);
+                parameters.Add("Offset", offset);
             }
 
             return sql.ToString();

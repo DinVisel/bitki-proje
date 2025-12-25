@@ -20,6 +20,13 @@
         <RecordExplorer TItem="UcuyagViewModel" Items="items" Columns="columns" Title="Uçucu Yağ Kayıtları"
             ShowSearch="true" IsLoading="isLoading" TotalCount="totalCount" FilteredCount="filteredCount"
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
+            <PaginationContent>
+                <PaginationControls CurrentPage="@paginationState.PageNumber" PageSize="@paginationState.PageSize"
+                    TotalPages="@paginationState.TotalPages" TotalRecords="@paginationState.FilteredCount"
+                    StartRecord="@paginationState.StartRecord" EndRecord="@paginationState.EndRecord"
+                    HasPreviousPage="@paginationState.HasPreviousPage" HasNextPage="@paginationState.HasNextPage"
+                    IsLoading="@isLoading" OnPageChanged="HandlePageChanged" />
+            </PaginationContent>
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="UcuyagViewModel" Item="selectedItem"
                     Title="@($"Uçucu Yağ Detayları - {selectedItem.Name}")" Fields="inspectorFields" OnSave="HandleSave"
@@ -35,6 +42,7 @@
     private string? errorMessage;
     private int? totalCount;
     private int? filteredCount;
+    private FilterResponse<UcuyagViewModel> paginationState = new FilterResponse<UcuyagViewModel>();
 
     private FilterRequest currentFilter = new FilterRequest();
 
@@ -76,6 +84,7 @@ new InspectorField { Label = "Kullanım", PropertyName = "Usage", Editable = tru
                     items = filterResponse.Data.ToArray();
                     totalCount = filterResponse.TotalCount;
                     filteredCount = filterResponse.FilteredCount;
+                    paginationState = filterResponse; // Store pagination state
                 }
             }
             else
@@ -97,6 +106,7 @@ new InspectorField { Label = "Kullanım", PropertyName = "Usage", Editable = tru
     private async Task HandleSearchChanged(string searchText)
     {
         currentFilter.SearchText = searchText;
+        currentFilter.PageNumber = 1; // Reset to page 1 on search
         await LoadDataWithFilter();
     }
 
@@ -104,6 +114,14 @@ new InspectorField { Label = "Kullanım", PropertyName = "Usage", Editable = tru
     {
         currentFilter.SortColumn = sort.column;
         currentFilter.SortDirection = sort.ascending ? "ASC" : "DESC";
+        currentFilter.PageNumber = 1; // Reset to page 1 on sort
+        await LoadDataWithFilter();
+    }
+
+    private async Task HandlePageChanged((int page, int pageSize) pagination)
+    {
+        currentFilter.PageNumber = pagination.page;
+        currentFilter.PageSize = pagination.pageSize;
         await LoadDataWithFilter();
     }
 

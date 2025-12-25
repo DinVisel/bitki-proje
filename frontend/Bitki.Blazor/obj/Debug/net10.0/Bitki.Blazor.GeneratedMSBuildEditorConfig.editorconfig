@@ -38,6 +38,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db21tb24vSW1hZ2VSZW5kZXJlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Common/PaginationControls.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db21tb24vUGFnaW5hdGlvbkNvbnRyb2xzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Common/RecordExplorer.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db21tb24vUmVjb3JkRXhwbG9yZXIucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 

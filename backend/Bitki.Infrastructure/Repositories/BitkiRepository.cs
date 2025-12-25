@@ -81,6 +81,8 @@ namespace Bitki.Infrastructure.Repositories
 
         public async Task<FilterResponse<Plant>> QueryAsync(FilterRequest request)
         {
+            request.ValidatePagination(); // Validate pagination parameters
+
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
@@ -93,7 +95,9 @@ namespace Bitki.Infrastructure.Repositories
                 request.SortColumn,
                 request.SortDirection,
                 parameters,
-                request.IncludeDeleted
+                request.IncludeDeleted,
+                request.PageNumber,
+                request.PageSize
             );
 
             // Build COUNT query for total records

@@ -32,6 +32,8 @@ namespace Bitki.Infrastructure.Repositories.Cleanup
 
         public async Task<FilterResponse<Bitki.Core.Entities.Ucuyag>> QueryAsync(FilterRequest request)
         {
+            request.ValidatePagination(); // Validate pagination parameters
+
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
@@ -44,7 +46,9 @@ namespace Bitki.Infrastructure.Repositories.Cleanup
                 request.SortColumn,
                 request.SortDirection,
                 parameters,
-                request.IncludeDeleted
+                request.IncludeDeleted,
+                request.PageNumber,
+                request.PageSize
             );
 
             // Build COUNT query for total records

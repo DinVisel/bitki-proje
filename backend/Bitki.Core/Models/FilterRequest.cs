@@ -27,18 +27,28 @@ namespace Bitki.Core.Models
         public string SortDirection { get; set; } = "ASC";
 
         /// <summary>
-        /// Page number for pagination (1-indexed, future-proof)
+        /// Page number for pagination (1-indexed)
         /// </summary>
-        public int? PageNumber { get; set; }
+        public int PageNumber { get; set; } = 1;
 
         /// <summary>
-        /// Page size for pagination (future-proof)
+        /// Page size for pagination (default 20, max 100)
         /// </summary>
-        public int? PageSize { get; set; }
+        public int PageSize { get; set; } = 20;
 
         /// <summary>
         /// Include soft-deleted records (admin only)
         /// </summary>
         public bool IncludeDeleted { get; set; } = false;
+
+        /// <summary>
+        /// Validates and corrects pagination parameters
+        /// </summary>
+        public void ValidatePagination()
+        {
+            if (PageNumber < 1) PageNumber = 1;
+            if (PageSize < 1) PageSize = 20;
+            if (PageSize > 100) PageSize = 100;
+        }
     }
 }
