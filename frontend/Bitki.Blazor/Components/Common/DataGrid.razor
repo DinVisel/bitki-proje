@@ -1,0 +1,155 @@
+@typeparam TItem
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Reflection
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-secondary">@Title</h5>
+            <div class="input-group input-group-sm" style="width: 250px;">
+                <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control border-0 bg-light" placeholder="Filter..." @bind="FilterText"
+                    @bind:event="oninput" />
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="bg-light text-muted small text-uppercase" style="position: sticky; top: 0; z-index: 10;">
+                    <tr>
+                        @foreach (var col in Columns)
+                        {
+                            <th class="border-0 cursor-pointer user-select-none" @onclick="() => Sort(col.PropertyName)">
+                                <div class="d-flex align-items-center gap-1">
+                                    @col.Title
+                                    @if (SortColumn == col.PropertyName)
+                                    {
+                                        <span>@(SortAscending ? "▲" : "▼")</span>
+                                    }
+                                </div>
+                            </th>
+                        }
+                        <AuthorizeView Roles="Admin">
+                            <th class="border-0 text-end pe-3" style="width: 150px;">Actions</th>
+                        </AuthorizeView>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!FilteredItems.Any())
+                    {
+                        <tr>
+                            <td colspan="@(Columns.Count + 1)" class="text-center py-5 text-muted">
+                                <span class="d-block mb-2">No records found</span>
+                                <small>Try adjusting your search filters</small>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in FilteredItems)
+                        {
+                            <tr>
+                                @foreach (var col in Columns)
+                                {
+                                    <td class="border-bottom-0 text-dark">
+                                        @GetPropertyValue(item, col.PropertyName)
+                                    </td>
+                                }
+                                <AuthorizeView Roles="Admin">
+                                    <td class="border-bottom-0 text-end pe-3">
+                                        <button class="btn btn-sm btn-outline-secondary me-1"
+                                            @onclick="() => OnEdit.InvokeAsync(item)">
+                                            Edit
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger"
+                                            @onclick="() => OnDelete.InvokeAsync(item)">
+                                            Delete
+                                        </button>
+                                    </td>
+                                </AuthorizeView>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white border-0 py-2 small text-muted d-flex justify-content-between">
+        <span>Total: @Items.Count()</span>
+        <span>Showing: @FilteredItems.Count()</span>
+    </div>
+</div>
+
+<style>
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .table th {
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+</style>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Data Explorer";
+    [Parameter] public IEnumerable<TItem> Items { get; set; } = new List<TItem>();
+    [Parameter] public List<ColumnDef> Columns { get; set; } = new();
+    [Parameter] public EventCallback<TItem> OnEdit { get; set; }
+    [Parameter] public EventCallback<TItem> OnDelete { get; set; }
+
+    private string FilterText { get; set; } = "";
+    private string SortColumn { get; set; }
+    private bool SortAscending { get; set; } = true;
+
+    private IEnumerable<TItem> FilteredItems
+    {
+        get
+        {
+            var items = Items;
+            if (items == null) return Enumerable.Empty<TItem>();
+
+            if (!string.IsNullOrWhiteSpace(FilterText))
+            {
+                items = items.Where(i =>
+                Columns.Any(c =>
+                GetPropertyValue(i, c.PropertyName)?.ToString()?.Contains(FilterText, StringComparison.OrdinalIgnoreCase) ?? false
+                )
+                );
+            }
+
+            if (!string.IsNullOrEmpty(SortColumn))
+            {
+                var prop = typeof(TItem).GetProperty(SortColumn);
+                if (prop != null)
+                {
+                    if (SortAscending)
+                        items = items.OrderBy(x => prop.GetValue(x));
+                    else
+                        items = items.OrderByDescending(x => prop.GetValue(x));
+                }
+            }
+
+            return items;
+        }
+    }
+
+    private void Sort(string column)
+    {
+        if (SortColumn == column)
+        {
+            SortAscending = !SortAscending;
+        }
+        else
+        {
+            SortColumn = column;
+            SortAscending = true;
+        }
+    }
+
+    private object GetPropertyValue(TItem item, string propName)
+    {
+        return typeof(TItem).GetProperty(propName)?.GetValue(item);
+    }
+}

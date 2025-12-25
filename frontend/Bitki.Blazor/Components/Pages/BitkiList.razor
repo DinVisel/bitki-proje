@@ -1,49 +1,29 @@
 @page "/bitki"
 @using Bitki.Blazor.Models
+@using Bitki.Blazor.Components.Common
 @inject HttpClient Http
-
-<h1>Bitkiler</h1>
+@inject IJSRuntime JS
 
 @if (bitkiler == null)
 {
     if (isLoading)
     {
-        <div class="loading-indicator">
-            <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
-            Veriler yükleniyor...
+        <div class="d-flex justify-content-center align-items-center" style="height: 400px;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
         </div>
     }
     else
     {
-        <p class="text-danger">@errorMessage</p>
+        <div class="alert alert-danger">@errorMessage</div>
     }
 }
 else
 {
-    <div class="record-count">Kayıt Sayısı: @bitkiler.Count</div>
-
-    <div class="table-responsive">
-        <table class="table academic-table">
-            <thead>
-                <tr>
-                    <th>Ad</th>
-                    <th>Latince Ad</th>
-                    <th>Aile</th>
-                    <th>Açıklama</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var bitki in bitkiler)
-                {
-                    <tr>
-                        <td class="fw-bold text-primary">@bitki.Name</td>
-                        <td class="fst-italic">@bitki.LatinName</td>
-                        <td>@bitki.Family</td>
-                        <td class="text-muted small">@bitki.Description</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div class="container-fluid mt-4">
+        <DataGrid TItem="BitkiViewModel" Items="bitkiler" Columns="columns" Title="Bitkiler Veritabanı" OnEdit="HandleEdit"
+            OnDelete="HandleDelete" />
     </div>
 }
 
@@ -51,6 +31,14 @@ else
     private List<BitkiViewModel>? bitkiler;
     private bool isLoading = true;
     private string errorMessage = "No data returned";
+
+    private List<ColumnDef> columns = new()
+{
+new ColumnDef { Title = "Ad", PropertyName = "Name" },
+new ColumnDef { Title = "Latince Ad", PropertyName = "LatinName" },
+new ColumnDef { Title = "Aile", PropertyName = "Family" },
+new ColumnDef { Title = "Açıklama", PropertyName = "Description" }
+};
 
     protected override async Task OnInitializedAsync()
     {
@@ -64,6 +52,21 @@ else
             isLoading = false;
             errorMessage = $"Error fetching data: {ex.Message}";
             Console.WriteLine(ex);
+        }
+    }
+
+    private async Task HandleEdit(BitkiViewModel item)
+    {
+        // Placeholder for edit logic
+        await JS.InvokeVoidAsync("alert", $"Edit requested for: {item.Name} (ID: {item.Id})");
+    }
+
+    private async Task HandleDelete(BitkiViewModel item)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete {item.Name}?"))
+        {
+            // Placeholder for delete logic
+            await JS.InvokeVoidAsync("alert", $"Delete requested for ID: {item.Id}");
         }
     }
 }

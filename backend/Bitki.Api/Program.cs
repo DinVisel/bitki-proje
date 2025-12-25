@@ -1,9 +1,39 @@
 using Bitki.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+// JWT Authentication
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = jwtSettings["SecretKey"];
+var key = Encoding.ASCII.GetBytes(secretKey!);
+
+builder.Services.AddAuthentication(x =>
+{
+    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(x =>
+{
+    x.RequireHttpsMetadata = false;
+    x.SaveToken = true;
+    x.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidateAudience = true,
+        ValidAudience = jwtSettings["Audience"]
+    };
+});
+
+builder.Services.AddAuthorization();
 
 // Register IDbConnectionFactory
 builder.Services.AddSingleton<Bitki.Core.Interfaces.IDbConnectionFactory, Bitki.Infrastructure.Data.DbConnectionFactory>();
@@ -87,7 +117,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
+// Register DbSeeder
+builder.Services.AddScoped<Bitki.Infrastructure.Data.DbSeeder>();
+
 var app = builder.Build();
+
+// Seed Database
+using (var scope = app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<Bitki.Infrastructure.Data.DbSeeder>();
+    await seeder.InitializeAsync();
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -95,6 +135,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

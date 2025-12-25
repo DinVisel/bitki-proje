@@ -183,3 +183,12 @@
 /Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Api/bin/Debug/net10.0/runtimes/win/lib/net9.0/System.Windows.Extensions.dll
 /Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Api/obj/Debug/net10.0/Bitki.Api.sourcelink.json
 /Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Api/bin/Debug/net10.0/Dapper.dll
+/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Api/bin/Debug/net10.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll
+/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Api/bin/Debug/net10.0/Microsoft.IdentityModel.Abstractions.dll
+/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Api/bin/Debug/net10.0/Microsoft.IdentityModel.JsonWebTokens.dll
+/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Api/bin/Debug/net10.0/Microsoft.IdentityModel.Logging.dll
+/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Api/bin/Debug/net10.0/Microsoft.IdentityModel.Protocols.dll
+/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Api/bin/Debug/net10.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Api/bin/Debug/net10.0/Microsoft.IdentityModel.Tokens.dll
+/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Api/bin/Debug/net10.0/System.IdentityModel.Tokens.Jwt.dll
+/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Api/bin/Debug/net10.0/BCrypt.Net-Next.dll

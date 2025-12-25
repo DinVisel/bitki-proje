@@ -1,10 +1,16 @@
 using Bitki.Blazor.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using Bitki.Blazor.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+builder.Services.AddAuthorizationCore();
 
 builder.Services.AddHttpClient("ApiClient", client =>
 {

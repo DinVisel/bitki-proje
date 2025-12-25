@@ -1,0 +1,23 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@using Bitki.Blazor.Auth
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+
+<AuthorizeView>
+    <Authorized>
+        <span class="me-2">Hello, @context.User.Identity?.Name!</span>
+        <button class="btn btn-link" @onclick="Logout">Logout</button>
+    </Authorized>
+    <NotAuthorized>
+        <a href="login">Login</a>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private async Task Logout()
+    {
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)AuthStateProvider;
+        await customAuthStateProvider.UpdateAuthenticationState(null);
+        NavigationManager.NavigateTo("/", true);
+    }
+}

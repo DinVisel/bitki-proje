@@ -2,6 +2,7 @@ namespace Bitki.Core.Interfaces.Services
 {
     public interface IAuthService
     {
-        // Add auth methods here
+        Task<(string Token, string Role, string Username)?> LoginAsync(string username, string password);
+        Task<bool> RegisterAsync(string username, string password);
     }
 }

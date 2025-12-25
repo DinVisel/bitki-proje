@@ -26,6 +26,14 @@ build_property.EnableCodeStyleSeverity =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9BcHAucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Common/DataGrid.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db21tb24vRGF0YUdyaWQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Layout/LoginDisplay.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTG9naW5EaXNwbGF5LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/AktiviteBitkilitList.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Ba3Rpdml0ZUJpdGtpbGl0TGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
@@ -134,6 +142,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9MaXRlcmF0dXJMaXN0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Mb2dpbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/NotFound.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Ob3RGb3VuZC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
@@ -144,6 +156,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/OzellikList.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9PemVsbGlrTGlzdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Register.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9SZWdpc3Rlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/SehirList.razor]

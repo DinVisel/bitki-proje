@@ -1,7 +1,10 @@
+using Bitki.Core.Entities;
+
 namespace Bitki.Core.Interfaces.Repositories.Auth
 {
     public interface IAuthUserRepository
     {
-        // Add CRUD methods
+        Task<User?> GetByUsernameAsync(string username);
+        Task<int> CreateAsync(User user);
     }
 }
