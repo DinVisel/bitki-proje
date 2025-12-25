@@ -1,44 +1,130 @@
 @page "/kisiler"
+@rendermode InteractiveServer
 @using Bitki.Blazor.Models
+@using Bitki.Blazor.Components.Common
+@using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.KisilerViewModel>
 @inject HttpClient Http
+@inject IJSRuntime JS
 
-<h3>Kişiler Listesi</h3>
+<PageTitle>Kişiler</PageTitle>
 
-@if (items == null)
-{
-    <p><em>Yükleniyor...</em></p>
-}
-else
-{
-    <p>Kayıt Sayısı: @items.Length</p>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Tam Ad</th>
-                <th>İsim</th>
-                <th>Soyisim</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in items)
-            {
-                <tr>
-                    <td>@item.Id</td>
-                    <td>@item.FullName</td>
-                    <td>@item.FirstName</td>
-                    <td>@item.LastName</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<div class="page-container">
+    <h1>Kişiler Veritabanı</h1>
+
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else
+    {
+        <RecordExplorer TItem="KisilerViewModel" Items="items" Columns="columns" Title="Kişi Kayıtları" ShowSearch="true">
+            <InspectorContent Context="selectedItem">
+                <RecordInspector TItem="KisilerViewModel" Item="selectedItem"
+                    Title="@($"Kişi Detayları - {selectedItem.FullName}")" Fields="inspectorFields" OnSave="HandleSave"
+                    OnDelete="HandleDelete" />
+            </InspectorContent>
+        </RecordExplorer>
+    }
+</div>
 
 @code {
     private KisilerViewModel[]? items;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    private List<ColumnDef> columns = new()
+{
+new ColumnDef { Title = "ID", PropertyName = "Id" },
+new ColumnDef { Title = "Tam Ad", PropertyName = "FullName" },
+new ColumnDef { Title = "Ad", PropertyName = "FirstName" },
+new ColumnDef { Title = "Soyad", PropertyName = "LastName" }
+};
+
+    private List<InspectorField> inspectorFields = new()
+{
+new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
+new InspectorField { Label = "Tam Ad", PropertyName = "FullName", Editable = true },
+new InspectorField { Label = "Ad", PropertyName = "FirstName", Editable = true },
+new InspectorField { Label = "Soyad", PropertyName = "LastName", Editable = true }
+};
 
     protected override async Task OnInitializedAsync()
     {
-        items = await Http.GetFromJsonAsync<KisilerViewModel[]>("api/kisiler");
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            items = await Http.GetFromJsonAsync<KisilerViewModel[]>("api/kisiler");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSave(KisilerViewModel item)
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"api/kisiler/{item.Id}", item);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
+                await LoadData();
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", $"Güncelleme hatası: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
+    }
+
+    private async Task HandleDelete(KisilerViewModel item)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"{item.FullName} kaydını silmek istediğinizden emin misiniz?"))
+        {
+            try
+            {
+                var response = await Http.DeleteAsync($"api/kisiler/{item.Id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
+                    await LoadData();
+                }
+                else
+                {
+                    await JS.InvokeVoidAsync("alert", $"Silme hatası: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+            }
+        }
     }
 }

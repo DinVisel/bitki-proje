@@ -1,42 +1,130 @@
 @page "/aktivitesaflastirma"
+@rendermode InteractiveServer
 @using Bitki.Blazor.Models
+@using Bitki.Blazor.Components.Common
+@using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.AktiviteSaflastirmaViewModel>
 @inject HttpClient Http
+@inject IJSRuntime JS
 
-<h3>Aktivite Saflaştırma Listesi</h3>
+<PageTitle>Aktivite Saflaştırma</PageTitle>
 
-@if (items == null)
-{
-    <p><em>Yükleniyor...</em></p>
-}
-else
-{
-    <p>Kayıt Sayısı: @items.Length</p>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Adı</th>
-                <th>İngilizce</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in items)
-            {
-                <tr>
-                    <td>@item.Id</td>
-                    <td>@item.Name</td>
-                    <td>@item.EnglishName</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<div class="page-container">
+    <h1>Aktivite Saflaştırma Veritabanı</h1>
+
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else
+    {
+        <RecordExplorer TItem="AktiviteSaflastirmaViewModel" Items="items" Columns="columns"
+            Title="Aktivite Saflaştırma Kayıtları" ShowSearch="true">
+            <InspectorContent Context="selectedItem">
+                <RecordInspector TItem="AktiviteSaflastirmaViewModel" Item="selectedItem"
+                    Title="@($"Aktivite Saflaştırma Detayları - {selectedItem.Name}")" Fields="inspectorFields"
+                    OnSave="HandleSave" OnDelete="HandleDelete" />
+            </InspectorContent>
+        </RecordExplorer>
+    }
+</div>
 
 @code {
     private AktiviteSaflastirmaViewModel[]? items;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    private List<ColumnDef> columns = new()
+{
+new ColumnDef { Title = "ID", PropertyName = "Id" },
+new ColumnDef { Title = "Ad", PropertyName = "Name" },
+new ColumnDef { Title = "İngilizce Ad", PropertyName = "EnglishName" }
+};
+
+    private List<InspectorField> inspectorFields = new()
+{
+new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
+new InspectorField { Label = "Ad", PropertyName = "Name", Editable = true },
+new InspectorField { Label = "İngilizce Ad", PropertyName = "EnglishName", Editable = true },
+new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true }
+};
 
     protected override async Task OnInitializedAsync()
     {
-        items = await Http.GetFromJsonAsync<AktiviteSaflastirmaViewModel[]>("api/aktivitesaflastirma");
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            items = await Http.GetFromJsonAsync<AktiviteSaflastirmaViewModel[]>("api/aktivitesaflastirma");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSave(AktiviteSaflastirmaViewModel item)
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"api/aktivitesaflastirma/{item.Id}", item);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
+                await LoadData();
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", $"Güncelleme hatası: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
+    }
+
+    private async Task HandleDelete(AktiviteSaflastirmaViewModel item)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"{item.Name} kaydını silmek istediğinizden emin misiniz?"))
+        {
+            try
+            {
+                var response = await Http.DeleteAsync($"api/aktivitesaflastirma/{item.Id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
+                    await LoadData();
+                }
+                else
+                {
+                    await JS.InvokeVoidAsync("alert", $"Silme hatası: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+            }
+        }
     }
 }

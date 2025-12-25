@@ -38,8 +38,9 @@
             @foreach (var image in images)
             {
                 <div class="thumbnail-item">
-                    <img src="@image.ImageLocation" alt="@image.Description" @onclick="() => OpenLightbox(image)"
-                        class="thumbnail-img" />
+                    <div @onclick="() => OpenLightbox(image)" style="cursor: pointer; width: 100%; height: 100%;">
+                        <ImageRenderer ImageValue="@image.ImageLocation" AltText="@image.Description" ThumbnailMode="true" />
+                    </div>
                     @if (isEditMode)
                     {
                         <button class="btn btn-sm btn-danger remove-btn" @onclick="() => RemoveImage(image)">×</button>
@@ -64,7 +65,8 @@
         <div class="lightbox" @onclick="CloseLightbox">
             <div class="lightbox-content" @onclick:stopPropagation="true">
                 <button class="lightbox-close" @onclick="CloseLightbox">×</button>
-                <img src="@selectedImage.ImageLocation" alt="@selectedImage.Description" />
+                <ImageRenderer ImageValue="@selectedImage.ImageLocation" AltText="@selectedImage.Description"
+                    ThumbnailMode="false" />
                 @if (!string.IsNullOrEmpty(selectedImage.Description))
                 {
                     <div class="lightbox-caption">@selectedImage.Description</div>

@@ -1,44 +1,102 @@
 @page "/ucucuyagbilesik"
+@rendermode InteractiveServer
 @using Bitki.Blazor.Models
+@using Bitki.Blazor.Components.Common
+@using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.UcucuYagBilesikViewModel>
 @inject HttpClient Http
+@inject IJSRuntime JS
 
-<h3>Uçucu Yağ Bileşik Listesi</h3>
+<PageTitle>Uçucu Yağ Bileşik</PageTitle>
 
-@if (items == null)
-{
-    <p><em>Yükleniyor...</em></p>
-}
-else
-{
-    <p>Kayıt Sayısı: @items.Length</p>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Uçucu Yağ Id</th>
-                <th>Bileşik Id</th>
-                <th>Miktar</th>
-                <th>Birim</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in items)
-            {
-                <tr>
-                    <td>@item.EssentialOilId</td>
-                    <td>@item.CompoundId</td>
-                    <td>@item.Amount</td>
-                    <td>@item.Unit</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<div class="page-container">
+    <h1>Uçucu Yağ Bileşik İlişkileri</h1>
+
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else
+    {
+        <RecordExplorer TItem="UcucuYagBilesikViewModel" Items="items" Columns="columns" Title="Uçucu Yağ-Bileşik Kayıtları"
+            ShowSearch="true">
+            <InspectorContent Context="selectedItem">
+                <RecordInspector TItem="UcucuYagBilesikViewModel" Item="selectedItem"
+                    Title="@($"Uçucu Yağ-Bileşik Detayları")" Fields="inspectorFields" OnSave="HandleSave"
+                    OnDelete="HandleDelete" />
+            </InspectorContent>
+        </RecordExplorer>
+    }
+</div>
 
 @code {
     private UcucuYagBilesikViewModel[]? items;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    private List<ColumnDef> columns = new()
+{
+new ColumnDef { Title = "Uçucu Yağ ID", PropertyName = "EssentialOilId" },
+new ColumnDef { Title = "Bileşik ID", PropertyName = "CompoundId" },
+new ColumnDef { Title = "Miktar", PropertyName = "Amount" },
+new ColumnDef { Title = "Birim", PropertyName = "Unit" }
+};
+
+    private List<InspectorField> inspectorFields = new()
+{
+new InspectorField { Label = "Uçucu Yağ ID", PropertyName = "EssentialOilId", Editable = true },
+new InspectorField { Label = "Bileşik ID", PropertyName = "CompoundId", Editable = true },
+new InspectorField { Label = "Miktar", PropertyName = "Amount", Editable = true },
+new InspectorField { Label = "Birim", PropertyName = "Unit", Editable = true }
+};
 
     protected override async Task OnInitializedAsync()
     {
-        items = await Http.GetFromJsonAsync<UcucuYagBilesikViewModel[]>("api/ucucuyagbilesik");
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            items = await Http.GetFromJsonAsync<UcucuYagBilesikViewModel[]>("api/ucucuyagbilesik");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSave(UcucuYagBilesikViewModel item)
+    {
+        try
+        {
+            // Note: This table doesn't have an ID field, so save logic may need adjustment
+            await JS.InvokeVoidAsync("alert", "Bu tablo için güncelleme işlemi desteklenmiyor");
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
+    }
+
+    private async Task HandleDelete(UcucuYagBilesikViewModel item)
+    {
+        await JS.InvokeVoidAsync("alert", "Bu tablo için silme işlemi desteklenmiyor");
     }
 }

@@ -1,42 +1,132 @@
 @page "/aktivitelokalite"
+@rendermode InteractiveServer
 @using Bitki.Blazor.Models
+@using Bitki.Blazor.Components.Common
+@using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.AktiviteLokaliteViewModel>
 @inject HttpClient Http
+@inject IJSRuntime JS
 
-<h3>Aktivite Lokalite Listesi</h3>
+<PageTitle>Aktivite Lokalite</PageTitle>
 
-@if (items == null)
-{
-    <p><em>Yükleniyor...</em></p>
-}
-else
-{
-    <p>Kayıt Sayısı: @items.Length</p>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Yerel Ad</th>
-                <th>Mevki</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in items)
-            {
-                <tr>
-                    <td>@item.Id</td>
-                    <td>@item.LocalName</td>
-                    <td>@item.Location</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<div class="page-container">
+    <h1>Aktivite Lokalite Veritabanı</h1>
+
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else
+    {
+        <RecordExplorer TItem="AktiviteLokaliteViewModel" Items="items" Columns="columns"
+            Title="Aktivite Lokalite Kayıtları" ShowSearch="true">
+            <InspectorContent Context="selectedItem">
+                <RecordInspector TItem="AktiviteLokaliteViewModel" Item="selectedItem"
+                    Title="@($"Aktivite Lokalite Detayları - {selectedItem.LocalName}")" Fields="inspectorFields"
+                    OnSave="HandleSave" OnDelete="HandleDelete" />
+            </InspectorContent>
+        </RecordExplorer>
+    }
+</div>
 
 @code {
     private AktiviteLokaliteViewModel[]? items;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    private List<ColumnDef> columns = new()
+{
+new ColumnDef { Title = "ID", PropertyName = "Id" },
+new ColumnDef { Title = "Yerel Ad", PropertyName = "LocalName" },
+new ColumnDef { Title = "Konum", PropertyName = "Location" },
+new ColumnDef { Title = "Şehir ID", PropertyName = "CityId" }
+};
+
+    private List<InspectorField> inspectorFields = new()
+{
+new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
+new InspectorField { Label = "Yerel Ad", PropertyName = "LocalName", Editable = true },
+new InspectorField { Label = "Konum", PropertyName = "Location", Editable = true },
+new InspectorField { Label = "Şehir ID", PropertyName = "CityId", Editable = true },
+new InspectorField { Label = "İlçe ID", PropertyName = "DistrictId", Editable = true }
+};
 
     protected override async Task OnInitializedAsync()
     {
-        items = await Http.GetFromJsonAsync<AktiviteLokaliteViewModel[]>("api/aktivitelokalite");
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            items = await Http.GetFromJsonAsync<AktiviteLokaliteViewModel[]>("api/aktivitelokalite");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSave(AktiviteLokaliteViewModel item)
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"api/aktivitelokalite/{item.Id}", item);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
+                await LoadData();
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", $"Güncelleme hatası: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
+    }
+
+    private async Task HandleDelete(AktiviteLokaliteViewModel item)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"{item.LocalName} kaydını silmek istediğinizden emin misiniz?"))
+        {
+            try
+            {
+                var response = await Http.DeleteAsync($"api/aktivitelokalite/{item.Id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
+                    await LoadData();
+                }
+                else
+                {
+                    await JS.InvokeVoidAsync("alert", $"Silme hatası: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+            }
+        }
     }
 }

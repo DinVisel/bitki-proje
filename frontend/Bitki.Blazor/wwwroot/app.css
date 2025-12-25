@@ -492,6 +492,78 @@ a:hover {
 	font-size: 0.9rem;
 }
 
+/* Image Renderer Component */
+.image-renderer {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background: #f5f5f5;
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.image-renderer.thumbnail-mode {
+	width: 100%;
+	height: 100%;
+	min-height: 80px;
+}
+
+.image-renderer.full-mode {
+	max-width: 100%;
+	min-height: 200px;
+}
+
+.image-renderer img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.image-renderer.full-mode img {
+	object-fit: contain;
+	max-height: 400px;
+}
+
+.image-placeholder,
+.image-error {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+	color: #999;
+	text-align: center;
+	width: 100%;
+	height: 100%;
+}
+
+.image-renderer.thumbnail-mode .image-placeholder,
+.image-renderer.thumbnail-mode .image-error {
+	padding: 10px;
+}
+
+.placeholder-icon,
+.error-icon {
+	font-size: 2rem;
+	margin-bottom: 8px;
+}
+
+.image-renderer.thumbnail-mode .placeholder-icon,
+.image-renderer.thumbnail-mode .error-icon {
+	font-size: 1.5rem;
+	margin-bottom: 0;
+}
+
+.placeholder-text,
+.error-text {
+	font-size: 0.85rem;
+	font-style: italic;
+}
+
+.image-error {
+	color: #d9534f;
+}
+
 /* Responsive adjustments */
 @media (max-width: 992px) {
 	.record-explorer {

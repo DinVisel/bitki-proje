@@ -1,42 +1,129 @@
 @page "/literaturhatalari"
+@rendermode InteractiveServer
 @using Bitki.Blazor.Models
+@using Bitki.Blazor.Components.Common
+@using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.LiteraturHatalariViewModel>
 @inject HttpClient Http
+@inject IJSRuntime JS
 
-<h3>Literatür Hataları Listesi</h3>
+<PageTitle>Literatür Hataları</PageTitle>
 
-@if (items == null)
-{
-    <p><em>Yükleniyor...</em></p>
-}
-else
-{
-    <p>Kayıt Sayısı: @items.Length</p>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Hata Adı</th>
-                <th>Açıklama</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in items)
-            {
-                <tr>
-                    <td>@item.Id</td>
-                    <td>@item.ErrorName</td>
-                    <td>@item.Description</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<div class="page-container">
+    <h1>Literatür Hataları Veritabanı</h1>
+
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else
+    {
+        <RecordExplorer TItem="LiteraturHatalariViewModel" Items="items" Columns="columns" Title="Literatür Hata Kayıtları"
+            ShowSearch="true">
+            <InspectorContent Context="selectedItem">
+                <RecordInspector TItem="LiteraturHatalariViewModel" Item="selectedItem"
+                    Title="@($"Literatür Hata Detayları - {selectedItem.ErrorName}")" Fields="inspectorFields"
+                    OnSave="HandleSave" OnDelete="HandleDelete" />
+            </InspectorContent>
+        </RecordExplorer>
+    }
+</div>
 
 @code {
     private LiteraturHatalariViewModel[]? items;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    private List<ColumnDef> columns = new()
+{
+new ColumnDef { Title = "ID", PropertyName = "Id" },
+new ColumnDef { Title = "Hata Adı", PropertyName = "ErrorName" },
+new ColumnDef { Title = "Açıklama", PropertyName = "Description" }
+};
+
+    private List<InspectorField> inspectorFields = new()
+{
+new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
+new InspectorField { Label = "Hata Adı", PropertyName = "ErrorName", Editable = true },
+new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true }
+};
 
     protected override async Task OnInitializedAsync()
     {
-        items = await Http.GetFromJsonAsync<LiteraturHatalariViewModel[]>("api/literaturhatalari");
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            items = await Http.GetFromJsonAsync<LiteraturHatalariViewModel[]>("api/literaturhatalari");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSave(LiteraturHatalariViewModel item)
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"api/literaturhatalari/{item.Id}", item);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
+                await LoadData();
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", $"Güncelleme hatası: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
+    }
+
+    private async Task HandleDelete(LiteraturHatalariViewModel item)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"{item.ErrorName} kaydını silmek istediğinizden emin misiniz?"))
+        {
+            try
+            {
+                var response = await Http.DeleteAsync($"api/literaturhatalari/{item.Id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
+                    await LoadData();
+                }
+                else
+                {
+                    await JS.InvokeVoidAsync("alert", $"Silme hatası: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+            }
+        }
     }
 }

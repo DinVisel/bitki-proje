@@ -1,0 +1,75 @@
+@* Component for rendering images stored as TEXT in database *@
+@* Supports both HTTP URLs and Base64-encoded images *@
+
+<div class="image-renderer @(ThumbnailMode ? "thumbnail-mode" : "full-mode")">
+    @if (string.IsNullOrWhiteSpace(ImageValue))
+    {
+        <div class="image-placeholder">
+            <span class="placeholder-icon">🖼️</span>
+            @if (!ThumbnailMode)
+            {
+                <span class="placeholder-text">No image</span>
+            }
+        </div>
+    }
+    else if (hasError)
+    {
+        <div class="image-error">
+            <span class="error-icon">⚠️</span>
+            @if (!ThumbnailMode)
+            {
+                <span class="error-text">Failed to load image</span>
+            }
+        </div>
+    }
+    else
+    {
+        <img src="@GetImageSource()" alt="@AltText" class="@(ThumbnailMode ? "thumbnail-img" : "full-img")"
+            @onerror="HandleImageError" loading="lazy" />
+    }
+</div>
+
+@code {
+    [Parameter] public string? ImageValue { get; set; }
+    [Parameter] public string AltText { get; set; } = "Image";
+    [Parameter] public bool ThumbnailMode { get; set; } = false;
+
+    private bool hasError = false;
+
+    private string GetImageSource()
+    {
+        if (string.IsNullOrWhiteSpace(ImageValue))
+            return string.Empty;
+
+        // Check if it's an HTTP/HTTPS URL
+        if (ImageValue.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+        ImageValue.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            return ImageValue;
+        }
+
+        // Otherwise, treat as Base64
+        // Remove any data URI prefix if it already exists
+        var base64Data = ImageValue;
+        if (base64Data.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
+        {
+            return base64Data;
+        }
+
+        // Add data URI prefix for Base64
+        // Default to jpeg, but could be enhanced to detect image type
+        return $"data:image/jpeg;base64,{base64Data}";
+    }
+
+    private void HandleImageError()
+    {
+        hasError = true;
+        StateHasChanged();
+    }
+
+    protected override void OnParametersSet()
+    {
+        // Reset error state when image value changes
+        hasError = false;
+    }
+}

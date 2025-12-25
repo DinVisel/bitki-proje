@@ -1,44 +1,131 @@
 @page "/etnokullanim"
+@rendermode InteractiveServer
 @using Bitki.Blazor.Models
+@using Bitki.Blazor.Components.Common
+@using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.EtnokullanimViewModel>
 @inject HttpClient Http
+@inject IJSRuntime JS
 
-<h3>Etnobotanik Kullanım Listesi</h3>
+<PageTitle>Etno Kullanım</PageTitle>
 
-@if (items == null)
-{
-    <p><em>Yükleniyor...</em></p>
-}
-else
-{
-    <p>Kayıt Sayısı: @items.Length</p>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Lokalite Id</th>
-                <th>Açıklama</th>
-                <th>Oluşturma Tarihi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in items)
-            {
-                <tr>
-                    <td>@item.Id</td>
-                    <td>@item.LocalityId</td>
-                    <td>@item.Description</td>
-                    <td>@item.CreatedDate</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<div class="page-container">
+    <h1>Etno Kullanım Veritabanı</h1>
+
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else
+    {
+        <RecordExplorer TItem="EtnokullanimViewModel" Items="items" Columns="columns" Title="Etno Kullanım Kayıtları"
+            ShowSearch="true">
+            <InspectorContent Context="selectedItem">
+                <RecordInspector TItem="EtnokullanimViewModel" Item="selectedItem"
+                    Title="@($"Etno Kullanım Detayları - ID: {selectedItem.Id}")" Fields="inspectorFields"
+                    OnSave="HandleSave" OnDelete="HandleDelete" />
+            </InspectorContent>
+        </RecordExplorer>
+    }
+</div>
 
 @code {
     private EtnokullanimViewModel[]? items;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    private List<ColumnDef> columns = new()
+{
+new ColumnDef { Title = "ID", PropertyName = "Id" },
+new ColumnDef { Title = "Açıklama", PropertyName = "Description" },
+new ColumnDef { Title = "Lokalite ID", PropertyName = "LocalityId" },
+new ColumnDef { Title = "Oluşturma Tarihi", PropertyName = "CreatedDate" }
+};
+
+    private List<InspectorField> inspectorFields = new()
+{
+new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
+new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true },
+new InspectorField { Label = "Lokalite ID", PropertyName = "LocalityId", Editable = true },
+new InspectorField { Label = "Oluşturma Tarihi", PropertyName = "CreatedDate", Editable = false }
+};
 
     protected override async Task OnInitializedAsync()
     {
-        items = await Http.GetFromJsonAsync<EtnokullanimViewModel[]>("api/etnokullanim");
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            items = await Http.GetFromJsonAsync<EtnokullanimViewModel[]>("api/etnokullanim");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSave(EtnokullanimViewModel item)
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"api/etnokullanim/{item.Id}", item);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
+                await LoadData();
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", $"Güncelleme hatası: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
+    }
+
+    private async Task HandleDelete(EtnokullanimViewModel item)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"ID {item.Id} kaydını silmek istediğinizden emin misiniz?"))
+        {
+            try
+            {
+                var response = await Http.DeleteAsync($"api/etnokullanim/{item.Id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
+                    await LoadData();
+                }
+                else
+                {
+                    await JS.InvokeVoidAsync("alert", $"Silme hatası: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+            }
+        }
     }
 }

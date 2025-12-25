@@ -1,54 +1,138 @@
 @page "/literatur"
+@rendermode InteractiveServer
 @using Bitki.Blazor.Models
+@using Bitki.Blazor.Components.Common
+@using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.LiteraturViewModel>
 @inject HttpClient Http
+@inject IJSRuntime JS
 
-<h1>Literatür Listesi</h1>
+<PageTitle>Literatur</PageTitle>
 
-@if (items == null)
-{
-    <div class="loading-indicator">
-        <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
-        Veriler yükleniyor...
-    </div>
-}
-else
-{
-    <div class="record-count">Kayıt Sayısı: @items.Length</div>
+<div class="page-container">
+    <h1>Literatur Veritabanı</h1>
 
-    <div class="table-responsive">
-        <table class="table academic-table">
-            <thead>
-                <tr>
-                    <th class="text-numeric" style="width: 80px;">Id</th>
-                    <th>Yazar</th>
-                    <th>Araştırma</th>
-                    <th>Kaynak</th>
-                    <th>Yıl</th>
-                    <th>Tam Adı</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in items)
-                {
-                    <tr>
-                        <td class="text-numeric text-muted">@item.Id</td>
-                        <td class="fw-medium">@item.AuthorName</td>
-                        <td>@item.ResearchName</td>
-                        <td>@item.SourceName</td>
-                        <td>@item.Year</td>
-                        <td class="small text-muted">@item.FullName</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-}
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else
+    {
+        <RecordExplorer TItem="LiteraturViewModel" Items="items" Columns="columns" Title="Literatur Kayıtları"
+            ShowSearch="true">
+            <InspectorContent Context="selectedItem">
+                <RecordInspector TItem="LiteraturViewModel" Item="selectedItem"
+                    Title="@($"Literatur Detayları - {selectedItem.AuthorName}")" Fields="inspectorFields"
+                    OnSave="HandleSave" OnDelete="HandleDelete" />
+            </InspectorContent>
+        </RecordExplorer>
+    }
+</div>
 
 @code {
     private LiteraturViewModel[]? items;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    private List<ColumnDef> columns = new()
+{
+new ColumnDef { Title = "ID", PropertyName = "Id" },
+new ColumnDef { Title = "Yazar", PropertyName = "AuthorName" },
+new ColumnDef { Title = "Araştırma", PropertyName = "ResearchName" },
+new ColumnDef { Title = "Yıl", PropertyName = "Year" }
+};
+
+    private List<InspectorField> inspectorFields = new()
+{
+new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
+new InspectorField { Label = "Yazar Adı", PropertyName = "AuthorName", Editable = true },
+new InspectorField { Label = "Araştırma Adı", PropertyName = "ResearchName", Editable = true },
+new InspectorField { Label = "Kaynak Adı", PropertyName = "SourceName", Editable = true },
+new InspectorField { Label = "Yıl", PropertyName = "Year", Editable = true },
+new InspectorField { Label = "Tam Ad", PropertyName = "FullName", Editable = true },
+new InspectorField { Label = "Link", PropertyName = "Link", Editable = true },
+new InspectorField { Label = "Tip", PropertyName = "Type", Editable = true },
+new InspectorField { Label = "Konu Tipi", PropertyName = "TopicType", Editable = true },
+new InspectorField { Label = "Güvenilirlik", PropertyName = "Reliability", Editable = true },
+new InspectorField { Label = "Özet", PropertyName = "Summary", Editable = true }
+};
 
     protected override async Task OnInitializedAsync()
     {
-        items = await Http.GetFromJsonAsync<LiteraturViewModel[]>("api/literatur");
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            items = await Http.GetFromJsonAsync<LiteraturViewModel[]>("api/literatur");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSave(LiteraturViewModel item)
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"api/literatur/{item.Id}", item);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
+                await LoadData();
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", $"Güncelleme hatası: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
+    }
+
+    private async Task HandleDelete(LiteraturViewModel item)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"{item.AuthorName} kaydını silmek istediğinizden emin misiniz?"))
+        {
+            try
+            {
+                var response = await Http.DeleteAsync($"api/literatur/{item.Id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
+                    await LoadData();
+                }
+                else
+                {
+                    await JS.InvokeVoidAsync("alert", $"Silme hatası: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+            }
+        }
     }
 }

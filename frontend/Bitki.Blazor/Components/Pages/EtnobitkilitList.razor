@@ -1,44 +1,138 @@
-@page "/etnobitkilit"
+@page "/etnobitkil
+
+it"
+@rendermode InteractiveServer
 @using Bitki.Blazor.Models
+@using Bitki.Blazor.Components.Common
+@using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.EtnobitkilitViewModel>
 @inject HttpClient Http
+@inject IJSRuntime JS
 
-<h3>Etnobotanik Bitki Literatür Listesi</h3>
+<PageTitle>Etno Bitki Literatür</PageTitle>
 
-@if (items == null)
-{
-    <p><em>Yükleniyor...</em></p>
-}
-else
-{
-    <p>Kayıt Sayısı: @items.Length</p>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Türkçe Ad</th>
-                <th>Durum</th>
-                <th>Literatür Id</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in items)
-            {
-                <tr>
-                    <td>@item.Id</td>
-                    <td>@item.TurkishName</td>
-                    <td>@item.Status</td>
-                    <td>@item.LiteratureId</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<div class="page-container">
+    <h1>Etno Bitki Literatür Veritabanı</h1>
+
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else
+    {
+        <RecordExplorer TItem="EtnobitkilitViewModel" Items="items" Columns="columns" Title="Etno Bitki Literatür Kayıtları" ShowSearch="true">
+            <InspectorContent Context="selectedItem">
+                <RecordInspector TItem="EtnobitkilitViewModel" Item="selectedItem"
+                    Title="@($"Etno Bitki Literatür - {selectedItem.TurkishName}")" Fields="inspectorFields" OnSave="HandleSave"
+                    OnDelete="HandleDelete" />
+            </InspectorContent>
+        </RecordExplorer>
+    }
+</div>
 
 @code {
     private EtnobitkilitViewModel[]? items;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    private List<ColumnDef> columns = new()
+    {
+        new ColumnDef { Title = "ID", PropertyName = "Id" },
+        new ColumnDef { Title = "Türkçe Ad", PropertyName = "TurkishName" },
+        new ColumnDef { Title = "Durum", PropertyName = "Status" },
+        new ColumnDef { Title = "Literatür ID", PropertyName = "LiteratureId" }
+    };
+
+    private List<InspectorField> inspectorFields = new()
+    {
+        new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
+        new InspectorField { Label = "Türkçe Ad", PropertyName = "TurkishName", Editable = true },
+        new InspectorField { Label = "Durum", PropertyName = "Status", Editable = true },
+        new InspectorField { Label = "Literatür ID", PropertyName = "LiteratureId", Editable = true }
+    };
 
     protected override async Task OnInitializedAsync()
     {
-        items = await Http.GetFromJsonAsync<EtnobitkilitViewModel[]>("api/etnobitkilit");
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            items = await Http.GetFromJsonAsync<EtnobitkilitViewModel[]>("api/etnobitkil
+
+it");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSave(EtnobitkilitViewModel item)
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"api/etnobitkil
+
+it/{item.Id}", item);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
+                await LoadData();
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", $"Güncelleme hatası: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
+    }
+
+    private async Task HandleDelete(EtnobitkilitViewModel item)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"{item.TurkishName} kaydını silmek istediğinizden emin misiniz?"))
+        {
+            try
+            {
+                var response = await Http.DeleteAsync($"api/etnobitkil
+
+it/{item.Id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
+                    await LoadData();
+                }
+                else
+                {
+                    await JS.InvokeVoidAsync("alert", $"Silme hatası: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+            }
+        }
     }
 }

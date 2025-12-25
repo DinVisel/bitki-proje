@@ -1,48 +1,129 @@
 @page "/familya"
+@rendermode InteractiveServer
 @using Bitki.Blazor.Models
+@using Bitki.Blazor.Components.Common
+@using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.FamilyaViewModel>
 @inject HttpClient Http
+@inject IJSRuntime JS
 
-<h1>Familya Listesi</h1>
+<PageTitle>Familya</PageTitle>
 
-@if (items == null)
-{
-    <div class="loading-indicator">
-        <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
-        Veriler yükleniyor...
-    </div>
-}
-else
-{
-    <div class="record-count">Kayıt Sayısı: @items.Length</div>
+<div class="page-container">
+    <h1>Familya Veritabanı</h1>
 
-    <div class="table-responsive">
-        <table class="table academic-table">
-            <thead>
-                <tr>
-                    <th class="text-numeric" style="width: 80px;">Id</th>
-                    <th>Ad</th>
-                    <th>Türkçe Ad</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in items)
-                {
-                    <tr>
-                        <td class="text-numeric text-muted">@item.Id</td>
-                        <td class="fw-medium text-primary">@item.Name</td>
-                        <td>@item.TurkishName</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-}
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else
+    {
+        <RecordExplorer TItem="FamilyaViewModel" Items="items" Columns="columns" Title="Familya Kayıtları"
+            ShowSearch="true">
+            <InspectorContent Context="selectedItem">
+                <RecordInspector TItem="FamilyaViewModel" Item="selectedItem"
+                    Title="@($"Familya Detayları - {selectedItem.Name}")" Fields="inspectorFields" OnSave="HandleSave"
+                    OnDelete="HandleDelete" />
+            </InspectorContent>
+        </RecordExplorer>
+    }
+</div>
 
 @code {
     private FamilyaViewModel[]? items;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    private List<ColumnDef> columns = new()
+{
+new ColumnDef { Title = "ID", PropertyName = "Id" },
+new ColumnDef { Title = "Ad", PropertyName = "Name" },
+new ColumnDef { Title = "Türkçe Ad", PropertyName = "TurkishName" }
+};
+
+    private List<InspectorField> inspectorFields = new()
+{
+new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
+new InspectorField { Label = "Ad", PropertyName = "Name", Editable = true },
+new InspectorField { Label = "Türkçe Ad", PropertyName = "TurkishName", Editable = true }
+};
 
     protected override async Task OnInitializedAsync()
     {
-        items = await Http.GetFromJsonAsync<FamilyaViewModel[]>("api/familya");
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            items = await Http.GetFromJsonAsync<FamilyaViewModel[]>("api/familya");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSave(FamilyaViewModel item)
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"api/familya/{item.Id}", item);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
+                await LoadData();
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", $"Güncelleme hatası: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
+    }
+
+    private async Task HandleDelete(FamilyaViewModel item)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"{item.Name} kaydını silmek istediğinizden emin misiniz?"))
+        {
+            try
+            {
+                var response = await Http.DeleteAsync($"api/familya/{item.Id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
+                    await LoadData();
+                }
+                else
+                {
+                    await JS.InvokeVoidAsync("alert", $"Silme hatası: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+            }
+        }
     }
 }
