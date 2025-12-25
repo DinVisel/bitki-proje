@@ -10,31 +10,35 @@
     <nav class="nav flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Ana Sayfa
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
+        <div class="nav-group-header">Bitki Bilgileri</div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="bitki">
-                <span class="bi bi-flower1-nav-menu" aria-hidden="true"></span> Bitkiler
+                <span class="bi bi-flower1" aria-hidden="true"></span> Bitkiler
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="bilesikler">
+                <span class="bi bi-heptagon-fill" aria-hidden="true"></span> Bileşikler
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="bitkibilesik">
+                <span class="bi bi-flower2" aria-hidden="true"></span> Bitki-Bileşik
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="ucucuyagbilesik">
+                <span class="bi bi-droplet-half" aria-hidden="true"></span> Uçucu Yağ
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <span class="text-light small text-uppercase px-3">Taksonomi</span>
-        </div>
+        <div class="nav-group-header">Taksonomi</div>
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="familya">
                 <span class="bi bi-diagram-3-fill" aria-hidden="true"></span> Familya
@@ -46,9 +50,8 @@
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <span class="text-light small text-uppercase px-3">Coğrafya</span>
-        </div>
+        <div class="nav-group-header">Coğrafya</div>
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="ulke">
                 <span class="bi bi-globe" aria-hidden="true"></span> Ülke
@@ -65,9 +68,8 @@
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <span class="text-light small text-uppercase px-3">Etnobotanik</span>
-        </div>
+        <div class="nav-group-header">Etnobotanik</div>
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="etnobitkilit">
                 <span class="bi bi-book-half" aria-hidden="true"></span> Literatür
@@ -84,86 +86,8 @@
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <span class="text-light small text-uppercase px-3">Referanslar</span>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="kullanim">
-                <span class="bi bi-tags-fill" aria-hidden="true"></span> Kullanım Tipleri
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="kisiler">
-                <span class="bi bi-people-fill" aria-hidden="true"></span> Kişiler
-            </NavLink>
-        </div>
+        <div class="nav-group-header">Literatür</div>
 
-        <div class="nav-item px-3">
-            <span class="text-light small text-uppercase px-3">Aktivite</span>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="aktivitebitkilit">
-                <span class="bi bi-journal-text" aria-hidden="true"></span> Literatür
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="aktivitecalisma">
-                <span class="bi bi-clipboard-data" aria-hidden="true"></span> Çalışma
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="aktiviteetki">
-                <span class="bi bi-lightning-fill" aria-hidden="true"></span> Etki
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="aktivitelokalite">
-                <span class="bi bi-geo-alt" aria-hidden="true"></span> Lokalite
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="aktivitesaflastirma">
-                <span class="bi bi-funnel-fill" aria-hidden="true"></span> Saflaştırma
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="aktivitetestyeri">
-                <span class="bi bi-building-check" aria-hidden="true"></span> Test Yeri
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="aktiviteyontem">
-                <span class="bi bi-gear-fill" aria-hidden="true"></span> Yöntem
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <span class="text-light small text-uppercase px-3">Bileşikler</span>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="bilesikler">
-                <span class="bi bi-heptagon-fill" aria-hidden="true"></span> Bileşikler
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="bitkibilesik">
-                <span class="bi bi-flower2" aria-hidden="true"></span> Bitki-Bileşik
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="literaturbilesik">
-                <span class="bi bi-journal-medical" aria-hidden="true"></span> Lit-Bileşik
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="ucucuyagbilesik">
-                <span class="bi bi-droplet-half" aria-hidden="true"></span> Uçucu Yağ
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <span class="text-light small text-uppercase px-3">Literatür</span>
-        </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="literatur">
                 <span class="bi bi-book-half" aria-hidden="true"></span> Literatür
@@ -185,27 +109,39 @@
             </NavLink>
         </div>
 
+        <div class="nav-group-header">Aktivite</div>
+
         <div class="nav-item px-3">
-            <span class="text-light small text-uppercase px-3">Diğer</span>
+            <NavLink class="nav-link" href="aktiviteyontem">
+                <span class="bi bi-gear-fill" aria-hidden="true"></span> Yöntem
+            </NavLink>
         </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="aktivitebitkilit">
+                <span class="bi bi-journal-text" aria-hidden="true"></span> Literatür
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="aktivitecalisma">
+                <span class="bi bi-clipboard-data" aria-hidden="true"></span> Çalışma
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="aktiviteetki">
+                <span class="bi bi-lightning-fill" aria-hidden="true"></span> Etki
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="aktivitelokalite">
+                <span class="bi bi-geo-alt" aria-hidden="true"></span> Lokalite
+            </NavLink>
+        </div>
+
+        <div class="nav-group-header">Diğer</div>
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="bitkiresimleri">
-                <span class="bi bi-images" aria-hidden="true"></span> Bitki Resimleri
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="etkiler">
-                <span class="bi bi-lightning-fill" aria-hidden="true"></span> Etkiler
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="ozellik">
-                <span class="bi bi-card-list" aria-hidden="true"></span> Özellikler
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="ucuyag">
-                <span class="bi bi-droplet-fill" aria-hidden="true"></span> Uçucu Yağ Master
+                <span class="bi bi-images" aria-hidden="true"></span> Resimler
             </NavLink>
         </div>
     </nav>

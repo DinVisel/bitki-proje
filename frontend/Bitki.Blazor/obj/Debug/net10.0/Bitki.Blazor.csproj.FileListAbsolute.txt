@@ -24,7 +24,6 @@
 /Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/scopedcss/Components/Layout/ReconnectModal.razor.rz.scp.css
 /Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/scopedcss/bundle/Bitki.Blazor.styles.css
 /Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/scopedcss/projectbundle/Bitki.Blazor.bundle.scp.css
-/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/compressed/pobcja2242-{0}-w7mf952350-w7mf952350.gz
 /Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/compressed/jdud51f0lo-{0}-bqjiyaj88i-bqjiyaj88i.gz
 /Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/compressed/enbidph4cn-{0}-c2jlpeoesf-c2jlpeoesf.gz
 /Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/compressed/h2tbqwr8t2-{0}-erw9l3u2r3-erw9l3u2r3.gz
@@ -84,3 +83,4 @@
 /Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/Bitki.Blazor.pdb
 /Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/Bitki.Blazor.genruntimeconfig.cache
 /Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/ref/Bitki.Blazor.dll
+/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/compressed/pobcja2242-{0}-2l0rxfs4li-2l0rxfs4li.gz

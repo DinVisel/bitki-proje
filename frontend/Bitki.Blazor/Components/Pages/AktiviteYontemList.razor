@@ -2,34 +2,40 @@
 @using Bitki.Blazor.Models
 @inject HttpClient Http
 
-<h3>Aktivite Yöntem Listesi</h3>
+<h1>Aktivite Yöntem Listesi</h1>
 
 @if (items == null)
 {
-    <p><em>Yükleniyor...</em></p>
+    <div class="loading-indicator">
+        <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+        Yükleniyor...
+    </div>
 }
 else
 {
-    <p>Kayıt Sayısı: @items.Length</p>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Adı</th>
-                <th>Açıklama</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in items)
-            {
+    <div class="record-count">Kayıt Sayısı: @items.Length</div>
+
+    <div class="table-responsive">
+        <table class="table academic-table">
+            <thead>
                 <tr>
-                    <td>@item.Id</td>
-                    <td>@item.Name</td>
-                    <td>@item.Description</td>
+                    <th class="text-numeric" style="width: 80px;">Id</th>
+                    <th>Adı</th>
+                    <th>Açıklama</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var item in items)
+                {
+                    <tr>
+                        <td class="text-numeric text-muted">@item.Id</td>
+                        <td class="fw-medium">@item.Name</td>
+                        <td class="text-muted">@item.Description</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 
 @code {

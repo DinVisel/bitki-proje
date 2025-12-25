@@ -2,40 +2,46 @@
 @using Bitki.Blazor.Models
 @inject HttpClient Http
 
-<h3>Literatür Listesi</h3>
+<h1>Literatür Listesi</h1>
 
 @if (items == null)
 {
-    <p><em>Yükleniyor...</em></p>
+    <div class="loading-indicator">
+        <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+        Veriler yükleniyor...
+    </div>
 }
 else
 {
-    <p>Kayıt Sayısı: @items.Length</p>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Yazar</th>
-                <th>Araştırma</th>
-                <th>Kaynak</th>
-                <th>Yıl</th>
-                <th>Tam Adı</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in items)
-            {
+    <div class="record-count">Kayıt Sayısı: @items.Length</div>
+
+    <div class="table-responsive">
+        <table class="table academic-table">
+            <thead>
                 <tr>
-                    <td>@item.Id</td>
-                    <td>@item.AuthorName</td>
-                    <td>@item.ResearchName</td>
-                    <td>@item.SourceName</td>
-                    <td>@item.Year</td>
-                    <td>@item.FullName</td>
+                    <th class="text-numeric" style="width: 80px;">Id</th>
+                    <th>Yazar</th>
+                    <th>Araştırma</th>
+                    <th>Kaynak</th>
+                    <th>Yıl</th>
+                    <th>Tam Adı</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var item in items)
+                {
+                    <tr>
+                        <td class="text-numeric text-muted">@item.Id</td>
+                        <td class="fw-medium">@item.AuthorName</td>
+                        <td>@item.ResearchName</td>
+                        <td>@item.SourceName</td>
+                        <td>@item.Year</td>
+                        <td class="small text-muted">@item.FullName</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 
 @code {

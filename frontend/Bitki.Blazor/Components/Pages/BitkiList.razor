@@ -2,13 +2,16 @@
 @using Bitki.Blazor.Models
 @inject HttpClient Http
 
-<h3>Bitkiler</h3>
+<h1>Bitkiler</h1>
 
 @if (bitkiler == null)
 {
     if (isLoading)
     {
-        <p><em>Loading...</em></p>
+        <div class="loading-indicator">
+            <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+            Veriler yükleniyor...
+        </div>
     }
     else
     {
@@ -17,30 +20,31 @@
 }
 else
 {
-    <p class="text-success">Data loaded successfully</p>
-    <p>Total records: @bitkiler.Count</p>
+    <div class="record-count">Kayıt Sayısı: @bitkiler.Count</div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Ad</th>
-                <th>Latince Ad</th>
-                <th>Aile</th>
-                <th>Açıklama</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var bitki in bitkiler)
-            {
+    <div class="table-responsive">
+        <table class="table academic-table">
+            <thead>
                 <tr>
-                    <td>@bitki.Name</td>
-                    <td>@bitki.LatinName</td>
-                    <td>@bitki.Family</td>
-                    <td>@bitki.Description</td>
+                    <th>Ad</th>
+                    <th>Latince Ad</th>
+                    <th>Aile</th>
+                    <th>Açıklama</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var bitki in bitkiler)
+                {
+                    <tr>
+                        <td class="fw-bold text-primary">@bitki.Name</td>
+                        <td class="fst-italic">@bitki.LatinName</td>
+                        <td>@bitki.Family</td>
+                        <td class="text-muted small">@bitki.Description</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 
 @code {
@@ -52,7 +56,6 @@ else
     {
         try
         {
-            // Fetch directly from relative path, using BaseAddress from Program.cs
             bitkiler = await Http.GetFromJsonAsync<List<BitkiViewModel>>("api/bitki");
             isLoading = false;
         }
@@ -60,7 +63,6 @@ else
         {
             isLoading = false;
             errorMessage = $"Error fetching data: {ex.Message}";
-            // In a real app we would log this
             Console.WriteLine(ex);
         }
     }
