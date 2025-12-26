@@ -38,7 +38,12 @@ builder.Services.AddAuthorization();
 // Register IDbConnectionFactory
 builder.Services.AddSingleton<Bitki.Core.Interfaces.IDbConnectionFactory, Bitki.Infrastructure.Data.DbConnectionFactory>();
 
+// Register Memory Cache
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<Bitki.Core.Interfaces.Services.ICacheService, Bitki.Infrastructure.Services.MemoryCacheService>();
+
 // Register Repositories and Services
+
 // Bitki
 builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.IBitkiRepository, Bitki.Infrastructure.Repositories.BitkiRepository>();
 builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IBitkiService, Bitki.Infrastructure.Services.BitkiService>();

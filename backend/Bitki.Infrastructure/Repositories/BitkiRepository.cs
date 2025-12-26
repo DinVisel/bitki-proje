@@ -174,6 +174,160 @@ namespace Bitki.Infrastructure.Repositories
             return detail;
         }
 
+        /// <summary>
+        /// Get basic detail without related data (for lazy loading)
+        /// </summary>
+        public async Task<BitkiDetailDto?> GetBasicDetailByIdAsync(int id)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+
+            var mainSql = @"
+                SELECT 
+                    b.bitkiid AS Id,
+                    b.turkce AS TurkishName,
+                    b.bitki AS LatinName,
+                    b.aciklama AS Description,
+                    g.familyano AS FamilyId,
+                    f.familya AS FamilyName,
+                    f.turkce AS FamilyTurkishName,
+                    b.genusno AS GenusId,
+                    g.genus AS GenusName,
+                    COALESCE(b.tibbi, false) AS IsMedicinal,
+                    COALESCE(b.gida, false) AS IsFood,
+                    COALESCE(b.kultur, false) AS IsCultural,
+                    COALESCE(b.zehir, false) AS IsPoisonous,
+                    COALESCE(b.tf, false) AS IsTurkishFlora,
+                    COALESCE(b.adalar, false) AS IsIslandSpecies,
+                    COALESCE(b.varliksupheli, false) AS ExistenceDoubtful,
+                    COALESCE(b.revizyon, false) AS NeedsRevision,
+                    COALESCE(b.ex, false) AS IsExtinct,
+                    COALESCE(b.eksikteshis, false) AS IncompleteIdentification,
+                    COALESCE(b.kontrolok, false) AS ControlOk,
+                    COALESCE(b.yayinok, false) AS PublicationOk,
+                    b.endemizm AS Endemism,
+                    b.revizyonaciklama AS EndemismDescription,
+                    CASE 
+                        WHEN b.ilkcicek IS NOT NULL AND b.soncicek IS NOT NULL 
+                        THEN CONCAT(b.ilkcicek::text, '-', b.soncicek::text)
+                        ELSE NULL 
+                    END AS FloweringTime,
+                    b.hayatformu AS Habitat,
+                    CASE 
+                        WHEN b.minyuseklik IS NOT NULL AND b.maxyukseklik IS NOT NULL 
+                        THEN CONCAT(b.minyuseklik::text, '-', b.maxyukseklik::text, ' m')
+                        ELSE NULL 
+                    END AS Altitude,
+                    CONCAT(COALESCE(b.tdagilim, ''), ' ', COALESCE(b.ddagilim, '')) AS Distribution,
+                    b.davis AS Phytogeography,
+                    b.sinonimler AS CommonNames,
+                    b.davis AS Notes,
+                    b.species AS TaxonName,
+                    b.subspecies AS TaxonKind,
+                    (SELECT COUNT(*) FROM dbo.bitkibilesik WHERE bitkino = @Id) AS CompoundsCount,
+                    (SELECT COUNT(*) FROM dbo.bitkiresimleri WHERE bitkino = @Id) AS ImagesCount
+                FROM dbo.bitki b
+                LEFT JOIN dbo.genus g ON b.genusno = g.genusid
+                LEFT JOIN dbo.familya f ON g.familyano = f.familyaid
+                WHERE b.bitkiid = @Id";
+
+            var detail = await connection.QueryFirstOrDefaultAsync<BitkiDetailDto>(mainSql, new { Id = id });
+
+            if (detail != null)
+            {
+                // Initialize empty collections for lazy loading
+                detail.Compounds = new List<PlantCompoundDto>();
+                detail.Images = new List<PlantImageDto>();
+                detail.Literature = new List<PlantLiteratureDto>();
+            }
+
+            return detail;
+        }
+
+        /// <summary>
+        /// Get compounds for a plant (lazy loading)
+        /// </summary>
+        public async Task<IEnumerable<PlantCompoundDto>> GetCompoundsByIdAsync(int id)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+
+            var sql = @"
+                SELECT 
+                    bb.id AS Id,
+                    bb.bilesikno AS CompoundId,
+                    bl.adi AS CompoundName,
+                    bl.ingilizce AS CompoundEnglishName,
+                    bl.latince AS CompoundLatinName,
+                    bb.miktar AS Amount,
+                    bb.aciklama AS Description
+                FROM dbo.bitkibilesik bb
+                LEFT JOIN dbo.bilesikler bl ON bb.bilesikno = bl.bilesikid
+                WHERE bb.bitkino = @Id
+                ORDER BY bl.adi";
+
+            return await connection.QueryAsync<PlantCompoundDto>(sql, new { Id = id });
+        }
+
+        /// <summary>
+        /// Get images for a plant (lazy loading)
+        /// </summary>
+        public async Task<IEnumerable<PlantImageDto>> GetImagesByIdAsync(int id)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+
+            var sql = @"
+                SELECT 
+                    bitkiresimid AS Id,
+                    resimyeri AS ImageLocation,
+                    aciklama AS Description
+                FROM dbo.bitkiresimleri
+                WHERE bitkino = @Id
+                ORDER BY bitkiresimid";
+
+            return await connection.QueryAsync<PlantImageDto>(sql, new { Id = id });
+        }
+
+        /// <summary>
+        /// Get literature for a plant (lazy loading)
+        /// </summary>
+        public async Task<IEnumerable<PlantLiteratureDto>> GetLiteratureByIdAsync(int id)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+
+            // First get the Turkish name for the plant
+            var turkishName = await connection.QueryFirstOrDefaultAsync<string>(
+                "SELECT turkce FROM dbo.bitki WHERE bitkiid = @Id",
+                new { Id = id }
+            );
+
+            if (string.IsNullOrEmpty(turkishName))
+                return new List<PlantLiteratureDto>();
+
+            var sql = @"
+                SELECT DISTINCT
+                    l.literaturid AS Id,
+                    l.yazarad AS AuthorName,
+                    l.arastirmaadi AS ResearchName,
+                    l.kaynakadi AS SourceName,
+                    l.yil AS Year,
+                    l.tur AS Type
+                FROM dbo.literatur l
+                WHERE l.literaturid IN (
+                    SELECT DISTINCT litno FROM dbo.etnobitkilit WHERE turkcead ILIKE '%' || @TurkishName || '%'
+                    UNION
+                    SELECT DISTINCT litno FROM dbo.aktivitebitkilit WHERE turkcead ILIKE '%' || @TurkishName || '%'
+                )
+                LIMIT 50";
+
+            try
+            {
+                return await connection.QueryAsync<PlantLiteratureDto>(sql, new { TurkishName = turkishName });
+            }
+            catch
+            {
+                return new List<PlantLiteratureDto>();
+            }
+        }
+
         public async Task<int> AddAsync(Plant plant)
         {
             using var connection = _connectionFactory.CreateConnection();

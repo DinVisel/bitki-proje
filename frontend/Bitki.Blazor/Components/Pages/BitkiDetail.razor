@@ -293,7 +293,14 @@
             {
                 <div class="detail-section">
                     <h3>Bileşikler</h3>
-                    @if (bitki.Compounds.Any())
+                    @if (compoundsLoading)
+                    {
+                        <div class="tab-loading">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                            <span>Bileşikler yükleniyor...</span>
+                        </div>
+                    }
+                    else if (bitki.Compounds.Any())
                     {
                         <table class="detail-table">
                             <thead>
@@ -325,11 +332,19 @@
                     }
                 </div>
             }
+
             else if (activeTab == "images")
             {
                 <div class="detail-section">
                     <h3>Görseller</h3>
-                    @if (bitki.Images.Any())
+                    @if (imagesLoading)
+                    {
+                        <div class="tab-loading">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                            <span>Görseller yükleniyor...</span>
+                        </div>
+                    }
+                    else if (bitki.Images.Any())
                     {
                         <div class="image-grid">
                             @foreach (var image in bitki.Images)
@@ -357,7 +372,14 @@
             {
                 <div class="detail-section">
                     <h3>Literatür</h3>
-                    @if (bitki.Literature.Any())
+                    @if (literatureLoading)
+                    {
+                        <div class="tab-loading">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                            <span>Literatür yükleniyor...</span>
+                        </div>
+                    }
+                    else if (bitki.Literature.Any())
                     {
                         <table class="detail-table">
                             <thead>
@@ -402,9 +424,31 @@
     private string? errorMessage;
     private string activeTab = "general";
 
-    private void SetTab(string tab)
+    // Lazy loading states
+    private bool compoundsLoaded = false;
+    private bool compoundsLoading = false;
+    private bool imagesLoaded = false;
+    private bool imagesLoading = false;
+    private bool literatureLoaded = false;
+    private bool literatureLoading = false;
+
+    private async Task SetTab(string tab)
     {
         activeTab = tab;
+
+        // Lazy load data when tab is first clicked
+        if (tab == "compounds" && !compoundsLoaded && !compoundsLoading)
+        {
+            await LoadCompounds();
+        }
+        else if (tab == "images" && !imagesLoaded && !imagesLoading)
+        {
+            await LoadImages();
+        }
+        else if (tab == "literature" && !literatureLoaded && !literatureLoading)
+        {
+            await LoadLiterature();
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -412,9 +456,13 @@
         await LoadData();
     }
 
-
     protected override async Task OnParametersSetAsync()
     {
+        // Reset lazy loading states when ID changes
+        compoundsLoaded = false;
+        imagesLoaded = false;
+        literatureLoaded = false;
+        activeTab = "general";
         await LoadData();
     }
 
@@ -425,7 +473,8 @@
 
         try
         {
-            bitki = await Http.GetFromJsonAsync<BitkiDetailViewModel>($"api/bitki/{Id}/details");
+            // Load basic details only (cached on backend)
+            bitki = await Http.GetFromJsonAsync<BitkiDetailViewModel>($"api/bitki/{Id}/details/basic");
             if (bitki == null)
             {
                 errorMessage = "Bitki bulunamadı.";
@@ -443,6 +492,78 @@
         finally
         {
             isLoading = false;
+        }
+    }
+
+    private async Task LoadCompounds()
+    {
+        if (bitki == null) return;
+
+        compoundsLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var compounds = await Http.GetFromJsonAsync<List<PlantCompoundViewModel>>($"api/bitki/{Id}/compounds");
+            bitki.Compounds = compounds ?? new List<PlantCompoundViewModel>();
+            compoundsLoaded = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading compounds: {ex.Message}");
+        }
+        finally
+        {
+            compoundsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadImages()
+    {
+        if (bitki == null) return;
+
+        imagesLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var images = await Http.GetFromJsonAsync<List<PlantImageViewModel>>($"api/bitki/{Id}/images");
+            bitki.Images = images ?? new List<PlantImageViewModel>();
+            imagesLoaded = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading images: {ex.Message}");
+        }
+        finally
+        {
+            imagesLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadLiterature()
+    {
+        if (bitki == null) return;
+
+        literatureLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var literature = await Http.GetFromJsonAsync<List<PlantLiteratureViewModel>>($"api/bitki/{Id}/literature");
+            bitki.Literature = literature ?? new List<PlantLiteratureViewModel>();
+            literatureLoaded = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading literature: {ex.Message}");
+        }
+        finally
+        {
+            literatureLoading = false;
+            StateHasChanged();
         }
     }
 }
