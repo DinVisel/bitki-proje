@@ -1,133 +1,224 @@
 @page "/"
-@using System.Net.Http.Json
-@using Microsoft.AspNetCore.Components.Forms
-@inject HttpClient Http
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<h3>Plants</h3>
+<PageTitle>Türkiye Bitki Veritabanı</PageTitle>
 
-<button @onclick="ShowAddForm">Add New Plant</button>
+<div class="home-container">
+    <div class="home-header">
+        <h1>Türkiye Bitki Veritabanı</h1>
+        <p class="home-subtitle">Türkiye'nin bitki çeşitliliği, taksonomi, coğrafya ve etnobotanik bilgilerini içeren
+            akademik veritabanı sistemi</p>
+    </div>
 
-@if (plants == null)
-{
-    <p>Loading...</p>
-}
-else
-{
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Latin Name</th>
-                <th>Family</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var plant in plants)
-            {
-                <tr>
-                    <td>@plant.Name</td>
-                    <td>@plant.LatinName</td>
-                    <td>@plant.Family</td>
-                    <td>
-                        <button @onclick="() => EditPlant(plant)">Edit</button>
-                        <button @onclick="() => DeletePlant(plant.Id)">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+    <div class="quick-access-section">
+        <h2>Veri Alanları</h2>
+        <div class="tiles-grid">
+            <a href="/bitki" class="tile">
+                <div class="tile-icon">🌿</div>
+                <h3>Bitkiler</h3>
+                <p>Bitki türleri, özellikleri ve habitat bilgileri</p>
+            </a>
 
-@if (showForm)
-{
-    <h4>@(isEditMode ? "Edit Plant" : "Add Plant")</h4>
+            <a href="/familya" class="tile">
+                <div class="tile-icon">🔬</div>
+                <h3>Taksonomi</h3>
+                <p>Familya ve genus sınıflandırmaları</p>
+            </a>
 
-    <EditForm Model="currentPlant" OnValidSubmit="SavePlant">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+            <a href="/ulke" class="tile">
+                <div class="tile-icon">🌍</div>
+                <h3>Coğrafya</h3>
+                <p>Ülke, şehir ve ilçe bazlı dağılım verileri</p>
+            </a>
 
-        <input placeholder="Name" @bind="currentPlant.Name" />
-        <input placeholder="Latin Name" @bind="currentPlant.LatinName" />
-        <input placeholder="Family" @bind="currentPlant.Family" />
-        <input placeholder="Habitat" @bind="currentPlant.Habitat" />
-        <textarea placeholder="Description" @bind="currentPlant.Description"></textarea>
+            <a href="/literatur" class="tile">
+                <div class="tile-icon">📚</div>
+                <h3>Literatür</h3>
+                <p>Akademik kaynaklar ve referanslar</p>
+            </a>
 
-        <button type="submit">Save</button>
-        <button type="button" @onclick="Cancel">Cancel</button>
-    </EditForm>
-}
+            <a href="/etnobitkilit" class="tile">
+                <div class="tile-icon">🏺</div>
+                <h3>Etnobotanik</h3>
+                <p>Geleneksel kullanım ve etnobotanik çalışmalar</p>
+            </a>
 
-@code {
-    List<Bitki.Blazor.Models.Plant> plants;
-    Bitki.Blazor.Models.Plant currentPlant = new();
-    bool showForm = false;
-    bool isEditMode = false;
+            <a href="/aktiviteyontem" class="tile">
+                <div class="tile-icon">⚗️</div>
+                <h3>Aktivite</h3>
+                <p>Biyolojik aktivite ve araştırma verileri</p>
+            </a>
+        </div>
+    </div>
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadPlants();
+    <div class="system-info-section">
+        <AuthorizeView>
+            <Authorized>
+                <div class="info-card">
+                    <div class="info-label">Kullanıcı:</div>
+                    <div class="info-value">@context.User.Identity?.Name</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Rol:</div>
+                    <div class="info-value">
+                        @if (context.User.IsInRole("Admin"))
+                        {
+                            <span class="badge bg-danger">Admin</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Viewer</span>
+                        }
+                    </div>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <div class="info-card">
+                    <div class="info-value">
+                        <a href="/login" class="btn btn-primary btn-sm">Giriş Yap</a>
+                    </div>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</div>
+
+<style>
+    .home-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
     }
 
-    async Task LoadPlants()
-    {
-        try
-        {
-            plants = await Http.GetFromJsonAsync<List<Bitki.Blazor.Models.Plant>>("api/bitki");
+    .home-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .home-header h1 {
+        font-size: 2.25rem;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .home-subtitle {
+        font-size: 1.05rem;
+        color: #6c757d;
+        line-height: 1.6;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .quick-access-section {
+        margin-bottom: 3rem;
+    }
+
+    .quick-access-section h2 {
+        font-size: 1.5rem;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+    }
+
+    .tiles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .tile {
+        display: block;
+        padding: 1.75rem;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .tile:hover {
+        border-color: #2980b9;
+        box-shadow: 0 4px 12px rgba(41, 128, 185, 0.15);
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .tile-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.8;
+    }
+
+    .tile h3 {
+        font-size: 1.25rem;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .tile p {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .system-info-section {
+        display: flex;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border: 1px solid #e0e0e0;
+        flex-wrap: wrap;
+    }
+
+    .info-card {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .info-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .info-value {
+        font-size: 0.875rem;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    .info-value .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+    }
+
+
+    @@media (max-width: 768px) {
+        .home-header h1 {
+            font-size: 1.75rem;
         }
-        catch
-        {
-            // Simple error handling for connectivity issues
-        }
-    }
 
-    void ShowAddForm()
-    {
-        currentPlant = new Bitki.Blazor.Models.Plant();
-        isEditMode = false;
-        showForm = true;
-    }
-
-    void EditPlant(Bitki.Blazor.Models.Plant plant)
-    {
-        currentPlant = new Bitki.Blazor.Models.Plant
-        {
-            Id = plant.Id,
-            Name = plant.Name,
-            LatinName = plant.LatinName,
-            Family = plant.Family,
-            Habitat = plant.Habitat,
-            Description = plant.Description
-        };
-
-        isEditMode = true;
-        showForm = true;
-    }
-
-    async Task SavePlant()
-    {
-        if (isEditMode)
-        {
-            await Http.PutAsJsonAsync($"api/plants/{currentPlant.Id}", currentPlant);
-        }
-        else
-        {
-            await Http.PostAsJsonAsync("api/plants", currentPlant);
+        .home-subtitle {
+            font-size: 0.95rem;
         }
 
-        showForm = false;
-        await LoadPlants();
-    }
+        .tiles-grid {
+            grid-template-columns: 1fr;
+        }
 
-    async Task DeletePlant(int id)
-    {
-        await Http.DeleteAsync($"api/plants/{id}");
-        await LoadPlants();
+        .system-info-section {
+            flex-direction: column;
+            gap: 1rem;
+        }
     }
-
-    void Cancel()
-    {
-        showForm = false;
-        currentPlant = new();
-    }
-}
+</style>

@@ -57,12 +57,12 @@ new ColumnDef { Title = "Açıklama", PropertyName = "Description" }
 
     private List<InspectorField> inspectorFields = new()
 {
-new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
-new InspectorField { Label = "Türkçe Ad", PropertyName = "Name", Editable = true },
-new InspectorField { Label = "Latince Ad", PropertyName = "LatinName", Editable = true },
-new InspectorField { Label = "Aile", PropertyName = "Family", Editable = true },
-new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true },
-new InspectorField { Label = "Habitat", PropertyName = "Habitat", Editable = true }
+new InspectorField { Label = "ID", PropertyName = "Id", Editable = false, FieldGroup = "Genel Bilgiler" },
+new InspectorField { Label = "Türkçe Ad", PropertyName = "Name", Editable = true, FieldGroup = "Genel Bilgiler" },
+new InspectorField { Label = "Latince Ad", PropertyName = "LatinName", Editable = true, FieldGroup = "Taksonomi" },
+new InspectorField { Label = "Aile", PropertyName = "Family", Editable = true, FieldGroup = "Taksonomi" },
+new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true, FieldGroup = "Ek Bilgiler" },
+new InspectorField { Label = "Habitat", PropertyName = "Habitat", Editable = true, FieldGroup = "Ek Bilgiler" }
 };
 
     protected override async Task OnInitializedAsync()

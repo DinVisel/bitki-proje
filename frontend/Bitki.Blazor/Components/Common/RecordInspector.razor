@@ -2,7 +2,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<div class="record-inspector">
+<div class="record-inspector @(isEditMode ? "edit-mode" : "")">
     @if (Item == null)
     {
         <div class="no-data">No record selected</div>
@@ -37,37 +37,49 @@
         <div class="inspector-body">
             @if (Fields != null && Fields.Any())
             {
-                @foreach (var field in Fields)
+                var groupedFields = Fields.GroupBy(f => f.FieldGroup ?? "General Information").OrderBy(g => g.Key == "General   Information" ? 0 : 1);
+                @foreach (var fieldGroup in groupedFields)
                 {
-                    <div class="field-row">
-                        <div class="field-label">@field.Label:</div>
-                        <div class="field-value">
-                            @if (isEditMode && field.Editable)
-                            {
-                                @if (field.RenderEditControl != null)
+                    <div class="field-section-header">@fieldGroup.Key</div>
+                    @foreach (var field in fieldGroup)
+                    {
+                        var isLongText = field.PropertyName.Contains("Description") || field.PropertyName.Contains("Notes") ||
+                        field.PropertyName.Contains("Habitat");
+                        <div class="field-row">
+                            <div class="field-label">@field.Label:</div>
+                            <div class="field-value @(isLongText && !isEditMode ? "long-text" : "")">
+                                @if (isEditMode && field.Editable)
                                 {
-                                    @field.RenderEditControl(Item)
+                                    @if (field.RenderEditControl != null)
+                                    {
+                                        @field.RenderEditControl(Item)
+                                    }
+                                    else if (isLongText)
+                                    {
+                                        <textarea class="form-control form-control-sm" rows="4"
+                                            @onchange="(e) => SetPropertyValue(Item, field.PropertyName, e.Value)">@GetPropertyValue(Item, field.PropertyName)</textarea>
+                                    }
+                                    else
+                                    {
+                                        <input type="text" class="form-control form-control-sm"
+                                            value="@GetPropertyValue(Item, field.PropertyName)"
+                                            @onchange="(e) => SetPropertyValue(Item, field.PropertyName, e.Value)" />
+                                    }
                                 }
                                 else
                                 {
-                                    <input type="text" class="form-control form-control-sm"
-                                        value="@GetPropertyValue(Item, field.PropertyName)"
-                                        @onchange="(e) => SetPropertyValue(Item, field.PropertyName, e.Value)" />
+                                    @if (field.RenderValue != null)
+                                    {
+                                        @field.RenderValue(Item)
+                                    }
+                                    else
+                                    {
+                                        @GetPropertyValue(Item, field.PropertyName)
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                @if (field.RenderValue != null)
-                                {
-                                    @field.RenderValue(Item)
-                                }
-                                else
-                                {
-                                    @GetPropertyValue(Item, field.PropertyName)
-                                }
-                            }
+                            </div>
                         </div>
-                    </div>
+                    }
                 }
             }
             else
@@ -166,6 +178,7 @@
         public string Label { get; set; } = string.Empty;
         public string PropertyName { get; set; } = string.Empty;
         public bool Editable { get; set; } = true;
+        public string? FieldGroup { get; set; } = null; // Field grouping (e.g., "General Information", "Taxonomy")
         public RenderFragment<TItem>? RenderValue { get; set; }
         public RenderFragment<TItem>? RenderEditControl { get; set; }
     }
