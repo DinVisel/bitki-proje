@@ -1,0 +1,448 @@
+@page "/bitki/{Id:int}"
+@rendermode InteractiveServer
+@using Bitki.Blazor.Models
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>@(bitki?.DisplayName ?? "Bitki Detay")</PageTitle>
+
+<div class="detail-page">
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+        <a href="/bitki" class="btn btn-secondary">← Listeye Dön</a>
+    }
+    else if (bitki != null)
+    {
+        <!-- Header Section -->
+        <div class="detail-header">
+            <a href="/bitki" class="back-link">← Bitkiler</a>
+            <div class="header-content">
+                <h1>@bitki.DisplayName</h1>
+                @if (!string.IsNullOrEmpty(bitki.LatinName) && bitki.LatinName != bitki.TurkishName)
+                {
+                    <div class="latin-name">@bitki.LatinName</div>
+                }
+                <div class="taxonomy-badge">
+                    <span class="badge-item">Familya: @(bitki.FamilyName ?? "—")</span>
+                    <span class="badge-item">Genus: @(bitki.GenusName ?? "—")</span>
+                    <span class="badge-item">ID: @bitki.Id</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flags Row -->
+        <div class="flags-row">
+            @if (bitki.IsMedicinal)
+            {
+                <span class="flag medicinal">💊 Tıbbi</span>
+            }
+            @if (bitki.IsFood)
+            {
+                <span class="flag food">🍃 Gıda</span>
+            }
+            @if (bitki.IsCultural)
+            {
+                <span class="flag cultural">🌱 Kültür</span>
+            }
+            @if (bitki.IsPoisonous)
+            {
+                <span class="flag poisonous">☠️ Zehirli</span>
+            }
+            @if (bitki.IsTurkishFlora)
+            {
+                <span class="flag flora">🇹🇷 TF</span>
+            }
+            @if (bitki.IsExtinct)
+            {
+                <span class="flag extinct">❌ Yok Olmuş</span>
+            }
+            @if (bitki.IsIslandSpecies)
+            {
+                <span class="flag island">🏝️ Ada</span>
+            }
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-btn @(activeTab == "general" ? "active" : "")" @onclick="@(() => SetTab("general"))">
+                Genel Bilgiler
+            </button>
+            <button class="tab-btn @(activeTab == "taxonomy" ? "active" : "")" @onclick="@(() => SetTab("taxonomy"))">
+                Taksonomi
+            </button>
+            <button class="tab-btn @(activeTab == "ecology" ? "active" : "")" @onclick="@(() => SetTab("ecology"))">
+                Ekoloji & Dağılım
+            </button>
+            <button class="tab-btn @(activeTab == "compounds" ? "active" : "")" @onclick="@(() => SetTab("compounds"))">
+                Bileşikler (@bitki.Compounds.Count)
+            </button>
+            <button class="tab-btn @(activeTab == "images" ? "active" : "")" @onclick="@(() => SetTab("images"))">
+                Görseller (@bitki.Images.Count)
+            </button>
+            <button class="tab-btn @(activeTab == "literature" ? "active" : "")" @onclick="@(() => SetTab("literature"))">
+                Literatür (@bitki.Literature.Count)
+            </button>
+        </div>
+
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            @if (activeTab == "general")
+            {
+                <div class="detail-section">
+                    <h3>Genel Bilgiler</h3>
+                    <div class="fields-grid">
+                        <div class="field-item">
+                            <span class="field-label">Türkçe Ad</span>
+                            <span class="field-value">@(bitki.TurkishName ?? "—")</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">Latince Ad</span>
+                            <span class="field-value">@(bitki.LatinName ?? "—")</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">Yerel Adlar</span>
+                            <span class="field-value">@(bitki.CommonNames ?? "—")</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">Durum</span>
+                            <span class="field-value">@(bitki.Status ?? "—")</span>
+                        </div>
+                    </div>
+
+                    <h4>Açıklama</h4>
+                    <div class="description-box">
+                        @(bitki.Description ?? "Açıklama bulunmuyor.")
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(bitki.Notes))
+                    {
+                        <h4>Notlar</h4>
+                        <div class="description-box">@bitki.Notes</div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(bitki.AdditionalInfo))
+                    {
+                        <h4>Ek Bilgi</h4>
+                        <div class="description-box">@bitki.AdditionalInfo</div>
+                    }
+
+                    <h4>Bayraklar</h4>
+                    <div class="flags-detail-grid">
+                        <div class="flag-item @(bitki.IsMedicinal ? "active" : "")">
+                            <span class="flag-indicator"></span>Tıbbi Kullanım
+                        </div>
+                        <div class="flag-item @(bitki.IsFood ? "active" : "")">
+                            <span class="flag-indicator"></span>Gıda Olarak
+                        </div>
+                        <div class="flag-item @(bitki.IsCultural ? "active" : "")">
+                            <span class="flag-indicator"></span>Kültür Bitkisi
+                        </div>
+                        <div class="flag-item @(bitki.IsPoisonous ? "active" : "")">
+                            <span class="flag-indicator"></span>Zehirli
+                        </div>
+                        <div class="flag-item @(bitki.IsTurkishFlora ? "active" : "")">
+                            <span class="flag-indicator"></span>Türkiye Florası
+                        </div>
+                        <div class="flag-item @(bitki.IsIslandSpecies ? "active" : "")">
+                            <span class="flag-indicator"></span>Ada Türü
+                        </div>
+                        <div class="flag-item @(bitki.ExistenceDoubtful ? "active" : "")">
+                            <span class="flag-indicator"></span>Varlık Şüpheli
+                        </div>
+                        <div class="flag-item @(bitki.NeedsRevision ? "active" : "")">
+                            <span class="flag-indicator"></span>Revizyon Gerekli
+                        </div>
+                        <div class="flag-item @(bitki.IsExtinct ? "active" : "")">
+                            <span class="flag-indicator"></span>Yok Olmuş
+                        </div>
+                        <div class="flag-item @(bitki.IncompleteIdentification ? "active" : "")">
+                            <span class="flag-indicator"></span>Eksik Teşhis
+                        </div>
+                        <div class="flag-item @(bitki.ControlOk ? "active" : "")">
+                            <span class="flag-indicator"></span>Kontrol OK
+                        </div>
+                        <div class="flag-item @(bitki.PublicationOk ? "active" : "")">
+                            <span class="flag-indicator"></span>Yayın OK
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (activeTab == "taxonomy")
+            {
+                <div class="detail-section">
+                    <h3>Taksonomi Bilgileri</h3>
+                    <div class="fields-grid">
+                        <div class="field-item">
+                            <span class="field-label">Familya</span>
+                            <span class="field-value">@(bitki.FamilyName ?? "—")
+                                @(!string.IsNullOrEmpty(bitki.FamilyTurkishName) ? $"({bitki.FamilyTurkishName})" : "")</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">Genus</span>
+                            <span class="field-value">@(bitki.GenusName ?? "—")</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">Takson Adı</span>
+                            <span class="field-value">@(bitki.TaxonName ?? "—")</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">Takson Düzeyi</span>
+                            <span class="field-value">@(bitki.TaxonLevel ?? "—")</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">Takson Cinsi</span>
+                            <span class="field-value">@(bitki.TaxonKind ?? "—")</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">Takson Otörü</span>
+                            <span class="field-value">@(bitki.TaxonOtor ?? "—")</span>
+                        </div>
+                    </div>
+
+                    <h4>Otör Bilgileri</h4>
+                    <div class="fields-grid">
+                        <div class="field-item">
+                            <span class="field-label">Otör</span>
+                            <span class="field-value">@(bitki.Otor ?? "—")</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">Basionim Otör</span>
+                            <span class="field-value">@(bitki.BasionymOtor ?? "—")</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">Yıl</span>
+                            <span class="field-value">@(bitki.Year ?? "—")</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">Sayfa</span>
+                            <span class="field-value">@(bitki.Pages ?? "—")</span>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(bitki.Synonym))
+                    {
+                        <h4>Sinonim Bilgileri</h4>
+                        <div class="fields-grid">
+                            <div class="field-item">
+                                <span class="field-label">Sinonim</span>
+                                <span class="field-value">@bitki.Synonym</span>
+                            </div>
+                            <div class="field-item">
+                                <span class="field-label">Sinonim Otör</span>
+                                <span class="field-value">@(bitki.SynonymOtor ?? "—")</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else if (activeTab == "ecology")
+            {
+                <div class="detail-section">
+                    <h3>Ekoloji & Dağılım</h3>
+                    <div class="fields-grid">
+                        <div class="field-item">
+                            <span class="field-label">Endemizm</span>
+                            <span class="field-value">@(bitki.Endemism ?? "—")</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">Endemizm Açıklama</span>
+                            <span class="field-value">@(bitki.EndemismDescription ?? "—")</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">Çiçeklenme Zamanı</span>
+                            <span class="field-value">@(bitki.FloweringTime ?? "—")</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">Rakım/Yükseklik</span>
+                            <span class="field-value">@(bitki.Altitude ?? "—")</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">Fitocoğrafya</span>
+                            <span class="field-value">@(bitki.Phytogeography ?? "—")</span>
+                        </div>
+                    </div>
+
+                    <h4>Yaşam Alanı</h4>
+                    <div class="description-box">
+                        @(bitki.Habitat ?? "Habitat bilgisi bulunmuyor.")
+                    </div>
+
+                    <h4>Dağılım</h4>
+                    <div class="description-box">
+                        @(bitki.Distribution ?? "Dağılım bilgisi bulunmuyor.")
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(bitki.References))
+                    {
+                        <h4>Kaynaklar</h4>
+                        <div class="description-box">@bitki.References</div>
+                    }
+                </div>
+            }
+            else if (activeTab == "compounds")
+            {
+                <div class="detail-section">
+                    <h3>Bileşikler</h3>
+                    @if (bitki.Compounds.Any())
+                    {
+                        <table class="detail-table">
+                            <thead>
+                                <tr>
+                                    <th>Bileşik Adı</th>
+                                    <th>İngilizce</th>
+                                    <th>Latince</th>
+                                    <th>Miktar</th>
+                                    <th>Açıklama</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var compound in bitki.Compounds)
+                                {
+                                    <tr>
+                                        <td>@(compound.CompoundName ?? "—")</td>
+                                        <td>@(compound.CompoundEnglishName ?? "—")</td>
+                                        <td>@(compound.CompoundLatinName ?? "—")</td>
+                                        <td>@(compound.Amount?.ToString("F2") ?? "—")</td>
+                                        <td>@(compound.Description ?? "—")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="empty-state-small">Bu bitki için kayıtlı bileşik bulunmuyor.</div>
+                    }
+                </div>
+            }
+            else if (activeTab == "images")
+            {
+                <div class="detail-section">
+                    <h3>Görseller</h3>
+                    @if (bitki.Images.Any())
+                    {
+                        <div class="image-grid">
+                            @foreach (var image in bitki.Images)
+                            {
+                                <div class="image-card">
+                                    <div class="image-placeholder-box">📷</div>
+                                    <div class="image-info">
+                                        <div class="image-path">@image.ImageLocation</div>
+                                        @if (!string.IsNullOrEmpty(image.Description))
+                                        {
+                                            <div class="image-desc">@image.Description</div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state-small">Bu bitki için kayıtlı görsel bulunmuyor.</div>
+                    }
+                </div>
+            }
+            else if (activeTab == "literature")
+            {
+                <div class="detail-section">
+                    <h3>Literatür</h3>
+                    @if (bitki.Literature.Any())
+                    {
+                        <table class="detail-table">
+                            <thead>
+                                <tr>
+                                    <th>Yazar</th>
+                                    <th>Araştırma Adı</th>
+                                    <th>Kaynak</th>
+                                    <th>Yıl</th>
+                                    <th>Tür</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var lit in bitki.Literature)
+                                {
+                                    <tr>
+                                        <td>@(lit.AuthorName ?? "—")</td>
+                                        <td>@(lit.ResearchName ?? "—")</td>
+                                        <td>@(lit.SourceName ?? "—")</td>
+                                        <td>@(lit.Year?.ToString() ?? "—")</td>
+                                        <td>@(lit.Type ?? "—")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="empty-state-small">Bu bitki için kayıtlı literatür bulunmuyor.</div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private BitkiDetailViewModel? bitki;
+    private bool isLoading = true;
+    private string? errorMessage;
+    private string activeTab = "general";
+
+    private void SetTab(string tab)
+    {
+        activeTab = tab;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            bitki = await Http.GetFromJsonAsync<BitkiDetailViewModel>($"api/bitki/{Id}/details");
+            if (bitki == null)
+            {
+                errorMessage = "Bitki bulunamadı.";
+            }
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            errorMessage = "Bitki bulunamadı.";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Veri yüklenirken hata oluştu: {ex.Message}";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

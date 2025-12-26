@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Bitki.Core.Entities;
+using Bitki.Core.DTOs;
 using Bitki.Core.Interfaces.Repositories;
 using Bitki.Core.Models;
 
@@ -31,6 +32,18 @@ namespace Bitki.Api.Controllers
             if (plant == null)
                 return NotFound();
             return Ok(plant);
+        }
+
+        /// <summary>
+        /// Get full details of a plant including all fields and related data (compounds, images, literature)
+        /// </summary>
+        [HttpGet("{id}/details")]
+        public async Task<ActionResult<BitkiDetailDto>> GetDetails(int id)
+        {
+            var details = await _repository.GetDetailByIdAsync(id);
+            if (details == null)
+                return NotFound();
+            return Ok(details);
         }
 
         [HttpPost]

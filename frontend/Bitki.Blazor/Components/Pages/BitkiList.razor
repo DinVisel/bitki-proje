@@ -5,6 +5,7 @@
 @using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.BitkiViewModel>
 @inject HttpClient Http
 @inject IJSRuntime JS
+@inject NavigationManager Navigation
 
 <PageTitle>Bitkiler</PageTitle>
 
@@ -33,6 +34,11 @@
                     <AdditionalContent Context="bitki">
                         @if (bitki.Id > 0)
                         {
+                            <div class="detail-link-section">
+                                <a href="/bitki/@bitki.Id" class="btn btn-outline-primary btn-sm">
+                                    📋 Tüm Detayları Görüntüle
+                                </a>
+                            </div>
                             <ImageGallery PlantId="bitki.Id" />
                         }
                     </AdditionalContent>
