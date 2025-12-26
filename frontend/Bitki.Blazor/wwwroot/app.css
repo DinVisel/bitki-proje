@@ -1065,3 +1065,398 @@ a:hover {
 	width: 1.25rem;
 	height: 1.25rem;
 }
+
+/* ===== Polished Detail Page Styles ===== */
+
+/* Expanded Layout */
+.detail-page {
+	max-width: 1600px;
+	margin: 0 auto;
+	padding: 2rem 3rem;
+}
+
+/* Breadcrumb Navigation */
+.breadcrumb-nav {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 1.25rem;
+	font-size: 0.875rem;
+}
+
+.breadcrumb-link {
+	color: #2980b9;
+	text-decoration: none;
+}
+
+.breadcrumb-link:hover {
+	text-decoration: underline;
+}
+
+.breadcrumb-separator {
+	color: #aaa;
+}
+
+.breadcrumb-current {
+	color: #666;
+	font-weight: 500;
+}
+
+/* Enhanced Header */
+.detail-header {
+	margin-bottom: 2rem;
+	padding-bottom: 1.5rem;
+	border-bottom: 1px solid #e8e8e8;
+}
+
+.header-content h1 {
+	font-size: 2.25rem;
+	color: #1a252f;
+	margin: 0 0 0.5rem 0;
+	font-weight: 700;
+	letter-spacing: -0.5px;
+}
+
+.latin-name {
+	font-size: 1.3rem;
+	color: #666;
+	font-style: italic;
+	margin-bottom: 1rem;
+}
+
+.metadata-row {
+	display: flex;
+	gap: 0.75rem;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+.metadata-badge {
+	font-size: 0.8rem;
+	color: #666;
+	background: #f0f2f4;
+	padding: 0.35rem 0.75rem;
+	border-radius: 4px;
+	font-weight: 500;
+}
+
+.metadata-badge.id-badge {
+	color: #888;
+	background: #e8e8e8;
+	font-family: monospace;
+}
+
+/* Collapsible Sections */
+.collapsible-section {
+	margin-bottom: 1rem;
+	border: 1px solid #e8e8e8;
+	border-radius: 6px;
+	background: #fff;
+}
+
+.collapsible-section .section-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+	padding: 0.875rem 1.25rem;
+	border: none;
+	background: #f8f9fa;
+	cursor: pointer;
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: #2c3e50;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	border-radius: 6px 6px 0 0;
+	text-align: left;
+}
+
+.collapsible-section.collapsed .section-header {
+	border-radius: 6px;
+}
+
+.collapsible-section .section-header:hover {
+	background: #f0f2f4;
+}
+
+.collapsible-section .section-toggle {
+	font-size: 1.25rem;
+	font-weight: 400;
+	color: #888;
+	line-height: 1;
+}
+
+.collapsible-section .section-content {
+	padding: 1.25rem;
+	border-top: 1px solid #e8e8e8;
+}
+
+/* Empty Field State */
+.empty-value {
+	color: #999;
+	font-style: italic;
+	font-size: 0.9rem;
+}
+
+/* Show More/Less for Long Text */
+.long-text-container {
+	position: relative;
+}
+
+.long-text-content {
+	max-height: 120px;
+	overflow: hidden;
+	transition: max-height 0.3s ease;
+}
+
+.long-text-content.expanded {
+	max-height: none;
+}
+
+.long-text-gradient {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 40px;
+	background: linear-gradient(transparent, #f8f9fa);
+	pointer-events: none;
+}
+
+.show-more-btn {
+	display: inline-block;
+	margin-top: 0.5rem;
+	padding: 0.35rem 0.75rem;
+	font-size: 0.8rem;
+	color: #2980b9;
+	background: transparent;
+	border: 1px solid #2980b9;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.show-more-btn:hover {
+	background: #f0f7fb;
+}
+
+/* Field Grid Improvements */
+.field-grid {
+	display: grid;
+	grid-template-columns: 180px 1fr;
+	gap: 0.875rem 1.5rem;
+	align-items: start;
+}
+
+.field-grid .field-label {
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: #555;
+	padding-top: 2px;
+}
+
+.field-grid .field-value {
+	font-size: 0.95rem;
+	color: #2c3e50;
+	line-height: 1.5;
+}
+
+/* Improved Description Box */
+.description-box {
+	background: #fafbfc;
+	border: 1px solid #e8e8e8;
+	border-radius: 6px;
+	padding: 1.25rem 1.5rem;
+	font-size: 0.95rem;
+	line-height: 1.7;
+	color: #3a3a3a;
+	white-space: pre-wrap;
+}
+
+/* Flags Detail Grid Improvements */
+.flags-detail-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 0.5rem;
+}
+
+.flag-item {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.6rem 0.875rem;
+	background: #f5f5f5;
+	border-radius: 6px;
+	font-size: 0.875rem;
+	color: #777;
+}
+
+.flag-item.active {
+	background: #e6f4ea;
+	color: #1e7e34;
+}
+
+.flag-indicator {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #ccc;
+	flex-shrink: 0;
+}
+
+.flag-item.active .flag-indicator {
+	background: #28a745;
+}
+
+/* Admin Edit Mode */
+.detail-page.edit-mode .collapsible-section {
+	border-color: #f0d78c;
+}
+
+.detail-page.edit-mode .section-header {
+	background: #fffbeb;
+}
+
+/* Fixed Action Bar */
+.action-bar {
+	position: sticky;
+	top: 0;
+	z-index: 100;
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.75rem;
+	padding: 1rem 1.5rem;
+	background: #fff;
+	border-bottom: 2px solid #e8e8e8;
+	margin: -2rem -3rem 1.5rem -3rem;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.action-bar .btn {
+	padding: 0.5rem 1.25rem;
+	font-weight: 500;
+}
+
+/* Tab Navigation Improvements */
+.tab-navigation {
+	display: flex;
+	gap: 0;
+	border-bottom: 2px solid #e0e0e0;
+	margin-bottom: 0;
+	flex-wrap: wrap;
+	background: #fafafa;
+	border-radius: 6px 6px 0 0;
+}
+
+.tab-btn {
+	padding: 1rem 1.5rem;
+	border: none;
+	background: transparent;
+	color: #666;
+	font-size: 0.9rem;
+	font-weight: 500;
+	cursor: pointer;
+	border-bottom: 3px solid transparent;
+	margin-bottom: -2px;
+	transition: color 0.15s, background 0.15s;
+}
+
+.tab-btn:hover {
+	color: #2980b9;
+	background: #f0f4f8;
+}
+
+.tab-btn.active {
+	color: #2980b9;
+	border-bottom-color: #2980b9;
+	background: white;
+	font-weight: 600;
+}
+
+/* Tab Content Improvements */
+.tab-content {
+	background: white;
+	border: 1px solid #e0e0e0;
+	border-top: none;
+	border-radius: 0 0 6px 6px;
+	padding: 1.75rem;
+	min-height: 450px;
+}
+
+/* Detail Table Improvements */
+.detail-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.9rem;
+}
+
+.detail-table th {
+	background: #f5f7f9;
+	padding: 0.875rem 1rem;
+	text-align: left;
+	font-weight: 600;
+	color: #444;
+	border-bottom: 2px solid #e0e0e0;
+	font-size: 0.85rem;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+}
+
+.detail-table td {
+	padding: 0.875rem 1rem;
+	border-bottom: 1px solid #eee;
+	color: #333;
+	vertical-align: top;
+}
+
+.detail-table tbody tr:hover {
+	background: #fafbfc;
+}
+
+/* Responsive Detail Page */
+@media (max-width: 1024px) {
+	.detail-page {
+		padding: 1.5rem;
+	}
+
+	.action-bar {
+		margin: -1.5rem -1.5rem 1.25rem -1.5rem;
+	}
+
+	.field-grid {
+		grid-template-columns: 1fr;
+		gap: 0.25rem;
+	}
+
+	.field-grid .field-label {
+		font-size: 0.75rem;
+		color: #888;
+	}
+}
+
+@media (max-width: 768px) {
+	.detail-page {
+		padding: 1rem;
+	}
+
+	.header-content h1 {
+		font-size: 1.75rem;
+	}
+
+	.latin-name {
+		font-size: 1.1rem;
+	}
+
+	.tab-btn {
+		padding: 0.75rem 1rem;
+		font-size: 0.85rem;
+	}
+
+	.tab-content {
+		padding: 1.25rem;
+	}
+
+	.flags-detail-grid {
+		grid-template-columns: 1fr 1fr;
+	}
+}

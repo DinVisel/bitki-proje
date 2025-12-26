@@ -1,17 +1,20 @@
 @page "/bitki/{Id:int}"
 @rendermode InteractiveServer
 @using Bitki.Blazor.Models
+@using Bitki.Blazor.Components.Common
+@using Microsoft.AspNetCore.Components.Authorization
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>@(bitki?.DisplayName ?? "Bitki Detay")</PageTitle>
 
-<div class="detail-page">
+<div class="detail-page @(isEditMode ? "edit-mode" : "")">
     @if (isLoading)
     {
         <div class="loading-state">
             <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+                <span class="visually-hidden">Yükleniyor...</span>
             </div>
         </div>
     }
@@ -22,24 +25,57 @@
     }
     else if (bitki != null)
     {
-        <!-- Header Section -->
+        @* Admin Action Bar *@
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                @if (isEditMode)
+                {
+                    <div class="action-bar">
+                        <button class="btn btn-success" @onclick="SaveChanges">Kaydet</button>
+                        <button class="btn btn-secondary" @onclick="CancelEdit">İptal</button>
+                    </div>
+                }
+            </Authorized>
+        </AuthorizeView>
+
+        @* Breadcrumb Navigation *@
+        <Breadcrumb Items="@breadcrumbItems" />
+
+        @* Header Section *@
         <div class="detail-header">
-            <a href="/bitki" class="back-link">← Bitkiler</a>
             <div class="header-content">
                 <h1>@bitki.DisplayName</h1>
                 @if (!string.IsNullOrEmpty(bitki.LatinName) && bitki.LatinName != bitki.TurkishName)
                 {
                     <div class="latin-name">@bitki.LatinName</div>
                 }
-                <div class="taxonomy-badge">
-                    <span class="badge-item">Familya: @(bitki.FamilyName ?? "—")</span>
-                    <span class="badge-item">Genus: @(bitki.GenusName ?? "—")</span>
-                    <span class="badge-item">ID: @bitki.Id</span>
+                <div class="metadata-row">
+                    <span class="metadata-badge id-badge">ID: @bitki.Id</span>
+                    @if (!string.IsNullOrEmpty(bitki.FamilyName))
+                    {
+                        <span class="metadata-badge">@bitki.FamilyName</span>
+                    }
+                    @if (!string.IsNullOrEmpty(bitki.GenusName))
+                    {
+                        <span class="metadata-badge">@bitki.GenusName</span>
+                    }
+                    @if (!string.IsNullOrEmpty(bitki.Status))
+                    {
+                        <span class="metadata-badge">@bitki.Status</span>
+                    }
+                    <AuthorizeView Roles="Admin">
+                        <Authorized>
+                            @if (!isEditMode)
+                            {
+                                <button class="btn btn-sm btn-outline-primary" @onclick="EnableEditMode">Düzenle</button>
+                            }
+                        </Authorized>
+                    </AuthorizeView>
                 </div>
             </div>
         </div>
 
-        <!-- Flags Row -->
+        @* Flags Row *@
         <div class="flags-row">
             @if (bitki.IsMedicinal)
             {
@@ -71,7 +107,7 @@
             }
         </div>
 
-        <!-- Tab Navigation -->
+        @* Tab Navigation *@
         <div class="tab-navigation">
             <button class="tab-btn @(activeTab == "general" ? "active" : "")" @onclick="@(() => SetTab("general"))">
                 Genel Bilgiler
@@ -93,50 +129,72 @@
             </button>
         </div>
 
-
-        <!-- Tab Content -->
+        @* Tab Content *@
         <div class="tab-content">
             @if (activeTab == "general")
             {
-                <div class="detail-section">
-                    <h3>Genel Bilgiler</h3>
-                    <div class="fields-grid">
-                        <div class="field-item">
-                            <span class="field-label">Türkçe Ad</span>
-                            <span class="field-value">@(bitki.TurkishName ?? "—")</span>
-                        </div>
-                        <div class="field-item">
-                            <span class="field-label">Latince Ad</span>
-                            <span class="field-value">@(bitki.LatinName ?? "—")</span>
-                        </div>
-                        <div class="field-item">
-                            <span class="field-label">Yerel Adlar</span>
-                            <span class="field-value">@(bitki.CommonNames ?? "—")</span>
-                        </div>
-                        <div class="field-item">
-                            <span class="field-label">Durum</span>
-                            <span class="field-value">@(bitki.Status ?? "—")</span>
-                        </div>
+                <CollapsibleSection Title="Temel Bilgiler">
+                    <div class="field-grid">
+                        <span class="field-label">Türkçe Ad</span>
+                        <span class="field-value">@DisplayValue(bitki.TurkishName)</span>
+
+                        <span class="field-label">Latince Ad</span>
+                        <span class="field-value">@DisplayValue(bitki.LatinName)</span>
+
+                        <span class="field-label">Yerel Adlar</span>
+                        <span class="field-value">@DisplayValue(bitki.CommonNames)</span>
+
+                        <span class="field-label">Durum</span>
+                        <span class="field-value">@DisplayValue(bitki.Status)</span>
                     </div>
+                </CollapsibleSection>
 
-                    <h4>Açıklama</h4>
-                    <div class="description-box">
-                        @(bitki.Description ?? "Açıklama bulunmuyor.")
-                    </div>
-
-                    @if (!string.IsNullOrEmpty(bitki.Notes))
+                <CollapsibleSection Title="Açıklama">
+                    @if (!string.IsNullOrEmpty(bitki.Description))
                     {
-                        <h4>Notlar</h4>
-                        <div class="description-box">@bitki.Notes</div>
+                        @if (bitki.Description.Length > 300)
+                        {
+                            <div class="long-text-container">
+                                <div class="description-box long-text-content @(descriptionExpanded ? "expanded" : "")">
+                                    @bitki.Description
+                                </div>
+                                @if (!descriptionExpanded)
+                                {
+                                    <div class="long-text-gradient"></div>
+                                }
+                                <button class="show-more-btn" @onclick="@(() => descriptionExpanded = !descriptionExpanded)">
+                                    @(descriptionExpanded ? "Daha az göster" : "Daha fazla göster")
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="description-box">@bitki.Description</div>
+                        }
                     }
-
-                    @if (!string.IsNullOrEmpty(bitki.AdditionalInfo))
+                    else
                     {
-                        <h4>Ek Bilgi</h4>
-                        <div class="description-box">@bitki.AdditionalInfo</div>
+                        <span class="empty-value">Bilgi bulunmamaktadır</span>
                     }
+                </CollapsibleSection>
 
-                    <h4>Bayraklar</h4>
+                @if (!string.IsNullOrEmpty(bitki.Notes) || !string.IsNullOrEmpty(bitki.AdditionalInfo))
+                {
+                    <CollapsibleSection Title="Ek Notlar" DefaultExpanded="false">
+                        @if (!string.IsNullOrEmpty(bitki.Notes))
+                        {
+                            <h4>Notlar</h4>
+                            <div class="description-box">@bitki.Notes</div>
+                        }
+                        @if (!string.IsNullOrEmpty(bitki.AdditionalInfo))
+                        {
+                            <h4>Ek Bilgi</h4>
+                            <div class="description-box">@bitki.AdditionalInfo</div>
+                        }
+                    </CollapsibleSection>
+                }
+
+                <CollapsibleSection Title="Özellikler" DefaultExpanded="false">
                     <div class="flags-detail-grid">
                         <div class="flag-item @(bitki.IsMedicinal ? "active" : "")">
                             <span class="flag-indicator"></span>Tıbbi Kullanım
@@ -175,124 +233,120 @@
                             <span class="flag-indicator"></span>Yayın OK
                         </div>
                     </div>
-                </div>
+                </CollapsibleSection>
             }
             else if (activeTab == "taxonomy")
             {
-                <div class="detail-section">
-                    <h3>Taksonomi Bilgileri</h3>
-                    <div class="fields-grid">
-                        <div class="field-item">
-                            <span class="field-label">Familya</span>
-                            <span class="field-value">@(bitki.FamilyName ?? "—")
-                                @(!string.IsNullOrEmpty(bitki.FamilyTurkishName) ? $"({bitki.FamilyTurkishName})" : "")</span>
-                        </div>
-                        <div class="field-item">
-                            <span class="field-label">Genus</span>
-                            <span class="field-value">@(bitki.GenusName ?? "—")</span>
-                        </div>
-                        <div class="field-item">
-                            <span class="field-label">Takson Adı</span>
-                            <span class="field-value">@(bitki.TaxonName ?? "—")</span>
-                        </div>
-                        <div class="field-item">
-                            <span class="field-label">Takson Düzeyi</span>
-                            <span class="field-value">@(bitki.TaxonLevel ?? "—")</span>
-                        </div>
-                        <div class="field-item">
-                            <span class="field-label">Takson Cinsi</span>
-                            <span class="field-value">@(bitki.TaxonKind ?? "—")</span>
-                        </div>
-                        <div class="field-item">
-                            <span class="field-label">Takson Otörü</span>
-                            <span class="field-value">@(bitki.TaxonOtor ?? "—")</span>
-                        </div>
-                    </div>
+                <CollapsibleSection Title="Sınıflandırma">
+                    <div class="field-grid">
+                        <span class="field-label">Familya</span>
+                        <span class="field-value">
+                            @DisplayValue(bitki.FamilyName)
+                            @if (!string.IsNullOrEmpty(bitki.FamilyTurkishName))
+                            {
+                                <span class="text-muted"> (@bitki.FamilyTurkishName)</span>
+                            }
+                        </span>
 
-                    <h4>Otör Bilgileri</h4>
-                    <div class="fields-grid">
-                        <div class="field-item">
-                            <span class="field-label">Otör</span>
-                            <span class="field-value">@(bitki.Otor ?? "—")</span>
-                        </div>
-                        <div class="field-item">
-                            <span class="field-label">Basionim Otör</span>
-                            <span class="field-value">@(bitki.BasionymOtor ?? "—")</span>
-                        </div>
-                        <div class="field-item">
-                            <span class="field-label">Yıl</span>
-                            <span class="field-value">@(bitki.Year ?? "—")</span>
-                        </div>
-                        <div class="field-item">
-                            <span class="field-label">Sayfa</span>
-                            <span class="field-value">@(bitki.Pages ?? "—")</span>
-                        </div>
-                    </div>
+                        <span class="field-label">Genus</span>
+                        <span class="field-value">@DisplayValue(bitki.GenusName)</span>
 
-                    @if (!string.IsNullOrEmpty(bitki.Synonym))
-                    {
-                        <h4>Sinonim Bilgileri</h4>
-                        <div class="fields-grid">
-                            <div class="field-item">
-                                <span class="field-label">Sinonim</span>
-                                <span class="field-value">@bitki.Synonym</span>
-                            </div>
-                            <div class="field-item">
-                                <span class="field-label">Sinonim Otör</span>
-                                <span class="field-value">@(bitki.SynonymOtor ?? "—")</span>
-                            </div>
+                        <span class="field-label">Takson Adı</span>
+                        <span class="field-value">@DisplayValue(bitki.TaxonName)</span>
+
+                        <span class="field-label">Takson Düzeyi</span>
+                        <span class="field-value">@DisplayValue(bitki.TaxonLevel)</span>
+
+                        <span class="field-label">Takson Cinsi</span>
+                        <span class="field-value">@DisplayValue(bitki.TaxonKind)</span>
+
+                        <span class="field-label">Takson Otörü</span>
+                        <span class="field-value">@DisplayValue(bitki.TaxonOtor)</span>
+                    </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection Title="Otör Bilgileri">
+                    <div class="field-grid">
+                        <span class="field-label">Otör</span>
+                        <span class="field-value">@DisplayValue(bitki.Otor)</span>
+
+                        <span class="field-label">Basionim Otör</span>
+                        <span class="field-value">@DisplayValue(bitki.BasionymOtor)</span>
+
+                        <span class="field-label">Yıl</span>
+                        <span class="field-value">@DisplayValue(bitki.Year)</span>
+
+                        <span class="field-label">Sayfa</span>
+                        <span class="field-value">@DisplayValue(bitki.Pages)</span>
+                    </div>
+                </CollapsibleSection>
+
+                @if (!string.IsNullOrEmpty(bitki.Synonym))
+                {
+                    <CollapsibleSection Title="Sinonim Bilgileri" DefaultExpanded="false">
+                        <div class="field-grid">
+                            <span class="field-label">Sinonim</span>
+                            <span class="field-value">@bitki.Synonym</span>
+
+                            <span class="field-label">Sinonim Otör</span>
+                            <span class="field-value">@DisplayValue(bitki.SynonymOtor)</span>
                         </div>
-                    }
-                </div>
+                    </CollapsibleSection>
+                }
             }
             else if (activeTab == "ecology")
             {
-                <div class="detail-section">
-                    <h3>Ekoloji & Dağılım</h3>
-                    <div class="fields-grid">
-                        <div class="field-item">
-                            <span class="field-label">Endemizm</span>
-                            <span class="field-value">@(bitki.Endemism ?? "—")</span>
-                        </div>
-                        <div class="field-item">
-                            <span class="field-label">Endemizm Açıklama</span>
-                            <span class="field-value">@(bitki.EndemismDescription ?? "—")</span>
-                        </div>
-                        <div class="field-item">
-                            <span class="field-label">Çiçeklenme Zamanı</span>
-                            <span class="field-value">@(bitki.FloweringTime ?? "—")</span>
-                        </div>
-                        <div class="field-item">
-                            <span class="field-label">Rakım/Yükseklik</span>
-                            <span class="field-value">@(bitki.Altitude ?? "—")</span>
-                        </div>
-                        <div class="field-item">
-                            <span class="field-label">Fitocoğrafya</span>
-                            <span class="field-value">@(bitki.Phytogeography ?? "—")</span>
-                        </div>
-                    </div>
+                <CollapsibleSection Title="Endemizm & Fitocoğrafya">
+                    <div class="field-grid">
+                        <span class="field-label">Endemizm</span>
+                        <span class="field-value">@DisplayValue(bitki.Endemism)</span>
 
-                    <h4>Yaşam Alanı</h4>
-                    <div class="description-box">
-                        @(bitki.Habitat ?? "Habitat bilgisi bulunmuyor.")
-                    </div>
+                        <span class="field-label">Endemizm Açıklama</span>
+                        <span class="field-value">@DisplayValue(bitki.EndemismDescription)</span>
 
-                    <h4>Dağılım</h4>
-                    <div class="description-box">
-                        @(bitki.Distribution ?? "Dağılım bilgisi bulunmuyor.")
-                    </div>
+                        <span class="field-label">Fitocoğrafya</span>
+                        <span class="field-value">@DisplayValue(bitki.Phytogeography)</span>
 
-                    @if (!string.IsNullOrEmpty(bitki.References))
+                        <span class="field-label">Çiçeklenme Zamanı</span>
+                        <span class="field-value">@DisplayValue(bitki.FloweringTime)</span>
+
+                        <span class="field-label">Rakım/Yükseklik</span>
+                        <span class="field-value">@DisplayValue(bitki.Altitude)</span>
+                    </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection Title="Yaşam Alanı">
+                    @if (!string.IsNullOrEmpty(bitki.Habitat))
                     {
-                        <h4>Kaynaklar</h4>
-                        <div class="description-box">@bitki.References</div>
+                        <div class="description-box">@bitki.Habitat</div>
                     }
-                </div>
+                    else
+                    {
+                        <span class="empty-value">Bilgi bulunmamaktadır</span>
+                    }
+                </CollapsibleSection>
+
+                <CollapsibleSection Title="Dağılım">
+                    @if (!string.IsNullOrEmpty(bitki.Distribution))
+                    {
+                        <div class="description-box">@bitki.Distribution</div>
+                    }
+                    else
+                    {
+                        <span class="empty-value">Bilgi bulunmamaktadır</span>
+                    }
+                </CollapsibleSection>
+
+                @if (!string.IsNullOrEmpty(bitki.References))
+                {
+                    <CollapsibleSection Title="Kaynaklar" DefaultExpanded="false">
+                        <div class="description-box">@bitki.References</div>
+                    </CollapsibleSection>
+                }
             }
             else if (activeTab == "compounds")
             {
-                <div class="detail-section">
-                    <h3>Bileşikler</h3>
+                <CollapsibleSection Title="Bileşikler">
                     @if (compoundsLoading)
                     {
                         <div class="tab-loading">
@@ -316,11 +370,11 @@
                                 @foreach (var compound in bitki.Compounds)
                                 {
                                     <tr>
-                                        <td>@(compound.CompoundName ?? "—")</td>
-                                        <td>@(compound.CompoundEnglishName ?? "—")</td>
-                                        <td>@(compound.CompoundLatinName ?? "—")</td>
+                                        <td>@DisplayValue(compound.CompoundName)</td>
+                                        <td>@DisplayValue(compound.CompoundEnglishName)</td>
+                                        <td>@DisplayValue(compound.CompoundLatinName)</td>
                                         <td>@(compound.Amount?.ToString("F2") ?? "—")</td>
-                                        <td>@(compound.Description ?? "—")</td>
+                                        <td>@DisplayValue(compound.Description)</td>
                                     </tr>
                                 }
                             </tbody>
@@ -330,13 +384,11 @@
                     {
                         <div class="empty-state-small">Bu bitki için kayıtlı bileşik bulunmuyor.</div>
                     }
-                </div>
+                </CollapsibleSection>
             }
-
             else if (activeTab == "images")
             {
-                <div class="detail-section">
-                    <h3>Görseller</h3>
+                <CollapsibleSection Title="Görseller">
                     @if (imagesLoading)
                     {
                         <div class="tab-loading">
@@ -366,12 +418,11 @@
                     {
                         <div class="empty-state-small">Bu bitki için kayıtlı görsel bulunmuyor.</div>
                     }
-                </div>
+                </CollapsibleSection>
             }
             else if (activeTab == "literature")
             {
-                <div class="detail-section">
-                    <h3>Literatür</h3>
+                <CollapsibleSection Title="Literatür">
                     @if (literatureLoading)
                     {
                         <div class="tab-loading">
@@ -395,11 +446,11 @@
                                 @foreach (var lit in bitki.Literature)
                                 {
                                     <tr>
-                                        <td>@(lit.AuthorName ?? "—")</td>
-                                        <td>@(lit.ResearchName ?? "—")</td>
-                                        <td>@(lit.SourceName ?? "—")</td>
+                                        <td>@DisplayValue(lit.AuthorName)</td>
+                                        <td>@DisplayValue(lit.ResearchName)</td>
+                                        <td>@DisplayValue(lit.SourceName)</td>
                                         <td>@(lit.Year?.ToString() ?? "—")</td>
-                                        <td>@(lit.Type ?? "—")</td>
+                                        <td>@DisplayValue(lit.Type)</td>
                                     </tr>
                                 }
                             </tbody>
@@ -409,7 +460,7 @@
                     {
                         <div class="empty-state-small">Bu bitki için kayıtlı literatür bulunmuyor.</div>
                     }
-                </div>
+                </CollapsibleSection>
             }
         </div>
     }
@@ -423,6 +474,11 @@
     private bool isLoading = true;
     private string? errorMessage;
     private string activeTab = "general";
+    private bool isEditMode = false;
+    private bool descriptionExpanded = false;
+
+    // Breadcrumb
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbItems = new();
 
     // Lazy loading states
     private bool compoundsLoaded = false;
@@ -431,6 +487,16 @@
     private bool imagesLoading = false;
     private bool literatureLoaded = false;
     private bool literatureLoading = false;
+
+    // Helper method for displaying field values
+    private MarkupString DisplayValue(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return new MarkupString("<span class=\"empty-value\">Bilgi bulunmamaktadır</span>");
+        }
+        return new MarkupString(value);
+    }
 
     private async Task SetTab(string tab)
     {
@@ -463,6 +529,8 @@
         imagesLoaded = false;
         literatureLoaded = false;
         activeTab = "general";
+        descriptionExpanded = false;
+        isEditMode = false;
         await LoadData();
     }
 
@@ -478,6 +546,15 @@
             if (bitki == null)
             {
                 errorMessage = "Bitki bulunamadı.";
+            }
+            else
+            {
+                // Update breadcrumb
+                breadcrumbItems = new List<Breadcrumb.BreadcrumbItem>
+{
+new("Bitkiler", "/bitki"),
+new(bitki.DisplayName)
+};
             }
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -565,5 +642,21 @@
             literatureLoading = false;
             StateHasChanged();
         }
+    }
+
+    private void EnableEditMode()
+    {
+        isEditMode = true;
+    }
+
+    private void CancelEdit()
+    {
+        isEditMode = false;
+    }
+
+    private async Task SaveChanges()
+    {
+        // TODO: Implement save logic via API
+        isEditMode = false;
     }
 }

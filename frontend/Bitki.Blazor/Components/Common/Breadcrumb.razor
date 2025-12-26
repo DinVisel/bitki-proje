@@ -1,0 +1,35 @@
+@* Breadcrumb Navigation Component *@
+
+<nav class="breadcrumb-nav" aria-label="breadcrumb">
+    @foreach (var (item, index) in Items.Select((item, i) => (item, i)))
+    {
+        @if (index > 0)
+        {
+            <span class="breadcrumb-separator">›</span>
+        }
+        @if (!string.IsNullOrEmpty(item.Href))
+        {
+            <a href="@item.Href" class="breadcrumb-link">@item.Label</a>
+        }
+        else
+        {
+            <span class="breadcrumb-current">@item.Label</span>
+        }
+    }
+</nav>
+
+@code {
+    [Parameter] public List<BreadcrumbItem> Items { get; set; } = new();
+
+    public class BreadcrumbItem
+    {
+        public string Label { get; set; } = string.Empty;
+        public string? Href { get; set; }
+
+        public BreadcrumbItem(string label, string? href = null)
+        {
+            Label = label;
+            Href = href;
+        }
+    }
+}

@@ -1,0 +1,32 @@
+@* Collapsible Section Component for Detail Pages *@
+
+<div class="collapsible-section @(IsExpanded ? "expanded" : "collapsed")">
+    <button class="section-header" @onclick="Toggle">
+        <span class="section-title">@Title</span>
+        <span class="section-toggle">@(IsExpanded ? "−" : "+")</span>
+    </button>
+    @if (IsExpanded)
+    {
+        <div class="section-content">
+            @ChildContent
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Section";
+    [Parameter] public bool DefaultExpanded { get; set; } = true;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private bool IsExpanded { get; set; }
+
+    protected override void OnInitialized()
+    {
+        IsExpanded = DefaultExpanded;
+    }
+
+    private void Toggle()
+    {
+        IsExpanded = !IsExpanded;
+    }
+}
