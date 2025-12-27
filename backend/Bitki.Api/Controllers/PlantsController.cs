@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Bitki.Core.Entities;
 using Bitki.Core.Interfaces.Services;
 
@@ -39,6 +40,7 @@ namespace Bitki.Api.Controllers
 
         // POST: api/plants
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Plant>> PostPlant(Plant plant)
         {
             var id = await _service.CreatePlantAsync(plant);
@@ -48,6 +50,7 @@ namespace Bitki.Api.Controllers
 
         // PUT: api/plants/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> PutPlant(int id, Plant plant)
         {
             if (id != plant.Id)
@@ -61,6 +64,7 @@ namespace Bitki.Api.Controllers
 
         // DELETE: api/plants/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeletePlant(int id)
         {
             await _service.DeletePlantAsync(id);

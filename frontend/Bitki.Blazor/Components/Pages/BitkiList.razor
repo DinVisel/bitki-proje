@@ -2,15 +2,27 @@
 @rendermode InteractiveServer
 @using Bitki.Blazor.Models
 @using Bitki.Blazor.Components.Common
+@using Bitki.Blazor.Services
+@using Microsoft.AspNetCore.Components.Authorization
 @using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.BitkiViewModel>
 @inject HttpClient Http
+@inject AuthenticatedHttpClient AuthHttp
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 
 <PageTitle>Bitkiler</PageTitle>
 
 <div class="page-container">
-    <h1>Bitkiler Veritabanı</h1>
+    <div class="page-header">
+        <h1>Bitkiler Veritabanı</h1>
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <button class="btn btn-success add-new-btn" @onclick="OpenAddModal">
+                    <span>➕</span> Yeni Bitki Ekle
+                </button>
+            </Authorized>
+        </AuthorizeView>
+    </div>
 
     @if (errorMessage != null)
     {
@@ -48,6 +60,53 @@
     }
 </div>
 
+@* Add New Modal *@
+@if (showAddModal)
+{
+    <div class="modal-overlay" @onclick="CloseAddModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h5>Yeni Bitki Ekle</h5>
+                <button type="button" class="btn-close" @onclick="CloseAddModal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group mb-3">
+                    <label class="form-label">Türkçe Ad *</label>
+                    <input type="text" class="form-control" @bind="newBitki.Name" placeholder="Türkçe adı girin" />
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Latince Ad</label>
+                    <input type="text" class="form-control" @bind="newBitki.LatinName" placeholder="Latince adı girin" />
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Aile</label>
+                    <input type="text" class="form-control" @bind="newBitki.Family" placeholder="Bitki ailesini girin" />
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Açıklama</label>
+                    <textarea class="form-control" rows="3" @bind="newBitki.Description"
+                        placeholder="Açıklama girin"></textarea>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Habitat</label>
+                    <textarea class="form-control" rows="2" @bind="newBitki.Habitat"
+                        placeholder="Habitat bilgisi girin"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseAddModal">İptal</button>
+                <button class="btn btn-success" @onclick="HandleCreate" disabled="@isCreating">
+                    @if (isCreating)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    Kaydet
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private BitkiViewModel[]? bitkiler;
     private bool isLoading = true;
@@ -57,6 +116,11 @@
     private FilterResponse<BitkiViewModel> paginationState = new FilterResponse<BitkiViewModel>();
 
     private FilterRequest currentFilter = new FilterRequest();
+
+    // Add Modal State
+    private bool showAddModal = false;
+    private bool isCreating = false;
+    private BitkiViewModel newBitki = new();
 
     private List<ColumnDef> columns = new()
 {
@@ -120,7 +184,7 @@ new InspectorField { Label = "Habitat", PropertyName = "Habitat", Editable = tru
     private async Task HandleSearchChanged(string searchText)
     {
         currentFilter.SearchText = searchText;
-        currentFilter.PageNumber = 1; // Reset to page 1 on search
+        currentFilter.PageNumber = 1;
         await LoadDataWithFilter();
     }
 
@@ -128,7 +192,7 @@ new InspectorField { Label = "Habitat", PropertyName = "Habitat", Editable = tru
     {
         currentFilter.SortColumn = sort.column;
         currentFilter.SortDirection = sort.ascending ? "ASC" : "DESC";
-        currentFilter.PageNumber = 1; // Reset to page 1 on sort
+        currentFilter.PageNumber = 1;
         await LoadDataWithFilter();
     }
 
@@ -139,16 +203,80 @@ new InspectorField { Label = "Habitat", PropertyName = "Habitat", Editable = tru
         await LoadDataWithFilter();
     }
 
+    // Add Modal Methods
+    private void OpenAddModal()
+    {
+        newBitki = new BitkiViewModel();
+        showAddModal = true;
+    }
+
+    private void CloseAddModal()
+    {
+        showAddModal = false;
+        newBitki = new BitkiViewModel();
+    }
+
+    private async Task HandleCreate()
+    {
+        if (string.IsNullOrWhiteSpace(newBitki.Name))
+        {
+            await JS.InvokeVoidAsync("alert", "Türkçe ad alanı zorunludur.");
+            return;
+        }
+
+        isCreating = true;
+
+        try
+        {
+            var response = await AuthHttp.PostAsJsonAsync("api/bitki", newBitki);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Bitki başarıyla eklendi!");
+                CloseAddModal();
+                await LoadDataWithFilter();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                await JS.InvokeVoidAsync("alert", "Yetkisiz işlem. Lütfen giriş yapın.");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                await JS.InvokeVoidAsync("alert", "Bu işlem için Admin yetkisi gereklidir.");
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", $"Ekleme hatası: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
+        finally
+        {
+            isCreating = false;
+        }
+    }
+
     private async Task HandleSave(BitkiViewModel item)
     {
         try
         {
-            var response = await Http.PutAsJsonAsync($"api/bitki/{item.Id}", item);
+            var response = await AuthHttp.PutAsJsonAsync($"api/bitki/{item.Id}", item);
 
             if (response.IsSuccessStatusCode)
             {
                 await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
                 await LoadDataWithFilter();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                await JS.InvokeVoidAsync("alert", "Yetkisiz işlem. Lütfen giriş yapın.");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                await JS.InvokeVoidAsync("alert", "Bu işlem için Admin yetkisi gereklidir.");
             }
             else
             {
@@ -167,12 +295,20 @@ new InspectorField { Label = "Habitat", PropertyName = "Habitat", Editable = tru
         {
             try
             {
-                var response = await Http.DeleteAsync($"api/bitki/{item.Id}");
+                var response = await AuthHttp.DeleteAsync($"api/bitki/{item.Id}");
 
                 if (response.IsSuccessStatusCode)
                 {
                     await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
                     await LoadDataWithFilter();
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    await JS.InvokeVoidAsync("alert", "Yetkisiz işlem. Lütfen giriş yapın.");
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    await JS.InvokeVoidAsync("alert", "Bu işlem için Admin yetkisi gereklidir.");
                 }
                 else
                 {

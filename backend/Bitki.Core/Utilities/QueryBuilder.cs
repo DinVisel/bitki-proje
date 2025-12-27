@@ -10,25 +10,36 @@ namespace Bitki.Core.Utilities
     {
         private readonly HashSet<string> _allowedColumns;
         private readonly HashSet<string> _searchableColumns;
+        private readonly Dictionary<string, string> _columnMappings;
         private readonly string _tableName;
         private readonly string _schema;
         private readonly bool _hasSoftDelete;
 
-        public QueryBuilder(string tableName, IEnumerable<string> allowedColumns, IEnumerable<string> searchableColumns, string schema = "dbo", bool hasSoftDelete = false)
+        public QueryBuilder(string tableName, IEnumerable<string> allowedColumns, IEnumerable<string> searchableColumns, Dictionary<string, string>? columnMappings = null, string schema = "dbo", bool hasSoftDelete = false)
         {
             _tableName = tableName;
             _schema = schema;
             _hasSoftDelete = hasSoftDelete;
             _allowedColumns = new HashSet<string>(allowedColumns, StringComparer.OrdinalIgnoreCase);
             _searchableColumns = new HashSet<string>(searchableColumns, StringComparer.OrdinalIgnoreCase);
+            _columnMappings = columnMappings ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
         /// <summary>
-        /// Validates if a column name is in the allowed list
+        /// Maps UI property name to DB column name, returns original if no mapping exists
+        /// </summary>
+        private string MapColumn(string propertyName)
+        {
+            return _columnMappings.TryGetValue(propertyName, out var dbColumn) ? dbColumn : propertyName;
+        }
+
+        /// <summary>
+        /// Validates if a column name is in the allowed list (after mapping)
         /// </summary>
         public bool IsColumnAllowed(string columnName)
         {
-            return _allowedColumns.Contains(columnName);
+            var mapped = MapColumn(columnName);
+            return _allowedColumns.Contains(mapped);
         }
 
         /// <summary>
@@ -69,11 +80,12 @@ namespace Bitki.Core.Utilities
             int paramIndex = 0;
             foreach (var filter in filters)
             {
-                if (!IsColumnAllowed(filter.Key))
+                var mappedColumn = MapColumn(filter.Key);
+                if (!_allowedColumns.Contains(mappedColumn))
                     continue; // Skip invalid columns
 
                 var paramName = $"Filter{paramIndex}";
-                clauses.Add($"{filter.Key} = @{paramName}");
+                clauses.Add($"{mappedColumn} = @{paramName}");
                 parameters.Add(paramName, filter.Value);
                 paramIndex++;
             }
@@ -86,12 +98,16 @@ namespace Bitki.Core.Utilities
         /// </summary>
         public string BuildOrderByClause(string? sortColumn, string sortDirection)
         {
-            if (string.IsNullOrWhiteSpace(sortColumn) || !IsColumnAllowed(sortColumn))
+            if (string.IsNullOrWhiteSpace(sortColumn))
+                return string.Empty;
+
+            var mappedColumn = MapColumn(sortColumn);
+            if (!_allowedColumns.Contains(mappedColumn))
                 return string.Empty;
 
             // Validate sort direction
             var direction = sortDirection?.ToUpperInvariant() == "DESC" ? "DESC" : "ASC";
-            return $"ORDER BY {sortColumn} {direction}";
+            return $"ORDER BY {mappedColumn} {direction}";
         }
 
         /// <summary>

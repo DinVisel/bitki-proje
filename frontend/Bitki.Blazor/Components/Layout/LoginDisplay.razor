@@ -1,15 +1,20 @@
+@rendermode InteractiveServer
 @using Microsoft.AspNetCore.Components.Authorization
 @using Bitki.Blazor.Auth
+@using System.Security.Claims
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
 
 <AuthorizeView>
     <Authorized>
-        <span class="me-2">Hello, @context.User.Identity?.Name!</span>
-        <button class="btn btn-link" @onclick="Logout">Logout</button>
+        <div class="user-info-display">
+            <span class="username">@context.User.Identity?.Name</span>
+            <span class="role-badge @GetRoleBadgeClass(context.User)">@GetUserRole(context.User)</span>
+            <button class="btn btn-outline-light btn-sm logout-btn" @onclick="Logout">Logout</button>
+        </div>
     </Authorized>
     <NotAuthorized>
-        <a href="login">Login</a>
+        <a href="login" class="btn btn-outline-light btn-sm">Login</a>
     </NotAuthorized>
 </AuthorizeView>
 
@@ -19,5 +24,23 @@
         var customAuthStateProvider = (CustomAuthenticationStateProvider)AuthStateProvider;
         await customAuthStateProvider.UpdateAuthenticationState(null);
         NavigationManager.NavigateTo("/", true);
+    }
+
+    private string GetUserRole(ClaimsPrincipal user)
+    {
+        var roleClaim = user.FindFirst(ClaimTypes.Role) ?? user.FindFirst("role");
+        return roleClaim?.Value ?? "Unknown";
+    }
+
+    private string GetRoleBadgeClass(ClaimsPrincipal user)
+    {
+        var role = GetUserRole(user);
+        return role.ToLower() switch
+        {
+            "admin" => "role-admin",
+            "user" => "role-viewer",
+            "viewer" => "role-viewer",
+            _ => "role-unknown"
+        };
     }
 }

@@ -20,7 +20,16 @@ namespace Bitki.Infrastructure.Repositories.Cleanup
             // Define allowed and searchable columns
             var allowedColumns = new[] { "id", "ucucuyagadi", "yereladi", "kullanim" };
             var searchableColumns = new[] { "ucucuyagadi", "yereladi", "kullanim" };
-            _queryBuilder = new QueryBuilder("ucuyag", allowedColumns, searchableColumns);
+
+            // Map UI property names → DB column names
+            var columnMappings = new Dictionary<string, string>
+            {
+                { "Id", "id" },
+                { "Name", "ucucuyagadi" },
+                { "LocalName", "yereladi" },
+                { "Usage", "kullanim" }
+            };
+            _queryBuilder = new QueryBuilder("ucuyag", allowedColumns, searchableColumns, columnMappings);
         }
 
         public async Task<IEnumerable<Bitki.Core.Entities.Ucuyag>> GetAllAsync()

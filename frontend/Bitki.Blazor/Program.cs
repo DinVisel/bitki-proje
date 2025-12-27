@@ -1,6 +1,7 @@
 using Bitki.Blazor.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Bitki.Blazor.Auth;
+using Bitki.Blazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,10 @@ builder.Services.AddHttpClient("ApiClient", client =>
 builder.Services.AddScoped(sp =>
     sp.GetRequiredService<IHttpClientFactory>().CreateClient("ApiClient")
 );
+
+// Register AuthenticatedHttpClient for API calls that require authentication
+builder.Services.AddScoped<AuthenticatedHttpClient>();
+
 
 var app = builder.Build();
 

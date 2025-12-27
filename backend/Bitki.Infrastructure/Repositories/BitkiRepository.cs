@@ -21,7 +21,16 @@ namespace Bitki.Infrastructure.Repositories
             // Define allowed and searchable columns
             var allowedColumns = new[] { "bitkiid", "turkce", "bitki", "aciklama" };
             var searchableColumns = new[] { "turkce", "bitki", "aciklama" };
-            _queryBuilder = new QueryBuilder("bitki", allowedColumns, searchableColumns);
+
+            // Map UI property names → DB column names
+            var columnMappings = new Dictionary<string, string>
+            {
+                { "Id", "bitkiid" },
+                { "Name", "turkce" },
+                { "LatinName", "bitki" },
+                { "Description", "aciklama" }
+            };
+            _queryBuilder = new QueryBuilder("bitki", allowedColumns, searchableColumns, columnMappings);
         }
 
         public async Task<IEnumerable<Plant>> GetAllAsync()
