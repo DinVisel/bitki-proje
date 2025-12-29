@@ -22,7 +22,11 @@ namespace Bitki.Core.Utilities
             _hasSoftDelete = hasSoftDelete;
             _allowedColumns = new HashSet<string>(allowedColumns, StringComparer.OrdinalIgnoreCase);
             _searchableColumns = new HashSet<string>(searchableColumns, StringComparer.OrdinalIgnoreCase);
-            _columnMappings = columnMappings ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            // Ensure column mappings are always case-insensitive
+            _columnMappings = columnMappings != null
+                ? new Dictionary<string, string>(columnMappings, StringComparer.OrdinalIgnoreCase)
+                : new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
         /// <summary>

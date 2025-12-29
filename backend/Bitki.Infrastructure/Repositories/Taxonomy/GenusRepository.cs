@@ -19,7 +19,17 @@ namespace Bitki.Infrastructure.Repositories.Taxonomy
 
             var allowedColumns = new[] { "genusid", "genus", "familyano", "aciklama" };
             var searchableColumns = new[] { "genus", "aciklama" };
-            _queryBuilder = new QueryBuilder("genus", allowedColumns, searchableColumns);
+
+            // Map UI property names → DB column names
+            var columnMappings = new Dictionary<string, string>
+            {
+                { "Id", "genusid" },
+                { "Name", "genus" },
+                { "FamilyId", "familyano" },
+                { "Description", "aciklama" }
+            };
+
+            _queryBuilder = new QueryBuilder("genus", allowedColumns, searchableColumns, columnMappings);
         }
 
         public async Task<IEnumerable<Genus>> GetAllAsync()

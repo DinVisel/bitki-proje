@@ -20,7 +20,23 @@ namespace Bitki.Infrastructure.Repositories.Literatur
             // Define allowed and searchable columns
             var allowedColumns = new[] { "litid", "yazaradi", "arastirmaadi", "kaynakadi", "yili", "tamadi", "tip", "konutipi", "guvenilirlik" };
             var searchableColumns = new[] { "yazaradi", "arastirmaadi", "kaynakadi", "tamadi", "ozet" };
-            _queryBuilder = new QueryBuilder("literatur", allowedColumns, searchableColumns);
+
+            var columnMappings = new Dictionary<string, string>
+            {
+                { "Id", "litid" },
+                { "AuthorName", "yazaradi" },
+                { "ResearchName", "arastirmaadi" },
+                { "SourceName", "kaynakadi" },
+                { "Year", "yili" },
+                { "FullName", "tamadi" },
+                { "Type", "tip" },
+                { "TopicType", "konutipi" },
+                { "Reliability", "guvenilirlik" },
+                { "Summary", "ozet" },
+                { "Link", "link" }
+            };
+
+            _queryBuilder = new QueryBuilder("literatur", allowedColumns, searchableColumns, columnMappings);
         }
 
         public async Task<IEnumerable<Bitki.Core.Entities.Literatur>> GetAllAsync()
