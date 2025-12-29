@@ -63,6 +63,8 @@ namespace Bitki.Infrastructure.Repositories.Literatur
 
         public async Task<FilterResponse<Bitki.Core.Entities.Literatur>> QueryAsync(FilterRequest request)
         {
+            request.ValidatePagination();
+
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
@@ -77,7 +79,9 @@ namespace Bitki.Infrastructure.Repositories.Literatur
                 request.SortColumn,
                 request.SortDirection,
                 parameters,
-                request.IncludeDeleted
+                request.IncludeDeleted,
+                request.PageNumber,
+                request.PageSize
             );
 
             // Build COUNT queries

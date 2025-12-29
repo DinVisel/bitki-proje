@@ -41,12 +41,23 @@ namespace Bitki.Infrastructure.Repositories.Taxonomy
 
         public async Task<FilterResponse<Genus>> QueryAsync(FilterRequest request)
         {
+            request.ValidatePagination();
+
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
             var selectColumns = "genusid AS Id, genus AS Name, familyano AS FamilyId, aciklama AS Description";
-            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters,
-                request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted);
+            var selectSql = _queryBuilder.BuildSelectQuery(
+                selectColumns,
+                request.SearchText,
+                request.Filters,
+                request.SortColumn,
+                request.SortDirection,
+                parameters,
+                request.IncludeDeleted,
+                request.PageNumber,
+                request.PageSize
+            );
 
             var totalCountSql = "SELECT COUNT(*) FROM dbo.genus";
             var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted);

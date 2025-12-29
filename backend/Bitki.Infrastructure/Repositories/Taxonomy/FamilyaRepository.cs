@@ -19,7 +19,14 @@ namespace Bitki.Infrastructure.Repositories.Taxonomy
 
             var allowedColumns = new[] { "familyaid", "familya", "turkce" };
             var searchableColumns = new[] { "familya", "turkce" };
-            _queryBuilder = new QueryBuilder("familya", allowedColumns, searchableColumns);
+            var columnMappings = new Dictionary<string, string>
+            {
+                { "Id", "familyaid" },
+                { "Name", "familya" },
+                { "TurkishName", "turkce" }
+            };
+
+            _queryBuilder = new QueryBuilder("familya", allowedColumns, searchableColumns, columnMappings);
         }
 
         public async Task<IEnumerable<Familya>> GetAllAsync()
@@ -31,13 +38,23 @@ namespace Bitki.Infrastructure.Repositories.Taxonomy
 
         public async Task<FilterResponse<Familya>> QueryAsync(FilterRequest request)
         {
+            request.ValidatePagination();
+
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
             var selectColumns = "familyaid AS Id, familya AS Name, turkce AS TurkishName";
             var selectSql = _queryBuilder.BuildSelectQuery(
-                selectColumns, request.SearchText, request.Filters,
-                request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted);
+                selectColumns,
+                request.SearchText,
+                request.Filters,
+                request.SortColumn,
+                request.SortDirection,
+                parameters,
+                request.IncludeDeleted,
+                request.PageNumber,
+                request.PageSize
+            );
 
             var totalCountSql = "SELECT COUNT(*) FROM dbo.familya";
             var filteredCountSql = _queryBuilder.BuildCountQuery(

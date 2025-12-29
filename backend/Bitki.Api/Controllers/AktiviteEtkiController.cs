@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Bitki.Core.Entities;
+using Bitki.Core.Models;
 using Bitki.Core.Interfaces.Repositories.Aktivite;
 
 namespace Bitki.Api.Controllers
@@ -14,6 +15,12 @@ namespace Bitki.Api.Controllers
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AktiviteEtki>>> Get() => Ok(await _repository.GetAllAsync());
+
+        [HttpPost("query")]
+        public async Task<ActionResult<FilterResponse<AktiviteEtki>>> Query([FromBody] FilterRequest request)
+        {
+            return Ok(await _repository.QueryAsync(request));
+        }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<AktiviteEtki>> GetById(int id) { var item = await _repository.GetByIdAsync(id); return item == null ? NotFound() : Ok(item); }
