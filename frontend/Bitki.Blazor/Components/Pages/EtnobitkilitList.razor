@@ -1,131 +1,170 @@
-@page "/etnobitkiliit"
+@page "/etnobitkilit"
 @rendermode InteractiveServer
 @using Bitki.Blazor.Models
 @using Bitki.Blazor.Components.Common
+@using Bitki.Blazor.Services
+@using Microsoft.AspNetCore.Components.Authorization
 @using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.EtnobitkilitViewModel>
 @inject HttpClient Http
+@inject AuthenticatedHttpClient AuthHttp
 @inject IJSRuntime JS
 
-<PageTitle>Etno Bitki Literatür</PageTitle>
+<PageTitle>Etnobitkilit</PageTitle>
 
 <div class="page-container">
-    <h1>Etno Bitki Literatür Veritabanı</h1>
+    <div class="page-header">
+        <h1>Etnobotanik Bitki Literatür Veritabanı</h1>
+        <AuthorizeView Roles="Admin">
+            <Authorized><button class="btn btn-success add-new-btn" @onclick="OpenAddModal"><span>➕</span> Yeni
+                    Ekle</button></Authorized>
+        </AuthorizeView>
+    </div>
 
     @if (isLoading)
     {
         <div class="loading-state">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
+            <div class="spinner-border text-primary" role="status"></div>
         </div>
     }
     else if (errorMessage != null)
     {
+
         <div class="alert alert-danger">@errorMessage</div>
     }
     else
     {
-        <RecordExplorer TItem="EtnobitkilitViewModel" Items="items" Columns="columns" Title="Etno Bitki Literatür Kayıtları"
+        <RecordExplorer TItem="EtnobitkilitViewModel" Items="items" Columns="columns" Title="Etnobitkilit Kayıtları"
             ShowSearch="true">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="EtnobitkilitViewModel" Item="selectedItem"
-                    Title="@($"Etno Bitki Literatür - {selectedItem.TurkishName}")" Fields="inspectorFields"
-                    OnSave="HandleSave" OnDelete="HandleDelete" />
+                    Title="@($"Etnobitkilit - {selectedItem.TurkishName}")" Fields="inspectorFields" OnSave="HandleSave"
+                    OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
     }
 </div>
 
+@if (showAddModal)
+{
+    <div class="modal-overlay" @onclick="CloseAddModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h5>@(isEditingInModal ? "Düzenle" : "Yeni Ekle")</h5><button type="button" class="btn-close"
+                    @onclick="CloseAddModal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group mb-3"><label class="form-label">Türkçe Ad *</label><input type="text"
+                        class="form-control" @bind="editingItem.TurkishName" /></div>
+                <div class="form-group mb-3"><label class="form-label">Durum</label><input type="text" class="form-control"
+                        @bind="editingItem.Status" /></div>
+                <div class="form-group"><label class="form-label">Literatür ID</label><input type="number"
+                        class="form-control" @bind="editingItem.LiteratureId" /></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseAddModal">İptal</button>
+                <button class="btn btn-success" @onclick="HandleCreateOrUpdate" disabled="@isCreating">@if (isCreating) {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+ @(isEditingInModal ? "Güncelle" :
+                                "Kaydet")</button>
+        </div>
+    </div>
+</div>
+}
+
 @code {
     private EtnobitkilitViewModel[]? items;
     private bool isLoading = true;
     private string? errorMessage;
+    private bool showAddModal = false;
+    private bool isCreating = false;
+    private bool isEditingInModal = false;
+    private EtnobitkilitViewModel editingItem = new();
 
-    private List<ColumnDef> columns = new()
-{
-new ColumnDef { Title = "ID", PropertyName = "Id" },
-new ColumnDef { Title = "Türkçe Ad", PropertyName = "TurkishName" },
-new ColumnDef { Title = "Durum", PropertyName = "Status" },
-new ColumnDef { Title = "Literatür ID", PropertyName = "LiteratureId" }
-};
+    private List<ColumnDef> columns = new() { new ColumnDef { Title = "ID", PropertyName = "Id" }, new ColumnDef { Title =
+"Türkçe Ad", PropertyName = "TurkishName" }, new ColumnDef { Title = "Durum", PropertyName = "Status" }, new ColumnDef {
+Title = "Literatür ID", PropertyName = "LiteratureId" } };
+    private List<InspectorField> inspectorFields = new() { new InspectorField { Label = "ID", PropertyName = "Id", Editable
+= false }, new InspectorField { Label = "Türkçe Ad", PropertyName = "TurkishName", Editable = true }, new InspectorField
+{ Label = "Durum", PropertyName = "Status", Editable = true }, new InspectorField { Label = "Literatür ID", PropertyName
+= "LiteratureId", Editable = true } };
 
-    private List<InspectorField> inspectorFields = new()
-{
-new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
-new InspectorField { Label = "Türkçe Ad", PropertyName = "TurkishName", Editable = true },
-new InspectorField { Label = "Durum", PropertyName = "Status", Editable = true },
-new InspectorField { Label = "Literatür ID", PropertyName = "LiteratureId", Editable = true }
-};
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadData();
-    }
-
+    protected override async Task OnInitializedAsync() => await LoadData();
     private async Task LoadData()
     {
-        isLoading = true;
-        errorMessage = null;
+        isLoading = true; errorMessage = null; try
+        {
+            items = await
+    Http.GetFromJsonAsync<EtnobitkilitViewModel[]>("api/etnobitkilit");
+        }
+        catch (Exception ex) { errorMessage = $"Error: {ex.Message}"; }
+        finally { isLoading = false; }
+    }
+    private void OpenAddModal() { editingItem = new(); isEditingInModal = false; showAddModal = true; }
+    private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
+    private async Task HandleCreateOrUpdate()
+    {
+        if (string.IsNullOrWhiteSpace(editingItem.TurkishName))
+        {
+            await JS.InvokeVoidAsync("alert", "Türkçe Ad zorunludur.");
+            return;
+        }
+        isCreating = true;
         try
         {
-            items = await Http.GetFromJsonAsync<EtnobitkilitViewModel[]>("api/etnobitkiliit");
+            var response = isEditingInModal ? await AuthHttp.PutAsJsonAsync($"api/etnobitkilit/{editingItem.Id}", editingItem) :
+            await AuthHttp.PostAsJsonAsync("api/etnobitkilit", editingItem);
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", isEditingInModal ? "Güncellendi!" : "Eklendi!");
+                CloseAddModal(); await LoadData();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) { await JS.InvokeVoidAsync("alert", "Giriş yapın."); }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) { await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli."); }
+            else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
         }
-        catch (Exception ex)
-        {
-            errorMessage = $"Error loading data: {ex.Message}";
-            Console.WriteLine(ex);
-        }
-        finally
-        {
-            isLoading = false;
-        }
+        catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
+        finally { isCreating = false; }
     }
 
     private async Task HandleSave(EtnobitkilitViewModel item)
     {
         try
         {
-            var response = await Http.PutAsJsonAsync($"api/etnobitkiliit/{item.Id}", item);
-
-            if (response.IsSuccessStatusCode)
+            var r = await
+    AuthHttp.PutAsJsonAsync($"api/etnobitkilit/{item.Id}", item); if (r.IsSuccessStatusCode)
             {
-                await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
-                await LoadData();
+                await
+    JS.InvokeVoidAsync("alert", "Güncellendi"); await LoadData();
             }
-            else
-            {
-                await JS.InvokeVoidAsync("alert", $"Güncelleme hatası: {response.StatusCode}");
-            }
+            else if (r.StatusCode ==
+    System.Net.HttpStatusCode.Unauthorized) await JS.InvokeVoidAsync("alert", "Giriş yapın.");
+            else if (r.StatusCode ==
+    System.Net.HttpStatusCode.Forbidden) await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
+            else await
+    JS.InvokeVoidAsync("alert", $"Hata: {r.StatusCode}");
         }
-        catch (Exception ex)
-        {
-            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
-        }
+        catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
     }
 
     private async Task HandleDelete(EtnobitkilitViewModel item)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"{item.TurkishName} kaydını silmek istediğinizden emin misiniz?"))
+        if (await JS.InvokeAsync<bool>("confirm",
+    $"{item.TurkishName} silinsin mi?"))
         {
             try
             {
-                var response = await Http.DeleteAsync($"api/etnobitkiliit/{item.Id}");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
-                    await LoadData();
-                }
-                else
-                {
-                    await JS.InvokeVoidAsync("alert", $"Silme hatası: {response.StatusCode}");
-                }
+                var r = await AuthHttp.DeleteAsync($"api/etnobitkilit/{item.Id}"); if
+    (r.IsSuccessStatusCode) { await JS.InvokeVoidAsync("alert", "Silindi"); await LoadData(); }
+                else if (r.StatusCode ==
+    System.Net.HttpStatusCode.Unauthorized) await JS.InvokeVoidAsync("alert", "Giriş yapın.");
+                else if (r.StatusCode ==
+    System.Net.HttpStatusCode.Forbidden) await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
+                else await
+    JS.InvokeVoidAsync("alert", $"Hata: {r.StatusCode}");
             }
-            catch (Exception ex)
-            {
-                await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
-            }
+            catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
         }
     }
 }

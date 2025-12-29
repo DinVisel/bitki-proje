@@ -2,25 +2,33 @@
 @rendermode InteractiveServer
 @using Bitki.Blazor.Models
 @using Bitki.Blazor.Components.Common
+@using Bitki.Blazor.Services
+@using Microsoft.AspNetCore.Components.Authorization
 @using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.AktiviteSaflastirmaViewModel>
 @inject HttpClient Http
+@inject AuthenticatedHttpClient AuthHttp
 @inject IJSRuntime JS
 
 <PageTitle>Aktivite Saflaştırma</PageTitle>
 
 <div class="page-container">
-    <h1>Aktivite Saflaştırma Veritabanı</h1>
+    <div class="page-header">
+        <h1>Aktivite Saflaştırma Veritabanı</h1>
+        <AuthorizeView Roles="Admin">
+            <Authorized><button class="btn btn-success add-new-btn" @onclick="OpenAddModal"><span>➕</span> Yeni
+                    Ekle</button></Authorized>
+        </AuthorizeView>
+    </div>
 
     @if (isLoading)
     {
         <div class="loading-state">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
+            <div class="spinner-border text-primary" role="status"></div>
         </div>
     }
     else if (errorMessage != null)
     {
+
         <div class="alert alert-danger">@errorMessage</div>
     }
     else
@@ -29,102 +37,133 @@
             Title="Aktivite Saflaştırma Kayıtları" ShowSearch="true">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="AktiviteSaflastirmaViewModel" Item="selectedItem"
-                    Title="@($"Aktivite Saflaştırma Detayları - {selectedItem.Name}")" Fields="inspectorFields"
-                    OnSave="HandleSave" OnDelete="HandleDelete" />
+                    Title="@($"Aktivite Saflaştırma - {selectedItem.Name}")" Fields="inspectorFields" OnSave="HandleSave"
+                    OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
     }
 </div>
 
+@if (showAddModal)
+{
+    <div class="modal-overlay" @onclick="CloseAddModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h5>@(isEditingInModal ? "Düzenle" : "Yeni Ekle")</h5><button type="button" class="btn-close"
+                    @onclick="CloseAddModal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group mb-3"><label class="form-label">Adı *</label><input type="text" class="form-control"
+                        @bind="editingItem.Name" /></div>
+                <div class="form-group mb-3"><label class="form-label">İngilizce</label><input type="text"
+                        class="form-control" @bind="editingItem.EnglishName" /></div>
+                <div class="form-group"><label class="form-label">Açıklama</label><textarea class="form-control" rows="2"
+                        @bind="editingItem.Description"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseAddModal">İptal</button>
+                <button class="btn btn-success" @onclick="HandleCreateOrUpdate" disabled="@isCreating">@if (isCreating) {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+ @(isEditingInModal ? "Güncelle" :
+                                "Kaydet")</button>
+        </div>
+    </div>
+</div>
+}
+
 @code {
     private AktiviteSaflastirmaViewModel[]? items;
     private bool isLoading = true;
     private string? errorMessage;
+    private bool showAddModal = false;
+    private bool isCreating = false;
+    private bool isEditingInModal = false;
+    private AktiviteSaflastirmaViewModel editingItem = new();
 
-    private List<ColumnDef> columns = new()
-{
-new ColumnDef { Title = "ID", PropertyName = "Id" },
-new ColumnDef { Title = "Ad", PropertyName = "Name" },
-new ColumnDef { Title = "İngilizce Ad", PropertyName = "EnglishName" }
-};
+    private List<ColumnDef> columns = new() { new ColumnDef { Title = "ID", PropertyName = "Id" }, new ColumnDef { Title =
+"Adı", PropertyName = "Name" }, new ColumnDef { Title = "İngilizce", PropertyName = "EnglishName" } };
+    private List<InspectorField> inspectorFields = new() { new InspectorField { Label = "ID", PropertyName = "Id", Editable
+= false }, new InspectorField { Label = "Adı", PropertyName = "Name", Editable = true }, new InspectorField { Label =
+"İngilizce", PropertyName = "EnglishName", Editable = true }, new InspectorField { Label = "Açıklama", PropertyName =
+"Description", Editable = true } };
 
-    private List<InspectorField> inspectorFields = new()
-{
-new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
-new InspectorField { Label = "Ad", PropertyName = "Name", Editable = true },
-new InspectorField { Label = "İngilizce Ad", PropertyName = "EnglishName", Editable = true },
-new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true }
-};
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadData();
-    }
-
+    protected override async Task OnInitializedAsync() => await LoadData();
     private async Task LoadData()
     {
-        isLoading = true;
-        errorMessage = null;
-
-        try
+        isLoading = true; errorMessage = null; try
         {
-            items = await Http.GetFromJsonAsync<AktiviteSaflastirmaViewModel[]>("api/aktivitesaflastirma");
+            items = await
+    Http.GetFromJsonAsync<AktiviteSaflastirmaViewModel[]>("api/aktivitesaflastirma");
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error loading data: {ex.Message}";
-            Console.WriteLine(ex);
+            errorMessage
+    = $"Error: {ex.Message}";
         }
-        finally
+        finally { isLoading = false; }
+    }
+    private void OpenAddModal() { editingItem = new(); isEditingInModal = false; showAddModal = true; }
+    private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
+
+    private async Task HandleCreateOrUpdate()
+    {
+        if (string.IsNullOrWhiteSpace(editingItem.Name)) { await JS.InvokeVoidAsync("alert", "Adı zorunludur."); return; }
+        isCreating = true;
+        try
         {
-            isLoading = false;
+            var response = isEditingInModal ? await AuthHttp.PutAsJsonAsync($"api/aktivitesaflastirma/{editingItem.Id}",
+            editingItem) : await AuthHttp.PostAsJsonAsync("api/aktivitesaflastirma", editingItem);
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", isEditingInModal ? "Güncellendi!" : "Eklendi!");
+                CloseAddModal(); await LoadData();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) { await JS.InvokeVoidAsync("alert", "Giriş yapın."); }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) { await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli."); }
+            else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
         }
+        catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
+        finally { isCreating = false; }
     }
 
     private async Task HandleSave(AktiviteSaflastirmaViewModel item)
     {
         try
         {
-            var response = await Http.PutAsJsonAsync($"api/aktivitesaflastirma/{item.Id}", item);
-
-            if (response.IsSuccessStatusCode)
+            var r = await
+    AuthHttp.PutAsJsonAsync($"api/aktivitesaflastirma/{item.Id}", item); if (r.IsSuccessStatusCode)
             {
-                await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
-                await LoadData();
+                await
+    JS.InvokeVoidAsync("alert", "Güncellendi"); await LoadData();
             }
-            else
-            {
-                await JS.InvokeVoidAsync("alert", $"Güncelleme hatası: {response.StatusCode}");
-            }
+            else if (r.StatusCode ==
+    System.Net.HttpStatusCode.Unauthorized) await JS.InvokeVoidAsync("alert", "Giriş yapın.");
+            else if (r.StatusCode ==
+    System.Net.HttpStatusCode.Forbidden) await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
+            else await
+    JS.InvokeVoidAsync("alert", $"Hata: {r.StatusCode}");
         }
-        catch (Exception ex)
-        {
-            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
-        }
+        catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
     }
 
     private async Task HandleDelete(AktiviteSaflastirmaViewModel item)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"{item.Name} kaydını silmek istediğinizden emin misiniz?"))
+        if (await JS.InvokeAsync<bool>("confirm",
+    $"{item.Name} silinsin mi?"))
         {
             try
             {
-                var response = await Http.DeleteAsync($"api/aktivitesaflastirma/{item.Id}");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
-                    await LoadData();
-                }
-                else
-                {
-                    await JS.InvokeVoidAsync("alert", $"Silme hatası: {response.StatusCode}");
-                }
+                var r = await AuthHttp.DeleteAsync($"api/aktivitesaflastirma/{item.Id}"); if
+    (r.IsSuccessStatusCode) { await JS.InvokeVoidAsync("alert", "Silindi"); await LoadData(); }
+                else if (r.StatusCode ==
+    System.Net.HttpStatusCode.Unauthorized) await JS.InvokeVoidAsync("alert", "Giriş yapın.");
+                else if (r.StatusCode ==
+    System.Net.HttpStatusCode.Forbidden) await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
+                else await
+    JS.InvokeVoidAsync("alert", $"Hata: {r.StatusCode}");
             }
-            catch (Exception ex)
-            {
-                await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
-            }
+            catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
         }
     }
 }
