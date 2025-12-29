@@ -2,14 +2,27 @@
 @rendermode InteractiveServer
 @using Bitki.Blazor.Models
 @using Bitki.Blazor.Components.Common
+@using Bitki.Blazor.Services
+@using Microsoft.AspNetCore.Components.Authorization
 @using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.UcuyagViewModel>
 @inject HttpClient Http
+@inject AuthenticatedHttpClient AuthHttp
 @inject IJSRuntime JS
 
 <PageTitle>Uçucu Yağ</PageTitle>
 
 <div class="page-container">
-    <h1>Uçucu Yağ Veritabanı</h1>
+    @* Page Header with Add Button *@
+    <div class="page-header">
+        <h1>Uçucu Yağ Veritabanı</h1>
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <button class="btn btn-success add-new-btn" @onclick="OpenAddModal">
+                    <span>➕</span> Yeni Uçucu Yağ Ekle
+                </button>
+            </Authorized>
+        </AuthorizeView>
+    </div>
 
     @if (errorMessage != null)
     {
@@ -35,6 +48,43 @@
     }
 </div>
 
+@* Add/Edit Modal *@
+@if (showAddModal)
+{
+    <div class="modal-overlay" @onclick="CloseAddModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h5>@(isEditingInModal ? "Uçucu Yağ Düzenle" : "Yeni Uçucu Yağ Ekle")</h5>
+                <button type="button" class="btn-close" @onclick="CloseAddModal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group mb-3">
+                    <label class="form-label">Ad *</label>
+                    <input type="text" class="form-control" @bind="editingItem.Name" />
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Yerel Ad</label>
+                    <input type="text" class="form-control" @bind="editingItem.LocalName" />
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Kullanım</label>
+                    <textarea class="form-control" rows="4" @bind="editingItem.Usage"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseAddModal">İptal</button>
+                <button class="btn btn-success" @onclick="HandleCreateOrUpdate" disabled="@isCreating">
+                    @if (isCreating)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    @(isEditingInModal ? "Güncelle" : "Kaydet")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private UcuyagViewModel[]? items;
     private bool isLoading = true;
@@ -44,6 +94,12 @@
     private FilterResponse<UcuyagViewModel> paginationState = new FilterResponse<UcuyagViewModel>();
 
     private FilterRequest currentFilter = new FilterRequest();
+
+    // Add/Edit Modal State
+    private bool showAddModal = false;
+    private bool isCreating = false;
+    private bool isEditingInModal = false;
+    private UcuyagViewModel editingItem = new();
 
     private List<ColumnDef> columns = new()
 {
@@ -83,7 +139,7 @@ new InspectorField { Label = "Kullanım", PropertyName = "Usage", Editable = tru
                     items = filterResponse.Data.ToArray();
                     totalCount = filterResponse.TotalCount;
                     filteredCount = filterResponse.FilteredCount;
-                    paginationState = filterResponse; // Store pagination state
+                    paginationState = filterResponse;
                 }
             }
             else
@@ -105,7 +161,7 @@ new InspectorField { Label = "Kullanım", PropertyName = "Usage", Editable = tru
     private async Task HandleSearchChanged(string searchText)
     {
         currentFilter.SearchText = searchText;
-        currentFilter.PageNumber = 1; // Reset to page 1 on search
+        currentFilter.PageNumber = 1;
         await LoadDataWithFilter();
     }
 
@@ -113,7 +169,7 @@ new InspectorField { Label = "Kullanım", PropertyName = "Usage", Editable = tru
     {
         currentFilter.SortColumn = sort.column;
         currentFilter.SortDirection = sort.ascending ? "ASC" : "DESC";
-        currentFilter.PageNumber = 1; // Reset to page 1 on sort
+        currentFilter.PageNumber = 1;
         await LoadDataWithFilter();
     }
 
@@ -124,16 +180,91 @@ new InspectorField { Label = "Kullanım", PropertyName = "Usage", Editable = tru
         await LoadDataWithFilter();
     }
 
+    // Add Modal Methods
+    private void OpenAddModal()
+    {
+        editingItem = new UcuyagViewModel();
+        isEditingInModal = false;
+        showAddModal = true;
+    }
+
+    private void CloseAddModal()
+    {
+        showAddModal = false;
+        editingItem = new UcuyagViewModel();
+        isEditingInModal = false;
+    }
+
+    private async Task HandleCreateOrUpdate()
+    {
+        if (string.IsNullOrWhiteSpace(editingItem.Name))
+        {
+            await JS.InvokeVoidAsync("alert", "Ad alanı zorunludur.");
+            return;
+        }
+
+        isCreating = true;
+
+        try
+        {
+            HttpResponseMessage response;
+
+            if (isEditingInModal)
+            {
+                response = await AuthHttp.PutAsJsonAsync($"api/ucuyag/{editingItem.Id}", editingItem);
+            }
+            else
+            {
+                response = await AuthHttp.PostAsJsonAsync("api/ucuyag", editingItem);
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", isEditingInModal ? "Uçucu yağ başarıyla güncellendi!" : "Uçucu yağ başarıyla eklendi!");
+                CloseAddModal();
+                await LoadDataWithFilter();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                await JS.InvokeVoidAsync("alert", "Yetkisiz işlem. Lütfen giriş yapın.");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                await JS.InvokeVoidAsync("alert", "Bu işlem için Admin yetkisi gereklidir.");
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", $"İşlem hatası: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
+        finally
+        {
+            isCreating = false;
+        }
+    }
+
     private async Task HandleSave(UcuyagViewModel item)
     {
         try
         {
-            var response = await Http.PutAsJsonAsync($"api/ucuyag/{item.Id}", item);
+            var response = await AuthHttp.PutAsJsonAsync($"api/ucuyag/{item.Id}", item);
 
             if (response.IsSuccessStatusCode)
             {
                 await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
                 await LoadDataWithFilter();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                await JS.InvokeVoidAsync("alert", "Yetkisiz işlem. Lütfen giriş yapın.");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                await JS.InvokeVoidAsync("alert", "Bu işlem için Admin yetkisi gereklidir.");
             }
             else
             {
@@ -152,12 +283,20 @@ new InspectorField { Label = "Kullanım", PropertyName = "Usage", Editable = tru
         {
             try
             {
-                var response = await Http.DeleteAsync($"api/ucuyag/{item.Id}");
+                var response = await AuthHttp.DeleteAsync($"api/ucuyag/{item.Id}");
 
                 if (response.IsSuccessStatusCode)
                 {
                     await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
                     await LoadDataWithFilter();
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    await JS.InvokeVoidAsync("alert", "Yetkisiz işlem. Lütfen giriş yapın.");
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    await JS.InvokeVoidAsync("alert", "Bu işlem için Admin yetkisi gereklidir.");
                 }
                 else
                 {

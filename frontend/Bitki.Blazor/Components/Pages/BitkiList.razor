@@ -60,47 +60,245 @@
     }
 </div>
 
-@* Add New Modal *@
+@* Add/Edit Modal with Tabs *@
 @if (showAddModal)
 {
     <div class="modal-overlay" @onclick="CloseAddModal">
-        <div class="modal-content" @onclick:stopPropagation="true">
+        <div class="modal-content modal-large" @onclick:stopPropagation="true">
             <div class="modal-header">
-                <h5>Yeni Bitki Ekle</h5>
+                <h5>@(isEditingInModal ? "Bitki Düzenle" : "Yeni Bitki Ekle")</h5>
                 <button type="button" class="btn-close" @onclick="CloseAddModal"></button>
             </div>
-            <div class="modal-body">
-                <div class="form-group mb-3">
-                    <label class="form-label">Türkçe Ad *</label>
-                    <input type="text" class="form-control" @bind="newBitki.Name" placeholder="Türkçe adı girin" />
-                </div>
-                <div class="form-group mb-3">
-                    <label class="form-label">Latince Ad</label>
-                    <input type="text" class="form-control" @bind="newBitki.LatinName" placeholder="Latince adı girin" />
-                </div>
-                <div class="form-group mb-3">
-                    <label class="form-label">Aile</label>
-                    <input type="text" class="form-control" @bind="newBitki.Family" placeholder="Bitki ailesini girin" />
-                </div>
-                <div class="form-group mb-3">
-                    <label class="form-label">Açıklama</label>
-                    <textarea class="form-control" rows="3" @bind="newBitki.Description"
-                        placeholder="Açıklama girin"></textarea>
-                </div>
-                <div class="form-group mb-3">
-                    <label class="form-label">Habitat</label>
-                    <textarea class="form-control" rows="2" @bind="newBitki.Habitat"
-                        placeholder="Habitat bilgisi girin"></textarea>
-                </div>
+
+            @* Tab Navigation *@
+            <div class="modal-tabs">
+                <button class="modal-tab @(modalTab == "basic" ? "active" : "")" @onclick="@(() => modalTab = "basic")">
+                    Temel Bilgiler
+                </button>
+                <button class="modal-tab @(modalTab == "taxonomy" ? "active" : "")"
+                    @onclick="@(() => modalTab = "taxonomy")">
+                    Taksonomi
+                </button>
+                <button class="modal-tab @(modalTab == "ecology" ? "active" : "")" @onclick="@(() => modalTab = "ecology")">
+                    Ekoloji
+                </button>
+                <button class="modal-tab @(modalTab == "flags" ? "active" : "")" @onclick="@(() => modalTab = "flags")">
+                    Özellikler
+                </button>
             </div>
+
+            <div class="modal-body">
+                @* Basic Info Tab *@
+                @if (modalTab == "basic")
+                {
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Türkçe Ad *</label>
+                            <input type="text" class="form-control" @bind="editingBitki.Name" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Latince Ad</label>
+                            <input type="text" class="form-control" @bind="editingBitki.LatinName" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Yerel Adlar</label>
+                            <input type="text" class="form-control" @bind="editingBitki.CommonNames" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Durum</label>
+                            <input type="text" class="form-control" @bind="editingBitki.Status" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Açıklama</label>
+                        <textarea class="form-control" rows="4" @bind="editingBitki.Description"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Notlar</label>
+                            <textarea class="form-control" rows="2" @bind="editingBitki.Notes"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Ek Bilgi</label>
+                            <textarea class="form-control" rows="2" @bind="editingBitki.AdditionalInfo"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Kaynaklar</label>
+                        <textarea class="form-control" rows="2" @bind="editingBitki.References"></textarea>
+                    </div>
+                }
+
+                @* Taxonomy Tab *@
+                @if (modalTab == "taxonomy")
+                {
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Aile (Familya)</label>
+                            <input type="text" class="form-control" @bind="editingBitki.Family" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Cins (Genus)</label>
+                            <input type="text" class="form-control" @bind="editingBitki.GenusName" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Takson Adı</label>
+                            <input type="text" class="form-control" @bind="editingBitki.TaxonName" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Takson Düzeyi</label>
+                            <input type="text" class="form-control" @bind="editingBitki.TaxonLevel" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Takson Cinsi</label>
+                            <input type="text" class="form-control" @bind="editingBitki.TaxonKind" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Takson Otörü</label>
+                            <input type="text" class="form-control" @bind="editingBitki.TaxonOtor" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Otör</label>
+                            <input type="text" class="form-control" @bind="editingBitki.Otor" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Basionim Otör</label>
+                            <input type="text" class="form-control" @bind="editingBitki.BasionymOtor" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Yıl</label>
+                            <input type="text" class="form-control" @bind="editingBitki.Year" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Sayfa</label>
+                            <input type="text" class="form-control" @bind="editingBitki.Pages" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Sinonim</label>
+                            <input type="text" class="form-control" @bind="editingBitki.Synonym" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Sinonim Otör</label>
+                            <input type="text" class="form-control" @bind="editingBitki.SynonymOtor" />
+                        </div>
+                    </div>
+                }
+
+                @* Ecology Tab *@
+                @if (modalTab == "ecology")
+                {
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Endemizm</label>
+                            <input type="text" class="form-control" @bind="editingBitki.Endemism" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Endemizm Açıklama</label>
+                            <input type="text" class="form-control" @bind="editingBitki.EndemismDescription" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Fitocoğrafya</label>
+                            <input type="text" class="form-control" @bind="editingBitki.Phytogeography" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Çiçeklenme Zamanı</label>
+                            <input type="text" class="form-control" @bind="editingBitki.FloweringTime" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Rakım/Yükseklik</label>
+                            <input type="text" class="form-control" @bind="editingBitki.Altitude" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Habitat</label>
+                        <textarea class="form-control" rows="3" @bind="editingBitki.Habitat"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Dağılım</label>
+                        <textarea class="form-control" rows="3" @bind="editingBitki.Distribution"></textarea>
+                    </div>
+                }
+
+                @* Flags Tab *@
+                @if (modalTab == "flags")
+                {
+                    <div class="flags-grid">
+                        <label class="flag-checkbox">
+                            <input type="checkbox" @bind="editingBitki.IsMedicinal" />
+                            <span>💊 Tıbbi Kullanım</span>
+                        </label>
+                        <label class="flag-checkbox">
+                            <input type="checkbox" @bind="editingBitki.IsFood" />
+                            <span>🍃 Gıda Olarak</span>
+                        </label>
+                        <label class="flag-checkbox">
+                            <input type="checkbox" @bind="editingBitki.IsCultural" />
+                            <span>🌱 Kültür Bitkisi</span>
+                        </label>
+                        <label class="flag-checkbox">
+                            <input type="checkbox" @bind="editingBitki.IsPoisonous" />
+                            <span>☠️ Zehirli</span>
+                        </label>
+                        <label class="flag-checkbox">
+                            <input type="checkbox" @bind="editingBitki.IsTurkishFlora" />
+                            <span>🇹🇷 Türkiye Florası</span>
+                        </label>
+                        <label class="flag-checkbox">
+                            <input type="checkbox" @bind="editingBitki.IsIslandSpecies" />
+                            <span>🏝️ Ada Türü</span>
+                        </label>
+                        <label class="flag-checkbox">
+                            <input type="checkbox" @bind="editingBitki.ExistenceDoubtful" />
+                            <span>❓ Varlık Şüpheli</span>
+                        </label>
+                        <label class="flag-checkbox">
+                            <input type="checkbox" @bind="editingBitki.NeedsRevision" />
+                            <span>🔄 Revizyon Gerekli</span>
+                        </label>
+                        <label class="flag-checkbox">
+                            <input type="checkbox" @bind="editingBitki.IsExtinct" />
+                            <span>❌ Yok Olmuş</span>
+                        </label>
+                        <label class="flag-checkbox">
+                            <input type="checkbox" @bind="editingBitki.IncompleteIdentification" />
+                            <span>⚠️ Eksik Teşhis</span>
+                        </label>
+                        <label class="flag-checkbox">
+                            <input type="checkbox" @bind="editingBitki.ControlOk" />
+                            <span>✅ Kontrol OK</span>
+                        </label>
+                        <label class="flag-checkbox">
+                            <input type="checkbox" @bind="editingBitki.PublicationOk" />
+                            <span>📝 Yayın OK</span>
+                        </label>
+                    </div>
+                }
+            </div>
+
             <div class="modal-footer">
                 <button class="btn btn-secondary" @onclick="CloseAddModal">İptal</button>
-                <button class="btn btn-success" @onclick="HandleCreate" disabled="@isCreating">
+                <button class="btn btn-success" @onclick="HandleCreateOrUpdate" disabled="@isCreating">
                     @if (isCreating)
                     {
                         <span class="spinner-border spinner-border-sm me-1"></span>
                     }
-                    Kaydet
+                    @(isEditingInModal ? "Güncelle" : "Kaydet")
                 </button>
             </div>
         </div>
@@ -117,10 +315,13 @@
 
     private FilterRequest currentFilter = new FilterRequest();
 
-    // Add Modal State
+    // Add/Edit Modal State
     private bool showAddModal = false;
     private bool isCreating = false;
+    private bool isEditingInModal = false;
+    private string modalTab = "basic";
     private BitkiViewModel newBitki = new();
+    private BitkiViewModel editingBitki = new();
 
     private List<ColumnDef> columns = new()
 {
@@ -206,19 +407,76 @@ new InspectorField { Label = "Habitat", PropertyName = "Habitat", Editable = tru
     // Add Modal Methods
     private void OpenAddModal()
     {
-        newBitki = new BitkiViewModel();
+        editingBitki = new BitkiViewModel();
+        isEditingInModal = false;
+        modalTab = "basic";
+        showAddModal = true;
+    }
+
+    private void OpenEditModal(BitkiViewModel item)
+    {
+        // Copy item to editing model
+        editingBitki = new BitkiViewModel
+        {
+            Id = item.Id,
+            Name = item.Name,
+            LatinName = item.LatinName,
+            Description = item.Description,
+            Family = item.Family,
+            Habitat = item.Habitat,
+            FamilyId = item.FamilyId,
+            GenusId = item.GenusId,
+            GenusName = item.GenusName,
+            CommonNames = item.CommonNames,
+            Status = item.Status,
+            IsMedicinal = item.IsMedicinal,
+            IsFood = item.IsFood,
+            IsCultural = item.IsCultural,
+            IsPoisonous = item.IsPoisonous,
+            IsTurkishFlora = item.IsTurkishFlora,
+            IsIslandSpecies = item.IsIslandSpecies,
+            ExistenceDoubtful = item.ExistenceDoubtful,
+            NeedsRevision = item.NeedsRevision,
+            IsExtinct = item.IsExtinct,
+            IncompleteIdentification = item.IncompleteIdentification,
+            ControlOk = item.ControlOk,
+            PublicationOk = item.PublicationOk,
+            Otor = item.Otor,
+            BasionymOtor = item.BasionymOtor,
+            Year = item.Year,
+            Pages = item.Pages,
+            TaxonName = item.TaxonName,
+            TaxonOtor = item.TaxonOtor,
+            TaxonLevel = item.TaxonLevel,
+            TaxonKind = item.TaxonKind,
+            Synonym = item.Synonym,
+            SynonymOtor = item.SynonymOtor,
+            Endemism = item.Endemism,
+            EndemismDescription = item.EndemismDescription,
+            FloweringTime = item.FloweringTime,
+            Altitude = item.Altitude,
+            Distribution = item.Distribution,
+            Phytogeography = item.Phytogeography,
+            Notes = item.Notes,
+            References = item.References,
+            AdditionalInfo = item.AdditionalInfo
+        };
+        isEditingInModal = true;
+        modalTab = "basic";
         showAddModal = true;
     }
 
     private void CloseAddModal()
     {
         showAddModal = false;
-        newBitki = new BitkiViewModel();
+        editingBitki = new BitkiViewModel();
+        isEditingInModal = false;
+        modalTab = "basic";
     }
 
-    private async Task HandleCreate()
+    private async Task HandleCreateOrUpdate()
     {
-        if (string.IsNullOrWhiteSpace(newBitki.Name))
+        if (string.IsNullOrWhiteSpace(editingBitki.Name))
         {
             await JS.InvokeVoidAsync("alert", "Türkçe ad alanı zorunludur.");
             return;
@@ -228,11 +486,20 @@ new InspectorField { Label = "Habitat", PropertyName = "Habitat", Editable = tru
 
         try
         {
-            var response = await AuthHttp.PostAsJsonAsync("api/bitki", newBitki);
+            HttpResponseMessage response;
+
+            if (isEditingInModal)
+            {
+                response = await AuthHttp.PutAsJsonAsync($"api/bitki/{editingBitki.Id}", editingBitki);
+            }
+            else
+            {
+                response = await AuthHttp.PostAsJsonAsync("api/bitki", editingBitki);
+            }
 
             if (response.IsSuccessStatusCode)
             {
-                await JS.InvokeVoidAsync("alert", "Bitki başarıyla eklendi!");
+                await JS.InvokeVoidAsync("alert", isEditingInModal ? "Bitki başarıyla güncellendi!" : "Bitki başarıyla eklendi!");
                 CloseAddModal();
                 await LoadDataWithFilter();
             }
@@ -246,7 +513,7 @@ new InspectorField { Label = "Habitat", PropertyName = "Habitat", Editable = tru
             }
             else
             {
-                await JS.InvokeVoidAsync("alert", $"Ekleme hatası: {response.StatusCode}");
+                await JS.InvokeVoidAsync("alert", $"İşlem hatası: {response.StatusCode}");
             }
         }
         catch (Exception ex)

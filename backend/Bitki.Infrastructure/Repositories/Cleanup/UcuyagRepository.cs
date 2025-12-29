@@ -85,5 +85,38 @@ namespace Bitki.Infrastructure.Repositories.Cleanup
                 PageSize = request.PageSize
             };
         }
+
+        public async Task<Bitki.Core.Entities.Ucuyag?> GetByIdAsync(long id)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = "SELECT id AS Id, ucucuyagadi AS Name, yereladi AS LocalName, kullanim AS Usage FROM dbo.ucuyag WHERE id = @Id";
+            return await connection.QueryFirstOrDefaultAsync<Bitki.Core.Entities.Ucuyag>(sql, new { Id = id });
+        }
+
+        public async Task<long> AddAsync(Bitki.Core.Entities.Ucuyag entity)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"INSERT INTO dbo.ucuyag (ucucuyagadi, yereladi, kullanim) 
+                        VALUES (@Name, @LocalName, @Usage) 
+                        RETURNING id";
+            return await connection.ExecuteScalarAsync<long>(sql, entity);
+        }
+
+        public async Task UpdateAsync(Bitki.Core.Entities.Ucuyag entity)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"UPDATE dbo.ucuyag 
+                        SET ucucuyagadi = @Name, yereladi = @LocalName, kullanim = @Usage 
+                        WHERE id = @Id";
+            await connection.ExecuteAsync(sql, entity);
+        }
+
+        public async Task DeleteAsync(long id)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = "DELETE FROM dbo.ucuyag WHERE id = @Id";
+            await connection.ExecuteAsync(sql, new { Id = id });
+        }
     }
 }
+
