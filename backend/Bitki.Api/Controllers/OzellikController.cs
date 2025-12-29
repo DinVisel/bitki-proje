@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Bitki.Core.Entities;
 using Bitki.Core.Interfaces.Repositories.Cleanup;
 
@@ -9,17 +10,25 @@ namespace Bitki.Api.Controllers
     public class OzellikController : ControllerBase
     {
         private readonly IOzellikRepository _repository;
-
-        public OzellikController(IOzellikRepository repository)
-        {
-            _repository = repository;
-        }
+        public OzellikController(IOzellikRepository repository) { _repository = repository; }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Bitki.Core.Entities.Ozellik>>> Get()
-        {
-            var data = await _repository.GetAllAsync();
-            return Ok(data);
-        }
+        public async Task<ActionResult<IEnumerable<Bitki.Core.Entities.Ozellik>>> Get() => Ok(await _repository.GetAllAsync());
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Bitki.Core.Entities.Ozellik>> GetById(int id) { var item = await _repository.GetByIdAsync(id); return item == null ? NotFound() : Ok(item); }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<int>> Create([FromBody] Bitki.Core.Entities.Ozellik entity) { var id = await _repository.AddAsync(entity); return CreatedAtAction(nameof(GetById), new { id }, id); }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Update(int id, [FromBody] Bitki.Core.Entities.Ozellik entity) { if (id != entity.Id) return BadRequest("ID mismatch"); await _repository.UpdateAsync(entity); return NoContent(); }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id) { await _repository.DeleteAsync(id); return NoContent(); }
     }
 }
+

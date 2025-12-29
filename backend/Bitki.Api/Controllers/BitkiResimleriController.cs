@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Bitki.Core.Entities;
 using Bitki.Core.Interfaces.Repositories.Cleanup;
 
@@ -9,24 +10,28 @@ namespace Bitki.Api.Controllers
     public class BitkiResimleriController : ControllerBase
     {
         private readonly IBitkiResimleriRepository _repository;
-
-        public BitkiResimleriController(IBitkiResimleriRepository repository)
-        {
-            _repository = repository;
-        }
+        public BitkiResimleriController(IBitkiResimleriRepository repository) { _repository = repository; }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BitkiResimleri>>> Get()
-        {
-            var data = await _repository.GetAllAsync();
-            return Ok(data);
-        }
+        public async Task<ActionResult<IEnumerable<BitkiResimleri>>> Get() => Ok(await _repository.GetAllAsync());
 
         [HttpGet("plant/{plantId}")]
-        public async Task<ActionResult<IEnumerable<BitkiResimleri>>> GetByPlantId(int plantId)
-        {
-            var images = await _repository.GetByPlantIdAsync(plantId);
-            return Ok(images);
-        }
+        public async Task<ActionResult<IEnumerable<BitkiResimleri>>> GetByPlantId(int plantId) => Ok(await _repository.GetByPlantIdAsync(plantId));
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<BitkiResimleri>> GetById(int id) { var item = await _repository.GetByIdAsync(id); return item == null ? NotFound() : Ok(item); }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<int>> Create([FromBody] BitkiResimleri entity) { var id = await _repository.AddAsync(entity); return CreatedAtAction(nameof(GetById), new { id }, id); }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Update(int id, [FromBody] BitkiResimleri entity) { if (id != entity.Id) return BadRequest("ID mismatch"); await _repository.UpdateAsync(entity); return NoContent(); }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id) { await _repository.DeleteAsync(id); return NoContent(); }
     }
 }
+

@@ -2,25 +2,33 @@
 @rendermode InteractiveServer
 @using Bitki.Blazor.Models
 @using Bitki.Blazor.Components.Common
+@using Bitki.Blazor.Services
+@using Microsoft.AspNetCore.Components.Authorization
 @using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.OzellikViewModel>
 @inject HttpClient Http
+@inject AuthenticatedHttpClient AuthHttp
 @inject IJSRuntime JS
 
 <PageTitle>Özellik</PageTitle>
 
 <div class="page-container">
-    <h1>Özellik Veritabanı</h1>
+    <div class="page-header">
+        <h1>Özellik Veritabanı</h1>
+        <AuthorizeView Roles="Admin">
+            <Authorized><button class="btn btn-success add-new-btn" @onclick="OpenAddModal"><span>➕</span> Yeni Özellik
+                    Ekle</button></Authorized>
+        </AuthorizeView>
+    </div>
 
     @if (isLoading)
     {
         <div class="loading-state">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
+            <div class="spinner-border text-primary" role="status"></div>
         </div>
     }
     else if (errorMessage != null)
     {
+
         <div class="alert alert-danger">@errorMessage</div>
     }
     else
@@ -28,103 +36,118 @@
         <RecordExplorer TItem="OzellikViewModel" Items="items" Columns="columns" Title="Özellik Kayıtları"
             ShowSearch="true">
             <InspectorContent Context="selectedItem">
-                <RecordInspector TItem="OzellikViewModel" Item="selectedItem"
-                    Title="@($"Özellik Detayları - {selectedItem.Name}")" Fields="inspectorFields" OnSave="HandleSave"
-                    OnDelete="HandleDelete" />
+                <RecordInspector TItem="OzellikViewModel" Item="selectedItem" Title="@($"Özellik - {selectedItem.Name}")"
+                    Fields="inspectorFields" OnSave="HandleSave" OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
     }
 </div>
 
+@if (showAddModal)
+{
+    <div class="modal-overlay" @onclick="CloseAddModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h5>@(isEditingInModal ? "Özellik Düzenle" : "Yeni Özellik Ekle")</h5><button type="button"
+                    class="btn-close" @onclick="CloseAddModal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group mb-3"><label class="form-label">Ad *</label><input type="text" class="form-control"
+                        @bind="editingItem.Name" /></div>
+                <div class="form-group mb-3"><label class="form-label">Tip ID</label><input type="number"
+                        class="form-control" @bind="editingItem.TypeId" /></div>
+                <div class="form-group"><label class="form-label">Açıklama</label><textarea class="form-control" rows="3"
+                        @bind="editingItem.Description"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseAddModal">İptal</button>
+                <button class="btn btn-success" @onclick="HandleCreateOrUpdate" disabled="@isCreating">@if (isCreating) {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+ @(isEditingInModal ? "Güncelle" :
+                                "Kaydet")</button>
+        </div>
+    </div>
+</div>
+}
+
 @code {
     private OzellikViewModel[]? items;
     private bool isLoading = true;
     private string? errorMessage;
+    private bool showAddModal = false;
+    private bool isCreating = false;
+    private bool isEditingInModal = false;
+    private OzellikViewModel editingItem = new();
 
-    private List<ColumnDef> columns = new()
-{
-new ColumnDef { Title = "ID", PropertyName = "Id" },
-new ColumnDef { Title = "Ad", PropertyName = "Name" },
-new ColumnDef { Title = "Tip ID", PropertyName = "TypeId" }
-};
+    private List<ColumnDef> columns = new() { new ColumnDef { Title = "ID", PropertyName = "Id" }, new ColumnDef { Title =
+"Ad", PropertyName = "Name" }, new ColumnDef { Title = "Tip ID", PropertyName = "TypeId" } };
+    private List<InspectorField> inspectorFields = new() { new InspectorField { Label = "ID", PropertyName = "Id", Editable
+= false }, new InspectorField { Label = "Ad", PropertyName = "Name", Editable = true }, new InspectorField { Label =
+"Tip ID", PropertyName = "TypeId", Editable = true }, new InspectorField { Label = "Açıklama", PropertyName =
+"Description", Editable = true } };
 
-    private List<InspectorField> inspectorFields = new()
-{
-new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
-new InspectorField { Label = "Ad", PropertyName = "Name", Editable = true },
-new InspectorField { Label = "Tip ID", PropertyName = "TypeId", Editable = true },
-new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true }
-};
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadData();
-    }
-
+    protected override async Task OnInitializedAsync() => await LoadData();
     private async Task LoadData()
     {
-        isLoading = true;
-        errorMessage = null;
+        isLoading = true; errorMessage = null; try
+        {
+            items = await
+    Http.GetFromJsonAsync<OzellikViewModel[]>("api/ozellik");
+        }
+        catch (Exception ex) { errorMessage = $"Error: {ex.Message}"; }
+        finally { isLoading = false; }
+    }
+    private void OpenAddModal() { editingItem = new(); isEditingInModal = false; showAddModal = true; }
+    private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
+    private async Task HandleCreateOrUpdate()
+    {
+        if (string.IsNullOrWhiteSpace(editingItem.Name)) { await JS.InvokeVoidAsync("alert", "Ad zorunludur."); return; }
+        isCreating = true;
         try
         {
-            items = await Http.GetFromJsonAsync<OzellikViewModel[]>("api/ozellik");
+            var response = isEditingInModal ? await AuthHttp.PutAsJsonAsync($"api/ozellik/{editingItem.Id}", editingItem) : await
+            AuthHttp.PostAsJsonAsync("api/ozellik", editingItem);
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", isEditingInModal ? "Güncellendi!" : "Eklendi!");
+                CloseAddModal(); await LoadData();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) { await JS.InvokeVoidAsync("alert", "Giriş yapın."); }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) { await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli."); }
+            else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
         }
-        catch (Exception ex)
-        {
-            errorMessage = $"Error loading data: {ex.Message}";
-            Console.WriteLine(ex);
-        }
-        finally
-        {
-            isLoading = false;
-        }
+        catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
+        finally { isCreating = false; }
     }
 
     private async Task HandleSave(OzellikViewModel item)
     {
         try
         {
-            var response = await Http.PutAsJsonAsync($"api/ozellik/{item.Id}", item);
-
-            if (response.IsSuccessStatusCode)
-            {
-                await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
-                await LoadData();
-            }
-            else
-            {
-                await JS.InvokeVoidAsync("alert", $"Güncelleme hatası: {response.StatusCode}");
-            }
+            var response = await AuthHttp.PutAsJsonAsync($"api/ozellik/{item.Id}", item);
+            if (response.IsSuccessStatusCode) { await JS.InvokeVoidAsync("alert", "Güncellendi"); await LoadData(); }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) { await JS.InvokeVoidAsync("alert", "Giriş yapın."); }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) { await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli."); }
+            else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
         }
-        catch (Exception ex)
-        {
-            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
-        }
+        catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
     }
 
     private async Task HandleDelete(OzellikViewModel item)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"{item.Name} kaydını silmek istediğinizden emin misiniz?"))
+        if (await JS.InvokeAsync<bool>("confirm", $"{item.Name} silinsin mi?"))
         {
             try
             {
-                var response = await Http.DeleteAsync($"api/ozellik/{item.Id}");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
-                    await LoadData();
-                }
-                else
-                {
-                    await JS.InvokeVoidAsync("alert", $"Silme hatası: {response.StatusCode}");
-                }
+                var response = await AuthHttp.DeleteAsync($"api/ozellik/{item.Id}");
+                if (response.IsSuccessStatusCode) { await JS.InvokeVoidAsync("alert", "Silindi"); await LoadData(); }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) { await JS.InvokeVoidAsync("alert", "Giriş yapın."); }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) { await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli."); }
+                else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
             }
-            catch (Exception ex)
-            {
-                await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
-            }
+            catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
         }
     }
 }
