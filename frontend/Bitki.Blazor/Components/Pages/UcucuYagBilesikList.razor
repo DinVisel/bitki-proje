@@ -2,25 +2,33 @@
 @rendermode InteractiveServer
 @using Bitki.Blazor.Models
 @using Bitki.Blazor.Components.Common
+@using Bitki.Blazor.Services
+@using Microsoft.AspNetCore.Components.Authorization
 @using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.UcucuYagBilesikViewModel>
 @inject HttpClient Http
+@inject AuthenticatedHttpClient AuthHttp
 @inject IJSRuntime JS
 
 <PageTitle>Uçucu Yağ Bileşik</PageTitle>
 
 <div class="page-container">
-    <h1>Uçucu Yağ Bileşik İlişkileri</h1>
+    <div class="page-header">
+        <h1>Uçucu Yağ Bileşik İlişkileri</h1>
+        <AuthorizeView Roles="Admin">
+            <Authorized><button class="btn btn-success add-new-btn" @onclick="OpenAddModal"><span>➕</span> Yeni İlişki
+                    Ekle</button></Authorized>
+        </AuthorizeView>
+    </div>
 
     @if (isLoading)
     {
         <div class="loading-state">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
+            <div class="spinner-border text-primary" role="status"></div>
         </div>
     }
     else if (errorMessage != null)
     {
+
         <div class="alert alert-danger">@errorMessage</div>
     }
     else
@@ -28,75 +36,127 @@
         <RecordExplorer TItem="UcucuYagBilesikViewModel" Items="items" Columns="columns" Title="Uçucu Yağ-Bileşik Kayıtları"
             ShowSearch="true">
             <InspectorContent Context="selectedItem">
-                <RecordInspector TItem="UcucuYagBilesikViewModel" Item="selectedItem"
-                    Title="@($"Uçucu Yağ-Bileşik Detayları")" Fields="inspectorFields" OnSave="HandleSave"
-                    OnDelete="HandleDelete" />
+                <RecordInspector TItem="UcucuYagBilesikViewModel" Item="selectedItem" Title="Uçucu Yağ-Bileşik"
+                    Fields="inspectorFields" OnSave="HandleSave" OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
     }
 </div>
 
+@if (showAddModal)
+{
+    <div class="modal-overlay" @onclick="CloseAddModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h5>@(isEditingInModal ? "İlişki Düzenle" : "Yeni İlişki Ekle")</h5><button type="button" class="btn-close"
+                    @onclick="CloseAddModal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group mb-3"><label class="form-label">Uçucu Yağ ID *</label><input type="number"
+                        class="form-control" @bind="editingItem.EssentialOilId" /></div>
+                <div class="form-group mb-3"><label class="form-label">Bileşik ID *</label><input type="number"
+                        class="form-control" @bind="editingItem.CompoundId" /></div>
+                <div class="form-group mb-3"><label class="form-label">Miktar</label><input type="text" class="form-control"
+                        @bind="editingItem.Amount" /></div>
+                <div class="form-group"><label class="form-label">Birim</label><input type="text" class="form-control"
+                        @bind="editingItem.Unit" /></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseAddModal">İptal</button>
+                <button class="btn btn-success" @onclick="HandleCreateOrUpdate" disabled="@isCreating">@if (isCreating) {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+ @(isEditingInModal ? "Güncelle" :
+                                "Kaydet")</button>
+        </div>
+    </div>
+</div>
+}
+
 @code {
     private UcucuYagBilesikViewModel[]? items;
     private bool isLoading = true;
     private string? errorMessage;
+    private bool showAddModal = false;
+    private bool isCreating = false;
+    private bool isEditingInModal = false;
+    private UcucuYagBilesikViewModel editingItem = new();
 
-    private List<ColumnDef> columns = new()
-{
-new ColumnDef { Title = "Uçucu Yağ ID", PropertyName = "EssentialOilId" },
-new ColumnDef { Title = "Bileşik ID", PropertyName = "CompoundId" },
-new ColumnDef { Title = "Miktar", PropertyName = "Amount" },
-new ColumnDef { Title = "Birim", PropertyName = "Unit" }
-};
+    private List<ColumnDef> columns = new() { new ColumnDef { Title = "Uçucu Yağ ID", PropertyName = "EssentialOilId" }, new
+ColumnDef { Title = "Bileşik ID", PropertyName = "CompoundId" }, new ColumnDef { Title = "Miktar", PropertyName =
+"Amount" }, new ColumnDef { Title = "Birim", PropertyName = "Unit" } };
+    private List<InspectorField> inspectorFields = new() { new InspectorField { Label = "Uçucu Yağ ID", PropertyName =
+"EssentialOilId", Editable = false }, new InspectorField { Label = "Bileşik ID", PropertyName = "CompoundId", Editable =
+false }, new InspectorField { Label = "Miktar", PropertyName = "Amount", Editable = true }, new InspectorField { Label =
+"Birim", PropertyName = "Unit", Editable = true } };
 
-    private List<InspectorField> inspectorFields = new()
-{
-new InspectorField { Label = "Uçucu Yağ ID", PropertyName = "EssentialOilId", Editable = true },
-new InspectorField { Label = "Bileşik ID", PropertyName = "CompoundId", Editable = true },
-new InspectorField { Label = "Miktar", PropertyName = "Amount", Editable = true },
-new InspectorField { Label = "Birim", PropertyName = "Unit", Editable = true }
-};
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadData();
-    }
-
+    protected override async Task OnInitializedAsync() => await LoadData();
     private async Task LoadData()
     {
-        isLoading = true;
-        errorMessage = null;
-
-        try
+        isLoading = true; errorMessage = null; try
         {
-            items = await Http.GetFromJsonAsync<UcucuYagBilesikViewModel[]>("api/ucucuyagbilesik");
+            items = await
+    Http.GetFromJsonAsync<UcucuYagBilesikViewModel[]>("api/ucucuyagbilesik");
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error loading data: {ex.Message}";
-            Console.WriteLine(ex);
+            errorMessage =
+    $"Error: {ex.Message}";
         }
-        finally
+        finally { isLoading = false; }
+    }
+    private void OpenAddModal() { editingItem = new(); isEditingInModal = false; showAddModal = true; }
+    private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
+
+    private async Task HandleCreateOrUpdate()
+    {
+        if (editingItem.EssentialOilId == 0 || editingItem.CompoundId == 0) { await JS.InvokeVoidAsync("alert", "Uçucu Yağ ve Bileşik ID zorunludur."); return; }
+        isCreating = true;
+        try
         {
-            isLoading = false;
+            var response = isEditingInModal ? await
+            AuthHttp.PutAsJsonAsync($"api/ucucuyagbilesik/{editingItem.EssentialOilId}/{editingItem.CompoundId}", editingItem) :
+            await AuthHttp.PostAsJsonAsync("api/ucucuyagbilesik", editingItem);
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", isEditingInModal ? "Güncellendi!" : "Eklendi!");
+                CloseAddModal(); await LoadData();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) { await JS.InvokeVoidAsync("alert", "Giriş yapın."); }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) { await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli."); }
+            else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
         }
+        catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
+        finally { isCreating = false; }
     }
 
     private async Task HandleSave(UcucuYagBilesikViewModel item)
     {
         try
         {
-            // Note: This table doesn't have an ID field, so save logic may need adjustment
-            await JS.InvokeVoidAsync("alert", "Bu tablo için güncelleme işlemi desteklenmiyor");
+            var response = await AuthHttp.PutAsJsonAsync($"api/ucucuyagbilesik/{item.EssentialOilId}/{item.CompoundId}",
+        item);
+            if (response.IsSuccessStatusCode) { await JS.InvokeVoidAsync("alert", "Güncellendi"); await LoadData(); }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) { await JS.InvokeVoidAsync("alert", "Giriş yapın."); }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) { await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli."); }
+            else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
         }
-        catch (Exception ex)
-        {
-            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
-        }
+        catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
     }
 
     private async Task HandleDelete(UcucuYagBilesikViewModel item)
     {
-        await JS.InvokeVoidAsync("alert", "Bu tablo için silme işlemi desteklenmiyor");
+        if (await JS.InvokeAsync<bool>("confirm", $"Uçucu Yağ {item.EssentialOilId} - Bileşik {item.CompoundId} silinsin mi?"))
+        {
+            try
+            {
+                var response = await AuthHttp.DeleteAsync($"api/ucucuyagbilesik/{item.EssentialOilId}/{item.CompoundId}");
+                if (response.IsSuccessStatusCode) { await JS.InvokeVoidAsync("alert", "Silindi"); await LoadData(); }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) { await JS.InvokeVoidAsync("alert", "Giriş yapın."); }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) { await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli."); }
+                else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
+            }
+            catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
+        }
     }
 }

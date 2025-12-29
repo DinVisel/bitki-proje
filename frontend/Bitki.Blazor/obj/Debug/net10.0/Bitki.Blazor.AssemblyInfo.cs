@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Bitki.Blazor")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ddfcbad18b6cd0ea22366232a2415f8490adb57f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+88697e214ec8a2f7c5b9946a13823400718a7229")]
 [assembly: System.Reflection.AssemblyProductAttribute("Bitki.Blazor")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Bitki.Blazor")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
