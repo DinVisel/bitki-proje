@@ -87,5 +87,43 @@ namespace Bitki.Infrastructure.Repositories.Literatur
                 PageSize = request.PageSize
             };
         }
+
+        public async Task<Bitki.Core.Entities.Literatur?> GetByIdAsync(long id)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"SELECT litid AS Id, yazaradi AS AuthorName, arastirmaadi AS ResearchName, 
+                kaynakadi AS SourceName, yili AS Year, tamadi AS FullName, link AS Link, 
+                tip AS Type, konutipi AS TopicType, guvenilirlik AS Reliability, ozet AS Summary 
+                FROM dbo.literatur WHERE litid = @Id";
+            return await connection.QueryFirstOrDefaultAsync<Bitki.Core.Entities.Literatur>(sql, new { Id = id });
+        }
+
+        public async Task<long> AddAsync(Bitki.Core.Entities.Literatur entity)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"INSERT INTO dbo.literatur (yazaradi, arastirmaadi, kaynakadi, yili, tamadi, link, tip, konutipi, guvenilirlik, ozet) 
+                        VALUES (@AuthorName, @ResearchName, @SourceName, @Year, @FullName, @Link, @Type, @TopicType, @Reliability, @Summary) 
+                        RETURNING litid";
+            return await connection.ExecuteScalarAsync<long>(sql, entity);
+        }
+
+        public async Task UpdateAsync(Bitki.Core.Entities.Literatur entity)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"UPDATE dbo.literatur 
+                        SET yazaradi = @AuthorName, arastirmaadi = @ResearchName, kaynakadi = @SourceName, 
+                            yili = @Year, tamadi = @FullName, link = @Link, tip = @Type, 
+                            konutipi = @TopicType, guvenilirlik = @Reliability, ozet = @Summary 
+                        WHERE litid = @Id";
+            await connection.ExecuteAsync(sql, entity);
+        }
+
+        public async Task DeleteAsync(long id)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = "DELETE FROM dbo.literatur WHERE litid = @Id";
+            await connection.ExecuteAsync(sql, new { Id = id });
+        }
     }
 }
+

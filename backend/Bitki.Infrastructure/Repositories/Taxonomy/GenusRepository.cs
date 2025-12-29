@@ -54,5 +54,34 @@ namespace Bitki.Infrastructure.Repositories.Taxonomy
                 PageSize = request.PageSize
             };
         }
+
+        public async Task<Genus?> GetByIdAsync(int id)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            return await connection.QueryFirstOrDefaultAsync<Genus>(
+                "SELECT genusid AS Id, genus AS Name, familyano AS FamilyId, aciklama AS Description FROM dbo.genus WHERE genusid = @Id",
+                new { Id = id });
+        }
+
+        public async Task<int> AddAsync(Genus entity)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            return await connection.ExecuteScalarAsync<int>(
+                "INSERT INTO dbo.genus (genus, familyano, aciklama) VALUES (@Name, @FamilyId, @Description) RETURNING genusid", entity);
+        }
+
+        public async Task UpdateAsync(Genus entity)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            await connection.ExecuteAsync(
+                "UPDATE dbo.genus SET genus = @Name, familyano = @FamilyId, aciklama = @Description WHERE genusid = @Id", entity);
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            await connection.ExecuteAsync("DELETE FROM dbo.genus WHERE genusid = @Id", new { Id = id });
+        }
     }
 }
+

@@ -56,5 +56,34 @@ namespace Bitki.Infrastructure.Repositories.Taxonomy
                 PageSize = request.PageSize
             };
         }
+
+        public async Task<Familya?> GetByIdAsync(int id)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = "SELECT familyaid AS Id, familya AS Name, turkce AS TurkishName FROM dbo.familya WHERE familyaid = @Id";
+            return await connection.QueryFirstOrDefaultAsync<Familya>(sql, new { Id = id });
+        }
+
+        public async Task<int> AddAsync(Familya entity)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"INSERT INTO dbo.familya (familya, turkce) VALUES (@Name, @TurkishName) RETURNING familyaid";
+            return await connection.ExecuteScalarAsync<int>(sql, entity);
+        }
+
+        public async Task UpdateAsync(Familya entity)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = "UPDATE dbo.familya SET familya = @Name, turkce = @TurkishName WHERE familyaid = @Id";
+            await connection.ExecuteAsync(sql, entity);
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = "DELETE FROM dbo.familya WHERE familyaid = @Id";
+            await connection.ExecuteAsync(sql, new { Id = id });
+        }
     }
 }
+
