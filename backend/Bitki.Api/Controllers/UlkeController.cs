@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Bitki.Core.Entities;
 using Bitki.Core.Interfaces.Repositories.MasterData;
 
@@ -16,10 +17,39 @@ namespace Bitki.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Ulke>>> Get()
+        public async Task<ActionResult<IEnumerable<Ulke>>> Get() => Ok(await _repository.GetAllAsync());
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Ulke>> GetById(int id)
         {
-            var data = await _repository.GetAllAsync();
-            return Ok(data);
+            var item = await _repository.GetByIdAsync(id);
+            return item == null ? NotFound() : Ok(item);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<int>> Create([FromBody] Ulke entity)
+        {
+            var id = await _repository.AddAsync(entity);
+            return CreatedAtAction(nameof(GetById), new { id }, id);
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Update(int id, [FromBody] Ulke entity)
+        {
+            if (id != entity.Id) return BadRequest("ID mismatch");
+            await _repository.UpdateAsync(entity);
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            await _repository.DeleteAsync(id);
+            return NoContent();
         }
     }
 }
+
