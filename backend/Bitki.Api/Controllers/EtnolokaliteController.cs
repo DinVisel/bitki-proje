@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Bitki.Core.Entities;
 using Bitki.Core.Interfaces.Repositories.Etnobotanik;
+using Bitki.Core.Models;
 
 namespace Bitki.Api.Controllers
 {
@@ -14,6 +15,13 @@ namespace Bitki.Api.Controllers
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Etnolokalite>>> Get() => Ok(await _repository.GetAllAsync());
+
+        [HttpPost("query")]
+        public async Task<ActionResult<FilterResponse<Etnolokalite>>> Query([FromBody] FilterRequest request)
+        {
+            try { return Ok(await _repository.QueryAsync(request)); }
+            catch (Exception ex) { return BadRequest(new { error = ex.Message }); }
+        }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Etnolokalite>> GetById(int id) { var item = await _repository.GetByIdAsync(id); return item == null ? NotFound() : Ok(item); }

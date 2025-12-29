@@ -15,32 +15,35 @@
     <div class="page-header">
         <h1>Kullanım Veritabanı</h1>
         <AuthorizeView Roles="Admin">
-            <Authorized><button class="btn btn-success add-new-btn" @onclick="OpenAddModal"><span>➕</span> Yeni Kullanım
-                    Ekle</button></Authorized>
+            <Authorized>
+                <button class="btn btn-success add-new-btn" @onclick="OpenAddModal">
+                    <span>➕</span> Yeni Kullanım Ekle
+                </button>
+            </Authorized>
         </AuthorizeView>
     </div>
 
-    @if (isLoading)
+    @if (errorMessage != null)
     {
-        <div class="loading-state">
-            <div class="spinner-border text-primary" role="status"></div>
-        </div>
-    }
-    else if (errorMessage != null)
-    {
-
         <div class="alert alert-danger">@errorMessage</div>
     }
     else
     {
         <RecordExplorer TItem="KullanimViewModel" Items="items" Columns="columns" Title="Kullanım Kayıtları"
-            ShowSearch="true">
+            ShowSearch="true" IsLoading="isLoading" TotalCount="totalCount" FilteredCount="filteredCount"
+            OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="KullanimViewModel" Item="selectedItem"
                     Title="@($"Kullanım - {selectedItem.UsageName}")" Fields="inspectorFields" OnSave="HandleSave"
                     OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
+
+        <PaginationControls CurrentPage="@paginationState.PageNumber" PageSize="@paginationState.PageSize"
+            TotalPages="@paginationState.TotalPages" TotalRecords="@paginationState.FilteredCount"
+            StartRecord="@paginationState.StartRecord" EndRecord="@paginationState.EndRecord"
+            HasPreviousPage="@paginationState.HasPreviousPage" HasNextPage="@paginationState.HasNextPage"
+            IsLoading="@isLoading" OnPageChanged="HandlePageChanged" />
     }
 </div>
 
@@ -49,57 +52,115 @@
     <div class="modal-overlay" @onclick="CloseAddModal">
         <div class="modal-content" @onclick:stopPropagation="true">
             <div class="modal-header">
-                <h5>@(isEditingInModal ? "Kullanım Düzenle" : "Yeni Kullanım Ekle")</h5><button type="button"
-                    class="btn-close" @onclick="CloseAddModal"></button>
+                <h5>@(isEditingInModal ? "Kullanım Düzenle" : "Yeni Kullanım Ekle")</h5>
+                <button type="button" class="btn-close" @onclick="CloseAddModal"></button>
             </div>
             <div class="modal-body">
-                <div class="form-group mb-3"><label class="form-label">Kullanım Adı *</label><input type="text"
-                        class="form-control" @bind="editingItem.UsageName" /></div>
-                <div class="form-group mb-3"><label class="form-label">Tip</label><input type="text" class="form-control"
-                        @bind="editingItem.Type" /></div>
-                <div class="form-group"><label class="form-label">Seviye</label><input type="number" class="form-control"
-                        @bind="editingItem.Level" /></div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Kullanım Adı *</label>
+                    <input type="text" class="form-control" @bind="editingItem.UsageName" />
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Tip</label>
+                    <input type="text" class="form-control" @bind="editingItem.Type" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Seviye</label>
+                    <input type="number" class="form-control" @bind="editingItem.Level" />
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" @onclick="CloseAddModal">İptal</button>
-                <button class="btn btn-success" @onclick="HandleCreateOrUpdate" disabled="@isCreating">@if (isCreating) {
-                    <span class="spinner-border spinner-border-sm me-1"></span>
-            }
- @(isEditingInModal ? "Güncelle" :
-                                "Kaydet")</button>
+                <button class="btn btn-success" @onclick="HandleCreateOrUpdate" disabled="@isCreating">
+                    @if (isCreating)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    @(isEditingInModal ? "Güncelle" : "Kaydet")
+                </button>
+            </div>
         </div>
     </div>
-</div>
 }
 
 @code {
     private KullanimViewModel[]? items;
     private bool isLoading = true;
     private string? errorMessage;
+    private int? totalCount;
+    private int? filteredCount;
+    private FilterResponse<KullanimViewModel> paginationState = new();
+    private FilterRequest currentFilter = new();
+
     private bool showAddModal = false;
     private bool isCreating = false;
     private bool isEditingInModal = false;
     private KullanimViewModel editingItem = new();
 
-    private List<ColumnDef> columns = new() { new ColumnDef { Title = "ID", PropertyName = "Id" }, new ColumnDef { Title =
-"Kullanım Adı", PropertyName = "UsageName" }, new ColumnDef { Title = "Tip", PropertyName = "Type" }, new ColumnDef {
-Title = "Seviye", PropertyName = "Level" } };
-    private List<InspectorField> inspectorFields = new() { new InspectorField { Label = "ID", PropertyName = "Id", Editable
-= false }, new InspectorField { Label = "Kullanım Adı", PropertyName = "UsageName", Editable = true }, new
-InspectorField { Label = "Tip", PropertyName = "Type", Editable = true }, new InspectorField { Label = "Seviye",
-PropertyName = "Level", Editable = true } };
+    private List<ColumnDef> columns = new()
+{
+new ColumnDef { Title = "ID", PropertyName = "Id" },
+new ColumnDef { Title = "Kullanım Adı", PropertyName = "UsageName" },
+new ColumnDef { Title = "Tip", PropertyName = "Type" },
+new ColumnDef { Title = "Seviye", PropertyName = "Level" }
+};
 
-    protected override async Task OnInitializedAsync() => await LoadData();
-    private async Task LoadData()
+    private List<InspectorField> inspectorFields = new()
+{
+new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
+new InspectorField { Label = "Kullanım Adı", PropertyName = "UsageName", Editable = true },
+new InspectorField { Label = "Tip", PropertyName = "Type", Editable = true },
+new InspectorField { Label = "Seviye", PropertyName = "Level", Editable = true }
+};
+
+    protected override async Task OnInitializedAsync() => await LoadDataWithFilter();
+
+    private async Task LoadDataWithFilter()
     {
-        isLoading = true; errorMessage = null; try
+        isLoading = true;
+        errorMessage = null;
+        try
         {
-            items = await
-    Http.GetFromJsonAsync<KullanimViewModel[]>("api/kullanim");
+            var response = await Http.PostAsJsonAsync("api/kullanim/query", currentFilter);
+            if (response.IsSuccessStatusCode)
+            {
+                var filterResponse = await response.Content.ReadFromJsonAsync<FilterResponse<KullanimViewModel>>();
+                if (filterResponse != null)
+                {
+                    items = filterResponse.Data.ToArray();
+                    totalCount = filterResponse.TotalCount;
+                    filteredCount = filterResponse.FilteredCount;
+                    paginationState = filterResponse;
+                }
+            }
+            else { errorMessage = $"Error: {response.StatusCode}"; }
         }
         catch (Exception ex) { errorMessage = $"Error: {ex.Message}"; }
         finally { isLoading = false; }
     }
+
+    private async Task HandleSearchChanged(string searchText)
+    {
+        currentFilter.SearchText = searchText;
+        currentFilter.PageNumber = 1;
+        await LoadDataWithFilter();
+    }
+
+    private async Task HandleSortChanged((string column, bool ascending) sort)
+    {
+        currentFilter.SortColumn = sort.column;
+        currentFilter.SortDirection = sort.ascending ? "ASC" : "DESC";
+        currentFilter.PageNumber = 1;
+        await LoadDataWithFilter();
+    }
+
+    private async Task HandlePageChanged((int page, int pageSize) pagination)
+    {
+        currentFilter.PageNumber = pagination.page;
+        currentFilter.PageSize = pagination.pageSize;
+        await LoadDataWithFilter();
+    }
+
     private void OpenAddModal() { editingItem = new(); isEditingInModal = false; showAddModal = true; }
     private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
@@ -113,15 +174,23 @@ PropertyName = "Level", Editable = true } };
         isCreating = true;
         try
         {
-            var response = isEditingInModal ? await AuthHttp.PutAsJsonAsync($"api/kullanim/{editingItem.Id}", editingItem) : await
-            AuthHttp.PostAsJsonAsync("api/kullanim", editingItem);
+            var response = isEditingInModal
+            ? await AuthHttp.PutAsJsonAsync($"api/kullanim/{editingItem.Id}", editingItem)
+            : await AuthHttp.PostAsJsonAsync("api/kullanim", editingItem);
             if (response.IsSuccessStatusCode)
             {
                 await JS.InvokeVoidAsync("alert", isEditingInModal ? "Güncellendi!" : "Eklendi!");
-                CloseAddModal(); await LoadData();
+                CloseAddModal();
+                await LoadDataWithFilter();
             }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) { await JS.InvokeVoidAsync("alert", "Giriş yapın."); }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) { await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli."); }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                await JS.InvokeVoidAsync("alert", "Giriş yapın.");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
+            }
             else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
         }
         catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
@@ -133,9 +202,19 @@ PropertyName = "Level", Editable = true } };
         try
         {
             var response = await AuthHttp.PutAsJsonAsync($"api/kullanim/{item.Id}", item);
-            if (response.IsSuccessStatusCode) { await JS.InvokeVoidAsync("alert", "Güncellendi"); await LoadData(); }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) { await JS.InvokeVoidAsync("alert", "Giriş yapın."); }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) { await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli."); }
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Güncellendi");
+                await LoadDataWithFilter();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                await JS.InvokeVoidAsync("alert", "Giriş yapın.");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
+            }
             else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
         }
         catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
@@ -148,9 +227,19 @@ PropertyName = "Level", Editable = true } };
             try
             {
                 var response = await AuthHttp.DeleteAsync($"api/kullanim/{item.Id}");
-                if (response.IsSuccessStatusCode) { await JS.InvokeVoidAsync("alert", "Silindi"); await LoadData(); }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) { await JS.InvokeVoidAsync("alert", "Giriş yapın."); }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) { await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli."); }
+                if (response.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("alert", "Silindi");
+                    await LoadDataWithFilter();
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    await JS.InvokeVoidAsync("alert", "Giriş yapın.");
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
+                }
                 else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
             }
             catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }

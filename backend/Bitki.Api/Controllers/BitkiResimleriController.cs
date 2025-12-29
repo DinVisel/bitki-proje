@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Bitki.Core.Entities;
 using Bitki.Core.Interfaces.Repositories.Cleanup;
+using Bitki.Core.Models;
 
 namespace Bitki.Api.Controllers
 {
@@ -15,11 +16,18 @@ namespace Bitki.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BitkiResimleri>>> Get() => Ok(await _repository.GetAllAsync());
 
-        [HttpGet("plant/{plantId}")]
-        public async Task<ActionResult<IEnumerable<BitkiResimleri>>> GetByPlantId(int plantId) => Ok(await _repository.GetByPlantIdAsync(plantId));
+        [HttpPost("query")]
+        public async Task<ActionResult<FilterResponse<BitkiResimleri>>> Query([FromBody] FilterRequest request)
+        {
+            try { return Ok(await _repository.QueryAsync(request)); }
+            catch (Exception ex) { return BadRequest(new { error = ex.Message }); }
+        }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<BitkiResimleri>> GetById(int id) { var item = await _repository.GetByIdAsync(id); return item == null ? NotFound() : Ok(item); }
+
+        [HttpGet("plant/{plantId}")]
+        public async Task<ActionResult<IEnumerable<BitkiResimleri>>> GetByPlantId(int plantId) => Ok(await _repository.GetByPlantIdAsync(plantId));
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
@@ -34,4 +42,3 @@ namespace Bitki.Api.Controllers
         public async Task<IActionResult> Delete(int id) { await _repository.DeleteAsync(id); return NoContent(); }
     }
 }
-

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Bitki.Core.Entities;
 using Bitki.Core.Interfaces.Repositories.Compounds;
+using Bitki.Core.Models;
 
 namespace Bitki.Api.Controllers
 {
@@ -22,6 +23,21 @@ namespace Bitki.Api.Controllers
             var data = await _repository.GetAllAsync();
             return Ok(data);
         }
+
+        [HttpPost("query")]
+        public async Task<ActionResult<FilterResponse<Bilesikler>>> Query([FromBody] FilterRequest request)
+        {
+            try
+            {
+                var result = await _repository.QueryAsync(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Bilesikler>> GetById(long id)

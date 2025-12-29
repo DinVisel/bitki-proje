@@ -23,28 +23,27 @@
         </AuthorizeView>
     </div>
 
-    @if (isLoading)
-    {
-        <div class="loading-state">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    }
-    else if (errorMessage != null)
+    @if (errorMessage != null)
     {
         <div class="alert alert-danger">@errorMessage</div>
     }
     else
     {
-        <RecordExplorer TItem="FamilyaViewModel" Items="items" Columns="columns" Title="Familya Kayıtları"
-            ShowSearch="true">
+        <RecordExplorer TItem="FamilyaViewModel" Items="items" Columns="columns" Title="Familya Kayıtları" ShowSearch="true"
+            IsLoading="isLoading" TotalCount="totalCount" FilteredCount="filteredCount"
+            OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="FamilyaViewModel" Item="selectedItem"
                     Title="@($"Familya Detayları - {selectedItem.Name}")" Fields="inspectorFields" OnSave="HandleSave"
                     OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
+
+        <PaginationControls CurrentPage="@paginationState.PageNumber" PageSize="@paginationState.PageSize"
+            TotalPages="@paginationState.TotalPages" TotalRecords="@paginationState.FilteredCount"
+            StartRecord="@paginationState.StartRecord" EndRecord="@paginationState.EndRecord"
+            HasPreviousPage="@paginationState.HasPreviousPage" HasNextPage="@paginationState.HasNextPage"
+            IsLoading="@isLoading" OnPageChanged="HandlePageChanged" />
     }
 </div>
 
@@ -84,6 +83,11 @@
     private FamilyaViewModel[]? items;
     private bool isLoading = true;
     private string? errorMessage;
+    private int? totalCount;
+    private int? filteredCount;
+    private FilterResponse<FamilyaViewModel> paginationState = new();
+    private FilterRequest currentFilter = new();
+
     private bool showAddModal = false;
     private bool isCreating = false;
     private bool isEditingInModal = false;
@@ -103,15 +107,52 @@ new InspectorField { Label = "Ad", PropertyName = "Name", Editable = true },
 new InspectorField { Label = "Türkçe Ad", PropertyName = "TurkishName", Editable = true }
 };
 
-    protected override async Task OnInitializedAsync() => await LoadData();
+    protected override async Task OnInitializedAsync() => await LoadDataWithFilter();
 
-    private async Task LoadData()
+    private async Task LoadDataWithFilter()
     {
         isLoading = true;
         errorMessage = null;
-        try { items = await Http.GetFromJsonAsync<FamilyaViewModel[]>("api/familya"); }
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/familya/query", currentFilter);
+            if (response.IsSuccessStatusCode)
+            {
+                var filterResponse = await response.Content.ReadFromJsonAsync<FilterResponse<FamilyaViewModel>>();
+                if (filterResponse != null)
+                {
+                    items = filterResponse.Data.ToArray();
+                    totalCount = filterResponse.TotalCount;
+                    filteredCount = filterResponse.FilteredCount;
+                    paginationState = filterResponse;
+                }
+            }
+            else { errorMessage = $"Error: {response.StatusCode}"; }
+        }
         catch (Exception ex) { errorMessage = $"Error: {ex.Message}"; }
         finally { isLoading = false; }
+    }
+
+    private async Task HandleSearchChanged(string searchText)
+    {
+        currentFilter.SearchText = searchText;
+        currentFilter.PageNumber = 1;
+        await LoadDataWithFilter();
+    }
+
+    private async Task HandleSortChanged((string column, bool ascending) sort)
+    {
+        currentFilter.SortColumn = sort.column;
+        currentFilter.SortDirection = sort.ascending ? "ASC" : "DESC";
+        currentFilter.PageNumber = 1;
+        await LoadDataWithFilter();
+    }
+
+    private async Task HandlePageChanged((int page, int pageSize) pagination)
+    {
+        currentFilter.PageNumber = pagination.page;
+        currentFilter.PageSize = pagination.pageSize;
+        await LoadDataWithFilter();
     }
 
     private void OpenAddModal() { editingItem = new(); isEditingInModal = false; showAddModal = true; }
@@ -119,7 +160,11 @@ new InspectorField { Label = "Türkçe Ad", PropertyName = "TurkishName", Editab
 
     private async Task HandleCreateOrUpdate()
     {
-        if (string.IsNullOrWhiteSpace(editingItem.Name)) { await JS.InvokeVoidAsync("alert", "Ad zorunludur."); return; }
+        if (string.IsNullOrWhiteSpace(editingItem.Name))
+        {
+            await JS.InvokeVoidAsync("alert", "Ad zorunludur.");
+            return;
+        }
         isCreating = true;
         try
         {
@@ -129,10 +174,17 @@ new InspectorField { Label = "Türkçe Ad", PropertyName = "TurkishName", Editab
             if (response.IsSuccessStatusCode)
             {
                 await JS.InvokeVoidAsync("alert", isEditingInModal ? "Güncellendi!" : "Eklendi!");
-                CloseAddModal(); await LoadData();
+                CloseAddModal();
+                await LoadDataWithFilter();
             }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) { await JS.InvokeVoidAsync("alert", "Giriş yapın."); }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) { await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli."); }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                await JS.InvokeVoidAsync("alert", "Giriş yapın.");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
+            }
             else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
         }
         catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
@@ -144,9 +196,19 @@ new InspectorField { Label = "Türkçe Ad", PropertyName = "TurkishName", Editab
         try
         {
             var response = await AuthHttp.PutAsJsonAsync($"api/familya/{item.Id}", item);
-            if (response.IsSuccessStatusCode) { await JS.InvokeVoidAsync("alert", "Güncellendi"); await LoadData(); }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) { await JS.InvokeVoidAsync("alert", "Giriş yapın."); }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) { await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli."); }
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Güncellendi");
+                await LoadDataWithFilter();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                await JS.InvokeVoidAsync("alert", "Giriş yapın.");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
+            }
             else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
         }
         catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
@@ -159,9 +221,19 @@ new InspectorField { Label = "Türkçe Ad", PropertyName = "TurkishName", Editab
             try
             {
                 var response = await AuthHttp.DeleteAsync($"api/familya/{item.Id}");
-                if (response.IsSuccessStatusCode) { await JS.InvokeVoidAsync("alert", "Silindi"); await LoadData(); }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) { await JS.InvokeVoidAsync("alert", "Giriş yapın."); }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) { await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli."); }
+                if (response.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("alert", "Silindi");
+                    await LoadDataWithFilter();
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    await JS.InvokeVoidAsync("alert", "Giriş yapın.");
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
+                }
                 else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
             }
             catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }

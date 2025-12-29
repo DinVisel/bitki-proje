@@ -23,28 +23,27 @@
         </AuthorizeView>
     </div>
 
-    @if (isLoading)
-    {
-        <div class="loading-state">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    }
-    else if (errorMessage != null)
+    @if (errorMessage != null)
     {
         <div class="alert alert-danger">@errorMessage</div>
     }
     else
     {
         <RecordExplorer TItem="BilesiklerViewModel" Items="items" Columns="columns" Title="Bileşik Kayıtları"
-            ShowSearch="true">
+            ShowSearch="true" IsLoading="isLoading" TotalCount="totalCount" FilteredCount="filteredCount"
+            OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="BilesiklerViewModel" Item="selectedItem"
                     Title="@($"Bileşik Detayları - {selectedItem.Name}")" Fields="inspectorFields" OnSave="HandleSave"
                     OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
+
+        <PaginationControls CurrentPage="@paginationState.PageNumber" PageSize="@paginationState.PageSize"
+            TotalPages="@paginationState.TotalPages" TotalRecords="@paginationState.FilteredCount"
+            StartRecord="@paginationState.StartRecord" EndRecord="@paginationState.EndRecord"
+            HasPreviousPage="@paginationState.HasPreviousPage" HasNextPage="@paginationState.HasNextPage"
+            IsLoading="@isLoading" OnPageChanged="HandlePageChanged" />
     }
 </div>
 
@@ -95,6 +94,11 @@
     private BilesiklerViewModel[]? items;
     private bool isLoading = true;
     private string? errorMessage;
+    private int? totalCount;
+    private int? filteredCount;
+    private FilterResponse<BilesiklerViewModel> paginationState = new FilterResponse<BilesiklerViewModel>();
+
+    private FilterRequest currentFilter = new FilterRequest();
 
     // Add/Edit Modal State
     private bool showAddModal = false;
@@ -121,17 +125,33 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadData();
+        await LoadDataWithFilter();
     }
 
-    private async Task LoadData()
+    private async Task LoadDataWithFilter()
     {
         isLoading = true;
         errorMessage = null;
 
         try
         {
-            items = await Http.GetFromJsonAsync<BilesiklerViewModel[]>("api/bilesikler");
+            var response = await Http.PostAsJsonAsync("api/bilesikler/query", currentFilter);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var filterResponse = await response.Content.ReadFromJsonAsync<FilterResponse<BilesiklerViewModel>>();
+                if (filterResponse != null)
+                {
+                    items = filterResponse.Data.ToArray();
+                    totalCount = filterResponse.TotalCount;
+                    filteredCount = filterResponse.FilteredCount;
+                    paginationState = filterResponse;
+                }
+            }
+            else
+            {
+                errorMessage = $"Error loading data: {response.StatusCode}";
+            }
         }
         catch (Exception ex)
         {
@@ -142,6 +162,28 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
         {
             isLoading = false;
         }
+    }
+
+    private async Task HandleSearchChanged(string searchText)
+    {
+        currentFilter.SearchText = searchText;
+        currentFilter.PageNumber = 1;
+        await LoadDataWithFilter();
+    }
+
+    private async Task HandleSortChanged((string column, bool ascending) sort)
+    {
+        currentFilter.SortColumn = sort.column;
+        currentFilter.SortDirection = sort.ascending ? "ASC" : "DESC";
+        currentFilter.PageNumber = 1;
+        await LoadDataWithFilter();
+    }
+
+    private async Task HandlePageChanged((int page, int pageSize) pagination)
+    {
+        currentFilter.PageNumber = pagination.page;
+        currentFilter.PageSize = pagination.pageSize;
+        await LoadDataWithFilter();
     }
 
     private void OpenAddModal()
@@ -185,7 +227,7 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
             {
                 await JS.InvokeVoidAsync("alert", isEditingInModal ? "Bileşik başarıyla güncellendi!" : "Bileşik başarıyla eklendi!");
                 CloseAddModal();
-                await LoadData();
+                await LoadDataWithFilter();
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
@@ -219,7 +261,7 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
             if (response.IsSuccessStatusCode)
             {
                 await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
-                await LoadData();
+                await LoadDataWithFilter();
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
@@ -251,7 +293,7 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
                 if (response.IsSuccessStatusCode)
                 {
                     await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
-                    await LoadData();
+                    await LoadDataWithFilter();
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {

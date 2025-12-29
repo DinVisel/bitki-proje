@@ -23,32 +23,30 @@
         </AuthorizeView>
     </div>
 
-    @if (isLoading)
-    {
-        <div class="loading-state">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    }
-    else if (errorMessage != null)
+    @if (errorMessage != null)
     {
         <div class="alert alert-danger">@errorMessage</div>
     }
     else
     {
         <RecordExplorer TItem="LiteraturViewModel" Items="items" Columns="columns" Title="Literatur Kayıtları"
-            ShowSearch="true">
+            ShowSearch="true" IsLoading="isLoading" TotalCount="totalCount" FilteredCount="filteredCount"
+            OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="LiteraturViewModel" Item="selectedItem"
                     Title="@($"Literatur Detayları - {selectedItem.AuthorName}")" Fields="inspectorFields"
                     OnSave="HandleSave" OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
+
+        <PaginationControls CurrentPage="@paginationState.PageNumber" PageSize="@paginationState.PageSize"
+            TotalPages="@paginationState.TotalPages" TotalRecords="@paginationState.FilteredCount"
+            StartRecord="@paginationState.StartRecord" EndRecord="@paginationState.EndRecord"
+            HasPreviousPage="@paginationState.HasPreviousPage" HasNextPage="@paginationState.HasNextPage"
+            IsLoading="@isLoading" OnPageChanged="HandlePageChanged" />
     }
 </div>
 
-@* Add/Edit Modal *@
 @if (showAddModal)
 {
     <div class="modal-overlay" @onclick="CloseAddModal">
@@ -125,8 +123,11 @@
     private LiteraturViewModel[]? items;
     private bool isLoading = true;
     private string? errorMessage;
+    private int? totalCount;
+    private int? filteredCount;
+    private FilterResponse<LiteraturViewModel> paginationState = new();
+    private FilterRequest currentFilter = new();
 
-    // Add/Edit Modal State
     private bool showAddModal = false;
     private bool isCreating = false;
     private bool isEditingInModal = false;
@@ -155,44 +156,56 @@ new InspectorField { Label = "Güvenilirlik", PropertyName = "Reliability", Edit
 new InspectorField { Label = "Özet", PropertyName = "Summary", Editable = true }
 };
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadData();
-    }
+    protected override async Task OnInitializedAsync() => await LoadDataWithFilter();
 
-    private async Task LoadData()
+    private async Task LoadDataWithFilter()
     {
         isLoading = true;
         errorMessage = null;
-
         try
         {
-            items = await Http.GetFromJsonAsync<LiteraturViewModel[]>("api/literatur");
+            var response = await Http.PostAsJsonAsync("api/literatur/query", currentFilter);
+            if (response.IsSuccessStatusCode)
+            {
+                var filterResponse = await response.Content.ReadFromJsonAsync<FilterResponse<LiteraturViewModel>>();
+                if (filterResponse != null)
+                {
+                    items = filterResponse.Data.ToArray();
+                    totalCount = filterResponse.TotalCount;
+                    filteredCount = filterResponse.FilteredCount;
+                    paginationState = filterResponse;
+                }
+            }
+            else { errorMessage = $"Error: {response.StatusCode}"; }
         }
-        catch (Exception ex)
-        {
-            errorMessage = $"Error loading data: {ex.Message}";
-            Console.WriteLine(ex);
-        }
-        finally
-        {
-            isLoading = false;
-        }
+        catch (Exception ex) { errorMessage = $"Error: {ex.Message}"; }
+        finally { isLoading = false; }
     }
 
-    private void OpenAddModal()
+    private async Task HandleSearchChanged(string searchText)
     {
-        editingItem = new LiteraturViewModel();
-        isEditingInModal = false;
-        showAddModal = true;
+        currentFilter.SearchText = searchText;
+        currentFilter.PageNumber = 1;
+        await LoadDataWithFilter();
     }
 
-    private void CloseAddModal()
+    private async Task HandleSortChanged((string column, bool ascending) sort)
     {
-        showAddModal = false;
-        editingItem = new LiteraturViewModel();
-        isEditingInModal = false;
+        currentFilter.SortColumn = sort.column;
+        currentFilter.SortDirection = sort.ascending ? "ASC" : "DESC";
+        currentFilter.PageNumber = 1;
+        await LoadDataWithFilter();
     }
+
+    private async Task HandlePageChanged((int page, int pageSize) pagination)
+    {
+        currentFilter.PageNumber = pagination.page;
+        currentFilter.PageSize = pagination.pageSize;
+        await LoadDataWithFilter();
+    }
+
+    private void OpenAddModal() { editingItem = new(); isEditingInModal = false; showAddModal = true; }
+    private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
     private async Task HandleCreateOrUpdate()
     {
@@ -201,49 +214,30 @@ new InspectorField { Label = "Özet", PropertyName = "Summary", Editable = true 
             await JS.InvokeVoidAsync("alert", "Yazar adı zorunludur.");
             return;
         }
-
         isCreating = true;
-
         try
         {
-            HttpResponseMessage response;
-
-            if (isEditingInModal)
-            {
-                response = await AuthHttp.PutAsJsonAsync($"api/literatur/{editingItem.Id}", editingItem);
-            }
-            else
-            {
-                response = await AuthHttp.PostAsJsonAsync("api/literatur", editingItem);
-            }
-
+            var response = isEditingInModal
+            ? await AuthHttp.PutAsJsonAsync($"api/literatur/{editingItem.Id}", editingItem)
+            : await AuthHttp.PostAsJsonAsync("api/literatur", editingItem);
             if (response.IsSuccessStatusCode)
             {
-                await JS.InvokeVoidAsync("alert", isEditingInModal ? "Literatur başarıyla güncellendi!" : "Literatur başarıyla eklendi!");
+                await JS.InvokeVoidAsync("alert", isEditingInModal ? "Güncellendi!" : "Eklendi!");
                 CloseAddModal();
-                await LoadData();
+                await LoadDataWithFilter();
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                await JS.InvokeVoidAsync("alert", "Yetkisiz işlem. Lütfen giriş yapın.");
+                await JS.InvokeVoidAsync("alert", "Giriş yapın.");
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
-                await JS.InvokeVoidAsync("alert", "Bu işlem için Admin yetkisi gereklidir.");
+                await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
             }
-            else
-            {
-                await JS.InvokeVoidAsync("alert", $"İşlem hatası: {response.StatusCode}");
-            }
+            else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
         }
-        catch (Exception ex)
-        {
-            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
-        }
-        finally
-        {
-            isCreating = false;
-        }
+        catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
+        finally { isCreating = false; }
     }
 
     private async Task HandleSave(LiteraturViewModel item)
@@ -251,61 +245,47 @@ new InspectorField { Label = "Özet", PropertyName = "Summary", Editable = true 
         try
         {
             var response = await AuthHttp.PutAsJsonAsync($"api/literatur/{item.Id}", item);
-
             if (response.IsSuccessStatusCode)
             {
-                await JS.InvokeVoidAsync("alert", "Kayıt başarıyla güncellendi");
-                await LoadData();
+                await JS.InvokeVoidAsync("alert", "Güncellendi");
+                await LoadDataWithFilter();
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                await JS.InvokeVoidAsync("alert", "Yetkisiz işlem. Lütfen giriş yapın.");
+                await JS.InvokeVoidAsync("alert", "Giriş yapın.");
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
-                await JS.InvokeVoidAsync("alert", "Bu işlem için Admin yetkisi gereklidir.");
+                await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
             }
-            else
-            {
-                await JS.InvokeVoidAsync("alert", $"Güncelleme hatası: {response.StatusCode}");
-            }
+            else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
         }
-        catch (Exception ex)
-        {
-            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
-        }
+        catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
     }
 
     private async Task HandleDelete(LiteraturViewModel item)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"{item.AuthorName} kaydını silmek istediğinizden emin misiniz?"))
+        if (await JS.InvokeAsync<bool>("confirm", $"{item.AuthorName} silinsin mi?"))
         {
             try
             {
                 var response = await AuthHttp.DeleteAsync($"api/literatur/{item.Id}");
-
                 if (response.IsSuccessStatusCode)
                 {
-                    await JS.InvokeVoidAsync("alert", "Kayıt başarıyla silindi");
-                    await LoadData();
+                    await JS.InvokeVoidAsync("alert", "Silindi");
+                    await LoadDataWithFilter();
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    await JS.InvokeVoidAsync("alert", "Yetkisiz işlem. Lütfen giriş yapın.");
+                    await JS.InvokeVoidAsync("alert", "Giriş yapın.");
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
                 {
-                    await JS.InvokeVoidAsync("alert", "Bu işlem için Admin yetkisi gereklidir.");
+                    await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
                 }
-                else
-                {
-                    await JS.InvokeVoidAsync("alert", $"Silme hatası: {response.StatusCode}");
-                }
+                else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
             }
-            catch (Exception ex)
-            {
-                await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
-            }
+            catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
         }
     }
 }

@@ -15,32 +15,35 @@
     <div class="page-header">
         <h1>Aktivite Lokalite Veritabanı</h1>
         <AuthorizeView Roles="Admin">
-            <Authorized><button class="btn btn-success add-new-btn" @onclick="OpenAddModal"><span>➕</span> Yeni
-                    Ekle</button></Authorized>
+            <Authorized>
+                <button class="btn btn-success add-new-btn" @onclick="OpenAddModal">
+                    <span>➕</span> Yeni Ekle
+                </button>
+            </Authorized>
         </AuthorizeView>
     </div>
 
-    @if (isLoading)
+    @if (errorMessage != null)
     {
-        <div class="loading-state">
-            <div class="spinner-border text-primary" role="status"></div>
-        </div>
-    }
-    else if (errorMessage != null)
-    {
-
         <div class="alert alert-danger">@errorMessage</div>
     }
     else
     {
         <RecordExplorer TItem="AktiviteLokaliteViewModel" Items="items" Columns="columns"
-            Title="Aktivite Lokalite Kayıtları" ShowSearch="true">
+            Title="Aktivite Lokalite Kayıtları" ShowSearch="true" IsLoading="isLoading" TotalCount="totalCount"
+            FilteredCount="filteredCount" OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="AktiviteLokaliteViewModel" Item="selectedItem"
                     Title="@($"Aktivite Lokalite - {selectedItem.LocalName}")" Fields="inspectorFields" OnSave="HandleSave"
                     OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
+
+        <PaginationControls CurrentPage="@paginationState.PageNumber" PageSize="@paginationState.PageSize"
+            TotalPages="@paginationState.TotalPages" TotalRecords="@paginationState.FilteredCount"
+            StartRecord="@paginationState.StartRecord" EndRecord="@paginationState.EndRecord"
+            HasPreviousPage="@paginationState.HasPreviousPage" HasNextPage="@paginationState.HasNextPage"
+            IsLoading="@isLoading" OnPageChanged="HandlePageChanged" />
     }
 </div>
 
@@ -49,63 +52,120 @@
     <div class="modal-overlay" @onclick="CloseAddModal">
         <div class="modal-content" @onclick:stopPropagation="true">
             <div class="modal-header">
-                <h5>@(isEditingInModal ? "Düzenle" : "Yeni Ekle")</h5><button type="button" class="btn-close"
-                    @onclick="CloseAddModal"></button>
+                <h5>@(isEditingInModal ? "Düzenle" : "Yeni Ekle")</h5>
+                <button type="button" class="btn-close" @onclick="CloseAddModal"></button>
             </div>
             <div class="modal-body">
-                <div class="form-group mb-3"><label class="form-label">Yerel Adı *</label><input type="text"
-                        class="form-control" @bind="editingItem.LocalName" /></div>
-                <div class="form-group mb-3"><label class="form-label">Mevki</label><input type="text" class="form-control"
-                        @bind="editingItem.Location" /></div>
-                <div class="form-group mb-3"><label class="form-label">Şehir ID</label><input type="number"
-                        class="form-control" @bind="editingItem.CityId" /></div>
-                <div class="form-group"><label class="form-label">İlçe ID</label><input type="number" class="form-control"
-                        @bind="editingItem.DistrictId" /></div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Yerel Adı *</label>
+                    <input type="text" class="form-control" @bind="editingItem.LocalName" />
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Mevki</label>
+                    <input type="text" class="form-control" @bind="editingItem.Location" />
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Şehir ID</label>
+                    <input type="number" class="form-control" @bind="editingItem.CityId" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">İlçe ID</label>
+                    <input type="number" class="form-control" @bind="editingItem.DistrictId" />
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" @onclick="CloseAddModal">İptal</button>
-                <button class="btn btn-success" @onclick="HandleCreateOrUpdate" disabled="@isCreating">@if (isCreating) {
-                    <span class="spinner-border spinner-border-sm me-1"></span>
-            }
- @(isEditingInModal ? "Güncelle" :
-                                "Kaydet")</button>
+                <button class="btn btn-success" @onclick="HandleCreateOrUpdate" disabled="@isCreating">
+                    @if (isCreating)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    @(isEditingInModal ? "Güncelle" : "Kaydet")
+                </button>
+            </div>
         </div>
     </div>
-</div>
 }
 
 @code {
     private AktiviteLokaliteViewModel[]? items;
     private bool isLoading = true;
     private string? errorMessage;
+    private int? totalCount;
+    private int? filteredCount;
+    private FilterResponse<AktiviteLokaliteViewModel> paginationState = new();
+    private FilterRequest currentFilter = new();
+
     private bool showAddModal = false;
     private bool isCreating = false;
     private bool isEditingInModal = false;
     private AktiviteLokaliteViewModel editingItem = new();
 
-    private List<ColumnDef> columns = new() { new ColumnDef { Title = "ID", PropertyName = "Id" }, new ColumnDef { Title =
-"Yerel Adı", PropertyName = "LocalName" }, new ColumnDef { Title = "Mevki", PropertyName = "Location" }, new ColumnDef {
-Title = "Şehir ID", PropertyName = "CityId" } };
-    private List<InspectorField> inspectorFields = new() { new InspectorField { Label = "ID", PropertyName = "Id", Editable
-= false }, new InspectorField { Label = "Yerel Adı", PropertyName = "LocalName", Editable = true }, new InspectorField {
-Label = "Mevki", PropertyName = "Location", Editable = true }, new InspectorField { Label = "Şehir ID", PropertyName =
-"CityId", Editable = true }, new InspectorField { Label = "İlçe ID", PropertyName = "DistrictId", Editable = true } };
+    private List<ColumnDef> columns = new()
+{
+new ColumnDef { Title = "ID", PropertyName = "Id" },
+new ColumnDef { Title = "Yerel Adı", PropertyName = "LocalName" },
+new ColumnDef { Title = "Mevki", PropertyName = "Location" },
+new ColumnDef { Title = "Şehir ID", PropertyName = "CityId" }
+};
 
-    protected override async Task OnInitializedAsync() => await LoadData();
-    private async Task LoadData()
+    private List<InspectorField> inspectorFields = new()
+{
+new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
+new InspectorField { Label = "Yerel Adı", PropertyName = "LocalName", Editable = true },
+new InspectorField { Label = "Mevki", PropertyName = "Location", Editable = true },
+new InspectorField { Label = "Şehir ID", PropertyName = "CityId", Editable = true },
+new InspectorField { Label = "İlçe ID", PropertyName = "DistrictId", Editable = true }
+};
+
+    protected override async Task OnInitializedAsync() => await LoadDataWithFilter();
+
+    private async Task LoadDataWithFilter()
     {
-        isLoading = true; errorMessage = null; try
+        isLoading = true;
+        errorMessage = null;
+        try
         {
-            items = await
-    Http.GetFromJsonAsync<AktiviteLokaliteViewModel[]>("api/aktivitelokalite");
+            var response = await Http.PostAsJsonAsync("api/aktivitelokalite/query", currentFilter);
+            if (response.IsSuccessStatusCode)
+            {
+                var filterResponse = await response.Content.ReadFromJsonAsync<FilterResponse<AktiviteLokaliteViewModel>>();
+                if (filterResponse != null)
+                {
+                    items = filterResponse.Data.ToArray();
+                    totalCount = filterResponse.TotalCount;
+                    filteredCount = filterResponse.FilteredCount;
+                    paginationState = filterResponse;
+                }
+            }
+            else { errorMessage = $"Error: {response.StatusCode}"; }
         }
-        catch (Exception ex)
-        {
-            errorMessage =
-    $"Error: {ex.Message}";
-        }
+        catch (Exception ex) { errorMessage = $"Error: {ex.Message}"; }
         finally { isLoading = false; }
     }
+
+    private async Task HandleSearchChanged(string searchText)
+    {
+        currentFilter.SearchText = searchText;
+        currentFilter.PageNumber = 1;
+        await LoadDataWithFilter();
+    }
+
+    private async Task HandleSortChanged((string column, bool ascending) sort)
+    {
+        currentFilter.SortColumn = sort.column;
+        currentFilter.SortDirection = sort.ascending ? "ASC" : "DESC";
+        currentFilter.PageNumber = 1;
+        await LoadDataWithFilter();
+    }
+
+    private async Task HandlePageChanged((int page, int pageSize) pagination)
+    {
+        currentFilter.PageNumber = pagination.page;
+        currentFilter.PageSize = pagination.pageSize;
+        await LoadDataWithFilter();
+    }
+
     private void OpenAddModal() { editingItem = new(); isEditingInModal = false; showAddModal = true; }
     private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
@@ -119,15 +179,23 @@ Label = "Mevki", PropertyName = "Location", Editable = true }, new InspectorFiel
         isCreating = true;
         try
         {
-            var response = isEditingInModal ? await AuthHttp.PutAsJsonAsync($"api/aktivitelokalite/{editingItem.Id}", editingItem) :
-            await AuthHttp.PostAsJsonAsync("api/aktivitelokalite", editingItem);
+            var response = isEditingInModal
+            ? await AuthHttp.PutAsJsonAsync($"api/aktivitelokalite/{editingItem.Id}", editingItem)
+            : await AuthHttp.PostAsJsonAsync("api/aktivitelokalite", editingItem);
             if (response.IsSuccessStatusCode)
             {
                 await JS.InvokeVoidAsync("alert", isEditingInModal ? "Güncellendi!" : "Eklendi!");
-                CloseAddModal(); await LoadData();
+                CloseAddModal();
+                await LoadDataWithFilter();
             }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) { await JS.InvokeVoidAsync("alert", "Giriş yapın."); }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) { await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli."); }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                await JS.InvokeVoidAsync("alert", "Giriş yapın.");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
+            }
             else { await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}"); }
         }
         catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
@@ -138,37 +206,46 @@ Label = "Mevki", PropertyName = "Location", Editable = true }, new InspectorFiel
     {
         try
         {
-            var r = await
-    AuthHttp.PutAsJsonAsync($"api/aktivitelokalite/{item.Id}", item); if (r.IsSuccessStatusCode)
+            var r = await AuthHttp.PutAsJsonAsync($"api/aktivitelokalite/{item.Id}", item);
+            if (r.IsSuccessStatusCode)
             {
-                await
-    JS.InvokeVoidAsync("alert", "Güncellendi"); await LoadData();
+                await JS.InvokeVoidAsync("alert", "Güncellendi");
+                await LoadDataWithFilter();
             }
-            else if (r.StatusCode ==
-    System.Net.HttpStatusCode.Unauthorized) await JS.InvokeVoidAsync("alert", "Giriş yapın.");
-            else if (r.StatusCode ==
-    System.Net.HttpStatusCode.Forbidden) await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
-            else await
-    JS.InvokeVoidAsync("alert", $"Hata: {r.StatusCode}");
+            else if (r.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                await JS.InvokeVoidAsync("alert", "Giriş yapın.");
+            }
+            else if (r.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
+            }
+            else { await JS.InvokeVoidAsync("alert", $"Hata: {r.StatusCode}"); }
         }
         catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
     }
 
     private async Task HandleDelete(AktiviteLokaliteViewModel item)
     {
-        if (await JS.InvokeAsync<bool>("confirm",
-    $"{item.LocalName} silinsin mi?"))
+        if (await JS.InvokeAsync<bool>("confirm", $"{item.LocalName} silinsin mi?"))
         {
             try
             {
-                var r = await AuthHttp.DeleteAsync($"api/aktivitelokalite/{item.Id}"); if
-    (r.IsSuccessStatusCode) { await JS.InvokeVoidAsync("alert", "Silindi"); await LoadData(); }
-                else if (r.StatusCode ==
-    System.Net.HttpStatusCode.Unauthorized) await JS.InvokeVoidAsync("alert", "Giriş yapın.");
-                else if (r.StatusCode ==
-    System.Net.HttpStatusCode.Forbidden) await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
-                else await
-    JS.InvokeVoidAsync("alert", $"Hata: {r.StatusCode}");
+                var r = await AuthHttp.DeleteAsync($"api/aktivitelokalite/{item.Id}");
+                if (r.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("alert", "Silindi");
+                    await LoadDataWithFilter();
+                }
+                else if (r.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    await JS.InvokeVoidAsync("alert", "Giriş yapın.");
+                }
+                else if (r.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    await JS.InvokeVoidAsync("alert", "Admin yetkisi gerekli.");
+                }
+                else { await JS.InvokeVoidAsync("alert", $"Hata: {r.StatusCode}"); }
             }
             catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
         }
