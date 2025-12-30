@@ -24,9 +24,13 @@ namespace Bitki.Infrastructure.Repositories.Compounds
                 { "Amount", "bb.miktar" },
                 { "Description", "bb.aciklama" },
                 { "PlantName", "b.turkce" },
-                { "CompoundName", "bl.adi" }
+                { "CompoundName", "bl.adi" },
+                { "CompoundId", "bb.bilesikno" },
+                { "PlantId", "bb.bitkino" }
             };
-            _queryBuilder = new QueryBuilder("bitkibilesik", allowedColumns, searchableColumns, columnMappings);
+            // Add bilesikno and bitkino to allowed columns for filtering
+            var extendedAllowedColumns = allowedColumns.Concat(new[] { "bb.bilesikno", "bb.bitkino" }).ToArray();
+            _queryBuilder = new QueryBuilder("bitkibilesik", extendedAllowedColumns, searchableColumns, columnMappings);
         }
 
         public async Task<IEnumerable<BitkiBilesik>> GetAllAsync()

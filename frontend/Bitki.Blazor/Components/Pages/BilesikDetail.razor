@@ -1,0 +1,430 @@
+@page "/bilesikler/{Id:int}"
+@rendermode InteractiveServer
+@using Bitki.Blazor.Models
+@using Bitki.Blazor.Services
+@using Bitki.Blazor.Components.Common
+@using Microsoft.AspNetCore.Components.Authorization
+@inject HttpClient Http
+@inject AuthenticatedHttpClient AuthHttp
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>@(bilesik?.Name ?? "Bileşik Detay")</PageTitle>
+
+<div class="page-container">
+    @if (isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Yükleniyor...</span>
+            </div>
+        </div>
+    }
+    else if (bilesik != null)
+    {
+        @* Header / Bilesik Info *@
+        <div class="detail-header mb-4 p-4 border rounded shadow-sm bg-white">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="display-6 fw-bold text-primary mb-1">@bilesik.Name</h1>
+                    @if (!string.IsNullOrEmpty(bilesik.LatinName))
+                    {
+                        <h4 class="text-muted fst-italic">@bilesik.LatinName</h4>
+                    }
+                    @if (!string.IsNullOrEmpty(bilesik.EnglishName))
+                    {
+                        <div class="text-muted">@bilesik.EnglishName</div>
+                    }
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-light text-dark border">ID: @bilesik.Id</span>
+                    <a href="/bilesikler" class="btn btn-outline-secondary btn-sm ms-2">Listeye Dön</a>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(bilesik.Description))
+            {
+                <div class="mt-4 pt-3 border-top">
+                    <h6 class="text-uppercase text-muted small fw-bold">Açıklama</h6>
+                    <p class="mb-0">@bilesik.Description</p>
+                </div>
+            }
+        </div>
+
+        @* Relations Section *@
+        <div class="relations-section p-4 border rounded shadow-sm bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="mb-0">Bulunduğu Bitkiler</h3>
+                <AuthorizeView Roles="Admin">
+                    <Authorized>
+                        <button class="btn btn-success btn-sm" @onclick="OpenAddModal">
+                            <span>➕</span> Bitki ile İlişkilendir
+                        </button>
+                    </Authorized>
+                </AuthorizeView>
+            </div>
+
+            @if (relationsLoading)
+            {
+                <div class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+                </div>
+            }
+            else if (relations != null && relations.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Bitki Adı</th>
+                                <th>Miktar</th>
+                                <th>Birim/Açıklama</th>
+                                <AuthorizeView Roles="Admin">
+                                    <Authorized>
+                                        <th class="text-end" style="width: 100px;">İşlemler</th>
+                                    </Authorized>
+                                </AuthorizeView>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var rel in relations)
+                            {
+                                <tr>
+                                    <td>
+                                        <a href="/bitki/@rel.PlantId" class="text-decoration-none fw-bold">
+                                            @rel.PlantName
+                                        </a>
+                                    </td>
+                                    <td>@(rel.Amount?.ToString() ?? "—")</td>
+                                    <td>@(rel.Description ?? "—")</td>
+                                    <AuthorizeView Roles="Admin">
+                                        <Authorized>
+                                            <td class="text-end">
+                                                <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteRelation(rel)">
+                                                    🗑️
+                                                </button>
+                                            </td>
+                                        </Authorized>
+                                    </AuthorizeView>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-light border text-center py-4 text-muted">
+                    Bu bileşik henüz hiçbir bitki ile ilişkilendirilmemiş.
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger">
+            Bileşik bulunamadı. <a href="/bilesikler" class="alert-link">Listeye dön</a>
+        </div>
+    }
+</div>
+
+@* Add Relation Modal *@
+@if (showAddModal)
+{
+    <div class="modal-overlay"
+        style="display:block; background-color: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1050;">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Bitki İlişkisi Ekle</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAddModal"></button>
+                </div>
+                <div class="modal-body">
+
+                    @* Step 1: Search Plant *@
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">1. Bitki Seç</label>
+                        @if (selectedPlant == null)
+                        {
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" @bind="plantSearchQuery" @bind:event="oninput"
+                                    @onkeyup="HandleSearchInput" placeholder="Bitki adı ara..." />
+                                <button class="btn btn-outline-secondary" type="button" @onclick="SearchPlants">Ara</button>
+                            </div>
+
+                            @if (isSearchingPlants)
+                            {
+                                <div class="text-center py-2"><small class="text-muted">Aranıyor...</small></div>
+                            }
+                            else if (foundPlants != null && foundPlants.Any())
+                            {
+                                <div class="list-group border" style="max-height: 200px; overflow-y: auto;">
+                                    @foreach (var p in foundPlants)
+                                    {
+                                        <button type="button" class="list-group-item list-group-item-action"
+                                            @onclick="() => SelectPlant(p)">
+                                            @p.Name <small class="text-muted ms-2">(@p.LatinName)</small>
+                                        </button>
+                                    }
+                                </div>
+                            }
+                            else if (foundPlants != null && !foundPlants.Any())
+                            {
+                                <div class="text-muted small">Sonuç bulunamadı.</div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="alert alert-success d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Seçilen Bitki:</strong> @selectedPlant.Name <span
+                                        class="text-muted">(@selectedPlant.LatinName)</span>
+                                </div>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="ClearSelectedPlant">Değiştir</button>
+                            </div>
+                        }
+                    </div>
+
+                    @* Step 2: Details *@
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">2. Detaylar</label>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label small">Miktar</label>
+                                <input type="number" step="0.01" class="form-control" @bind="newRelation.Amount"
+                                    disabled="@(selectedPlant == null)" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small">Birim / Açıklama</label>
+                                <input type="text" class="form-control" @bind="newRelation.Description"
+                                    placeholder="Örn: % veya mg" disabled="@(selectedPlant == null)" />
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseAddModal">İptal</button>
+                    <button type="button" class="btn btn-success" @onclick="SaveRelation"
+                        disabled="@(selectedPlant == null || isSaving)">
+                        @if (isSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        Kaydet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private BilesiklerViewModel? bilesik;
+    private List<BitkiBilesikViewModel>? relations;
+    private bool isLoading = true;
+    private bool relationsLoading = false;
+
+    // Modal State
+    private bool showAddModal = false;
+    private string plantSearchQuery = "";
+    private List<BitkiViewModel>? foundPlants;
+    private bool isSearchingPlants = false;
+    private BitkiViewModel? selectedPlant;
+    private BitkiBilesikViewModel newRelation = new();
+    private bool isSaving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            // Update to use the correct endpoint for fetching by ID
+            // Assuming we can fetch by ID or using query. If there is no specific GetById for BilesiklerViewModel, we use query.
+            // BilesiklerRepository likely has GetById, exposed as GET api/bilesikler/{id}
+            bilesik = await Http.GetFromJsonAsync<BilesiklerViewModel>($"api/bilesikler/{Id}");
+
+            if (bilesik != null)
+            {
+                await LoadRelations();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadRelations()
+    {
+        relationsLoading = true;
+        try
+        {
+            var filter = new FilterRequest
+            {
+                Filters = new Dictionary<string, string> { { "CompoundId", Id.ToString() } },
+                PageSize = 1000 // Fetch all for now
+            };
+
+            var response = await Http.PostAsJsonAsync("api/bitkibilesik/query", filter);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<FilterResponse<BitkiBilesikViewModel>>();
+                relations = result?.Data.ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            relationsLoading = false;
+        }
+    }
+
+    // Modal Actions
+    private void OpenAddModal()
+    {
+        selectedPlant = null;
+        plantSearchQuery = "";
+        foundPlants = null;
+        newRelation = new BitkiBilesikViewModel { CompoundId = Id };
+        showAddModal = true;
+    }
+
+    private void CloseAddModal()
+    {
+        showAddModal = false;
+    }
+
+    private async Task HandleSearchInput(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchPlants();
+        }
+    }
+
+    private async Task SearchPlants()
+    {
+        if (string.IsNullOrWhiteSpace(plantSearchQuery) || plantSearchQuery.Length < 2) return;
+
+        isSearchingPlants = true;
+        try
+        {
+            var filter = new FilterRequest
+            {
+                SearchText = plantSearchQuery,
+                PageSize = 20
+            };
+
+            var response = await Http.PostAsJsonAsync("api/bitki/query", filter);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<FilterResponse<BitkiViewModel>>();
+                foundPlants = result?.Data.ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isSearchingPlants = false;
+        }
+    }
+
+    private void SelectPlant(BitkiViewModel plant)
+    {
+        selectedPlant = plant;
+        newRelation.PlantId = plant.Id;
+        newRelation.PlantName = plant.Name;
+    }
+
+    private void ClearSelectedPlant()
+    {
+        selectedPlant = null;
+        foundPlants = null;
+    }
+
+    private async Task SaveRelation()
+    {
+        if (selectedPlant == null) return;
+
+        // Validation: Prevent duplicates
+        if (relations != null && relations.Any(r => r.PlantId == selectedPlant.Id))
+        {
+            await JS.InvokeVoidAsync("alert", "Bu bitki zaten bu bileşikle ilişkilendirilmiş!");
+            return;
+        }
+
+        isSaving = true;
+        try
+        {
+            var response = await AuthHttp.PostAsJsonAsync("api/bitkibilesik", newRelation);
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "İlişki başarıyla eklendi!");
+                CloseAddModal();
+                await LoadRelations();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                await JS.InvokeVoidAsync("alert", "Oturum açmanız gerekiyor.");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                await JS.InvokeVoidAsync("alert", "Yetkiniz yok.");
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "Bir hata oluştu.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task DeleteRelation(BitkiBilesikViewModel item)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", $"{item.PlantName} ile olan ilişkiyi silmek istediğinize emin misiniz?"))
+            return;
+
+        try
+        {
+            var response = await AuthHttp.DeleteAsync($"api/bitkibilesik/{item.Id}");
+            if (response.IsSuccessStatusCode)
+            {
+                await LoadRelations();
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "Silinemedi. Yetkinizi kontrol edin.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
+    }
+}

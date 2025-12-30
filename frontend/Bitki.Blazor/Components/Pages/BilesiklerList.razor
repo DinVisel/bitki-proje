@@ -36,6 +36,11 @@
                 <RecordInspector TItem="BilesiklerViewModel" Item="selectedItem"
                     Title="@($"Bileşik Detayları - {selectedItem.Name}")" Fields="inspectorFields" ViewOnly="false"
                     OnSave="HandleSave" OnDelete="HandleDelete" />
+                <div class="mt-3">
+                    <a href="/bilesikler/@selectedItem.Id" class="btn btn-primary w-100">
+                        📄 Tam Detay Sayfası / İlişkiler
+                    </a>
+                </div>
             </InspectorContent>
         </RecordExplorer>
 

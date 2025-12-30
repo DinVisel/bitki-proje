@@ -1,6 +1,8 @@
 @page "/bitki/{Id:int}"
 @rendermode InteractiveServer
 @using Bitki.Blazor.Models
+@using global::Bitki.Blazor.Services
+@using global::Bitki.Core.Entities
 @using Bitki.Blazor.Components.Common
 @using Microsoft.AspNetCore.Components.Authorization
 @inject HttpClient Http
@@ -525,6 +527,17 @@
             else if (activeTab == "compounds")
             {
                 <CollapsibleSection Title="Bileşikler">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span></span>
+                        <AuthorizeView Roles="Admin">
+                            <Authorized>
+                                <button class="btn btn-sm btn-success" @onclick="OpenAddCompoundModal">
+                                    <span>➕</span> Bileşik Ekle
+                                </button>
+                            </Authorized>
+                        </AuthorizeView>
+                    </div>
+
                     @if (compoundsLoading)
                     {
                         <div class="tab-loading">
@@ -542,17 +555,36 @@
                                     <th>Latince</th>
                                     <th>Miktar</th>
                                     <th>Açıklama</th>
+                                    <AuthorizeView Roles="Admin">
+                                        <Authorized>
+                                            <th class="text-end" style="width: 50px;"></th>
+                                        </Authorized>
+                                    </AuthorizeView>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (var compound in bitki.Compounds)
                                 {
                                     <tr>
-                                        <td>@DisplayValue(compound.CompoundName)</td>
+                                        <td>
+                                            <a href="/bilesikler/@compound.CompoundId" class="text-decoration-none">
+                                                @DisplayValue(compound.CompoundName)
+                                            </a>
+                                        </td>
                                         <td>@DisplayValue(compound.CompoundEnglishName)</td>
                                         <td>@DisplayValue(compound.CompoundLatinName)</td>
                                         <td>@(compound.Amount?.ToString("F2") ?? "—")</td>
                                         <td>@DisplayValue(compound.Description)</td>
+                                        <AuthorizeView Roles="Admin">
+                                            <Authorized>
+                                                <td class="text-end">
+                                                    <button class="btn btn-link text-danger p-0"
+                                                        @onclick="() => DeleteCompound(compound)" title="İlişkiyi Sil">
+                                                        ❌
+                                                    </button>
+                                                </td>
+                                            </Authorized>
+                                        </AuthorizeView>
                                     </tr>
                                 }
                             </tbody>
@@ -567,6 +599,17 @@
             else if (activeTab == "images")
             {
                 <CollapsibleSection Title="Görseller">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span></span>
+                        <AuthorizeView Roles="Admin">
+                            <Authorized>
+                                <button class="btn btn-sm btn-success" @onclick="OpenAddImageModal">
+                                    <span>➕</span> Görsel Ekle
+                                </button>
+                            </Authorized>
+                        </AuthorizeView>
+                    </div>
+
                     @if (imagesLoading)
                     {
                         <div class="tab-loading">
@@ -580,6 +623,11 @@
                             @foreach (var image in bitki.Images)
                             {
                                 <div class="image-card">
+                                    <AuthorizeView Roles="Admin">
+                                        <Authorized>
+                                            <button class="delete-btn-overlay" @onclick="() => DeleteImage(image)">❌</button>
+                                        </Authorized>
+                                    </AuthorizeView>
                                     <div class="image-placeholder-box">📷</div>
                                     <div class="image-info">
                                         <div class="image-path">@image.ImageLocation</div>
@@ -643,6 +691,123 @@
         </div>
     }
 </div>
+
+@* Add Compound Modal *@
+@if (showAddCompoundModal)
+{
+    <div class="modal-overlay"
+        style="display:block; background-color: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1050;">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Bileşik Ekle</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAddCompoundModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">1. Bileşik Seç</label>
+                        @if (selectedCompound == null)
+                        {
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" @bind="compoundSearchQuery" @bind:event="oninput"
+                                    @onkeyup="HandleCompoundSearchInput" placeholder="Bileşik adı ara..." />
+                                <button class="btn btn-outline-secondary" type="button" @onclick="SearchCompounds">Ara</button>
+                            </div>
+
+                            @if (isSearchingCompounds)
+                            {
+                                <div class="text-center py-2"><small class="text-muted">Aranıyor...</small></div>
+                            }
+                            else if (foundCompounds != null && foundCompounds.Any())
+                            {
+                                <div class="list-group border" style="max-height: 200px; overflow-y: auto;">
+                                    @foreach (var c in foundCompounds)
+                                    {
+                                        <button type="button" class="list-group-item list-group-item-action"
+                                            @onclick="() => SelectCompound(c)">
+                                            @c.Name <small class="text-muted ms-2">(@c.LatinName)</small>
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="alert alert-success d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Seçilen Bileşik:</strong> @selectedCompound.Name
+                                </div>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="ClearSelectedCompound">Değiştir</button>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">2. Detaylar</label>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label small">Miktar</label>
+                                <input type="number" step="0.01" class="form-control" @bind="newCompoundRelation.Amount"
+                                    disabled="@(selectedCompound == null)" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small">Açıklama</label>
+                                <input type="text" class="form-control" @bind="newCompoundRelation.Description"
+                                    disabled="@(selectedCompound == null)" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseAddCompoundModal">İptal</button>
+                    <button type="button" class="btn btn-success" @onclick="SaveCompoundRelation"
+                        disabled="@(selectedCompound == null || isSaving)">
+                        @if (isSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        Kaydet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@* Add Image Modal *@
+@if (showAddImageModal)
+{
+    <div class="modal-dialog modal-dialog-centered"
+        style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1060; min-width: 500px;">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title">Görsel Ekle</h5>
+                <button type="button" class="btn-close" @onclick="CloseAddImageModal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Resim Yolu / URL</label>
+                    <input type="text" class="form-control" @bind="newImage.ImageLocation" placeholder="/images/..." />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Açıklama</label>
+                    <input type="text" class="form-control" @bind="newImage.Description" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="CloseAddImageModal">İptal</button>
+                <button type="button" class="btn btn-success" @onclick="SaveImage" disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    Kaydet
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show" style="z-index: 1055;"></div>
+}
 
 @code {
     [Parameter]
@@ -962,3 +1127,194 @@ new(bitki.DisplayName)
         }
     }
 }
+
+// Modals State
+private bool showAddCompoundModal = false;
+private bool showAddImageModal = false;
+private bool isSaving = false;
+
+// Compound Modal Data
+private string compoundSearchQuery = "";
+private bool isSearchingCompounds = false;
+private List<BilesiklerViewModel>? foundCompounds;
+    private BilesiklerViewModel? selectedCompound;
+    private BitkiBilesikViewModel newCompoundRelation = new();
+
+    // Image Modal Data
+    private BitkiResimleri newImage = new();
+
+    [Inject] AuthenticatedHttpClient AuthHttp { get; set; } = default!;
+    [Inject] IJSRuntime JS { get; set; } = default!;
+
+    // Compound Actions
+    private void OpenAddCompoundModal()
+    {
+    selectedCompound = null;
+    compoundSearchQuery = "";
+    foundCompounds = null;
+    newCompoundRelation = new BitkiBilesikViewModel { PlantId = Id };
+    showAddCompoundModal = true;
+    }
+
+    private void CloseAddCompoundModal() => showAddCompoundModal = false;
+
+    private async Task HandleCompoundSearchInput(KeyboardEventArgs e)
+    {
+    if (e.Key == "Enter") await SearchCompounds();
+    }
+
+    private async Task SearchCompounds()
+    {
+    if (string.IsNullOrWhiteSpace(compoundSearchQuery) || compoundSearchQuery.Length < 2) return;
+        isSearchingCompounds=true; try { var filter=new FilterRequest { SearchText=compoundSearchQuery, PageSize=20 };
+        var response=await Http.PostAsJsonAsync("api/bilesikler/query", filter); if (response.IsSuccessStatusCode) { var
+        result=await response.Content.ReadFromJsonAsync<FilterResponse<BilesiklerViewModel>>();
+        foundCompounds = result?.Data.ToList();
+        }
+        }
+        catch (Exception ex)
+        {
+        Console.WriteLine(ex);
+        }
+        finally
+        {
+        isSearchingCompounds = false;
+        }
+        }
+
+        private void SelectCompound(BilesiklerViewModel compound)
+        {
+        selectedCompound = compound;
+        newCompoundRelation.CompoundId = (int)compound.Id;
+        newCompoundRelation.CompoundName = compound.Name;
+        }
+
+        private void ClearSelectedCompound()
+        {
+        selectedCompound = null;
+        foundCompounds = null;
+        }
+
+        private async Task SaveCompoundRelation()
+        {
+        if (selectedCompound == null) return;
+
+        // Validation: Prevent duplicates
+        if (bitki?.Compounds != null && bitki.Compounds.Any(c => c.CompoundId == selectedCompound.Id))
+        {
+        await JS.InvokeVoidAsync("alert", "Bu bileşik zaten bu bitki ile ilişkilendirilmiş!");
+        return;
+        }
+
+        isSaving = true;
+        try
+        {
+        var response = await AuthHttp.PostAsJsonAsync("api/bitkibilesik", newCompoundRelation);
+        if (response.IsSuccessStatusCode)
+        {
+        await JS.InvokeVoidAsync("alert", "İlişki başarıyla eklendi!");
+        CloseAddCompoundModal();
+        await LoadCompounds(); // Reload list
+        }
+        else
+        {
+        await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}");
+        }
+        }
+        catch (Exception ex)
+        {
+        await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
+        finally
+        {
+        isSaving = false;
+        }
+        }
+
+        private async Task DeleteCompound(PlantCompoundViewModel item)
+        {
+        if (!await JS.InvokeAsync<bool>("confirm", $"{item.CompoundName} ilişkisini silmek istediğinize emin misiniz?"))
+            return;
+
+            try
+            {
+            var response = await AuthHttp.DeleteAsync($"api/bitkibilesik/{item.Id}");
+            if (response.IsSuccessStatusCode)
+            {
+            await LoadCompounds();
+            }
+            else
+            {
+            await JS.InvokeVoidAsync("alert", "Silinemedi. Yetkinizi kontrol edin.");
+            }
+            }
+            catch (Exception ex)
+            {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+            }
+            }
+
+            // Image Actions
+            private void OpenAddImageModal()
+            {
+            newImage = new BitkiResimleri { PlantId = Id };
+            showAddImageModal = true;
+            }
+
+            private void CloseAddImageModal() => showAddImageModal = false;
+
+            private async Task SaveImage()
+            {
+            if (string.IsNullOrWhiteSpace(newImage.ImageLocation))
+            {
+            await JS.InvokeVoidAsync("alert", "Resim yolu zorunludur.");
+            return;
+            }
+
+            isSaving = true;
+            try
+            {
+            var response = await AuthHttp.PostAsJsonAsync("api/bitkiresimleri", newImage);
+            if (response.IsSuccessStatusCode)
+            {
+            await JS.InvokeVoidAsync("alert", "Görsel başarıyla eklendi!");
+            CloseAddImageModal();
+            await LoadImages(); // Reload list
+            }
+            else
+            {
+            await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}");
+            }
+            }
+            catch (Exception ex)
+            {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+            }
+            finally
+            {
+            isSaving = false;
+            }
+            }
+
+            private async Task DeleteImage(PlantImageViewModel item)
+            {
+            if (!await JS.InvokeAsync<bool>("confirm", "Bu görseli silmek istediğinize emin misiniz?")) return;
+
+                try
+                {
+                var response = await AuthHttp.DeleteAsync($"api/bitkiresimleri/{item.Id}");
+                if (response.IsSuccessStatusCode)
+                {
+                await LoadImages();
+                }
+                else
+                {
+                await JS.InvokeVoidAsync("alert", "Silinemedi. Yetkinizi kontrol edin.");
+                }
+                }
+                catch (Exception ex)
+                {
+                await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+                }
+                }
+                }
