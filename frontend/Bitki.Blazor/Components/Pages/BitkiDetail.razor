@@ -2,7 +2,6 @@
 @rendermode InteractiveServer
 @using Bitki.Blazor.Models
 @using global::Bitki.Blazor.Services
-@using global::Bitki.Core.Entities
 @using Bitki.Blazor.Components.Common
 @using Microsoft.AspNetCore.Components.Authorization
 @inject HttpClient Http
@@ -1126,22 +1125,22 @@ new(bitki.DisplayName)
             errorMessage = $"Hata: {ex.Message}";
         }
     }
-}
 
-// Modals State
-private bool showAddCompoundModal = false;
-private bool showAddImageModal = false;
-private bool isSaving = false;
 
-// Compound Modal Data
-private string compoundSearchQuery = "";
-private bool isSearchingCompounds = false;
-private List<BilesiklerViewModel>? foundCompounds;
+    // Modals State
+    private bool showAddCompoundModal = false;
+    private bool showAddImageModal = false;
+    private bool isSaving = false;
+
+    // Compound Modal Data
+    private string compoundSearchQuery = "";
+    private bool isSearchingCompounds = false;
+    private List<BilesiklerViewModel>? foundCompounds;
     private BilesiklerViewModel? selectedCompound;
     private BitkiBilesikViewModel newCompoundRelation = new();
 
     // Image Modal Data
-    private BitkiResimleri newImage = new();
+    private BitkiResimleriViewModel newImage = new();
 
     [Inject] AuthenticatedHttpClient AuthHttp { get; set; } = default!;
     [Inject] IJSRuntime JS { get; set; } = default!;
@@ -1149,172 +1148,176 @@ private List<BilesiklerViewModel>? foundCompounds;
     // Compound Actions
     private void OpenAddCompoundModal()
     {
-    selectedCompound = null;
-    compoundSearchQuery = "";
-    foundCompounds = null;
-    newCompoundRelation = new BitkiBilesikViewModel { PlantId = Id };
-    showAddCompoundModal = true;
+        selectedCompound = null;
+        compoundSearchQuery = "";
+        foundCompounds = null;
+        newCompoundRelation = new BitkiBilesikViewModel { PlantId = Id };
+        showAddCompoundModal = true;
     }
 
     private void CloseAddCompoundModal() => showAddCompoundModal = false;
 
     private async Task HandleCompoundSearchInput(KeyboardEventArgs e)
     {
-    if (e.Key == "Enter") await SearchCompounds();
+        if (e.Key == "Enter") await SearchCompounds();
     }
 
     private async Task SearchCompounds()
     {
-    if (string.IsNullOrWhiteSpace(compoundSearchQuery) || compoundSearchQuery.Length < 2) return;
-        isSearchingCompounds=true; try { var filter=new FilterRequest { SearchText=compoundSearchQuery, PageSize=20 };
-        var response=await Http.PostAsJsonAsync("api/bilesikler/query", filter); if (response.IsSuccessStatusCode) { var
-        result=await response.Content.ReadFromJsonAsync<FilterResponse<BilesiklerViewModel>>();
-        foundCompounds = result?.Data.ToList();
-        }
+        if (string.IsNullOrWhiteSpace(compoundSearchQuery) || compoundSearchQuery.Length < 2) return;
+        isSearchingCompounds = true; try
+        {
+            var filter = new FilterRequest { SearchText = compoundSearchQuery, PageSize = 20 };
+            var response = await Http.PostAsJsonAsync("api/bilesikler/query", filter); if (response.IsSuccessStatusCode)
+            {
+                var
+                result = await response.Content.ReadFromJsonAsync<FilterResponse<BilesiklerViewModel>>();
+                foundCompounds = result?.Data.ToList();
+            }
         }
         catch (Exception ex)
         {
-        Console.WriteLine(ex);
+            Console.WriteLine(ex);
         }
         finally
         {
-        isSearchingCompounds = false;
+            isSearchingCompounds = false;
         }
-        }
+    }
 
-        private void SelectCompound(BilesiklerViewModel compound)
-        {
+    private void SelectCompound(BilesiklerViewModel compound)
+    {
         selectedCompound = compound;
         newCompoundRelation.CompoundId = (int)compound.Id;
         newCompoundRelation.CompoundName = compound.Name;
-        }
+    }
 
-        private void ClearSelectedCompound()
-        {
+    private void ClearSelectedCompound()
+    {
         selectedCompound = null;
         foundCompounds = null;
-        }
+    }
 
-        private async Task SaveCompoundRelation()
-        {
+    private async Task SaveCompoundRelation()
+    {
         if (selectedCompound == null) return;
 
         // Validation: Prevent duplicates
         if (bitki?.Compounds != null && bitki.Compounds.Any(c => c.CompoundId == selectedCompound.Id))
         {
-        await JS.InvokeVoidAsync("alert", "Bu bileşik zaten bu bitki ile ilişkilendirilmiş!");
-        return;
+            await JS.InvokeVoidAsync("alert", "Bu bileşik zaten bu bitki ile ilişkilendirilmiş!");
+            return;
         }
 
         isSaving = true;
         try
         {
-        var response = await AuthHttp.PostAsJsonAsync("api/bitkibilesik", newCompoundRelation);
-        if (response.IsSuccessStatusCode)
-        {
-        await JS.InvokeVoidAsync("alert", "İlişki başarıyla eklendi!");
-        CloseAddCompoundModal();
-        await LoadCompounds(); // Reload list
-        }
-        else
-        {
-        await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}");
-        }
+            var response = await AuthHttp.PostAsJsonAsync("api/bitkibilesik", newCompoundRelation);
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "İlişki başarıyla eklendi!");
+                CloseAddCompoundModal();
+                await LoadCompounds(); // Reload list
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}");
+            }
         }
         catch (Exception ex)
         {
-        await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
         }
         finally
         {
-        isSaving = false;
+            isSaving = false;
         }
-        }
+    }
 
-        private async Task DeleteCompound(PlantCompoundViewModel item)
-        {
+    private async Task DeleteCompound(PlantCompoundViewModel item)
+    {
         if (!await JS.InvokeAsync<bool>("confirm", $"{item.CompoundName} ilişkisini silmek istediğinize emin misiniz?"))
             return;
 
-            try
-            {
+        try
+        {
             var response = await AuthHttp.DeleteAsync($"api/bitkibilesik/{item.Id}");
             if (response.IsSuccessStatusCode)
             {
-            await LoadCompounds();
+                await LoadCompounds();
             }
             else
             {
-            await JS.InvokeVoidAsync("alert", "Silinemedi. Yetkinizi kontrol edin.");
+                await JS.InvokeVoidAsync("alert", "Silinemedi. Yetkinizi kontrol edin.");
             }
-            }
-            catch (Exception ex)
-            {
+        }
+        catch (Exception ex)
+        {
             await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
-            }
-            }
+        }
+    }
 
-            // Image Actions
-            private void OpenAddImageModal()
-            {
-            newImage = new BitkiResimleri { PlantId = Id };
-            showAddImageModal = true;
-            }
+    // Image Actions
+    private void OpenAddImageModal()
+    {
+        newImage = new BitkiResimleriViewModel { PlantId = Id };
+        showAddImageModal = true;
+    }
 
-            private void CloseAddImageModal() => showAddImageModal = false;
+    private void CloseAddImageModal() => showAddImageModal = false;
 
-            private async Task SaveImage()
-            {
-            if (string.IsNullOrWhiteSpace(newImage.ImageLocation))
-            {
+    private async Task SaveImage()
+    {
+        if (string.IsNullOrWhiteSpace(newImage.ImageLocation))
+        {
             await JS.InvokeVoidAsync("alert", "Resim yolu zorunludur.");
             return;
-            }
+        }
 
-            isSaving = true;
-            try
-            {
+        isSaving = true;
+        try
+        {
             var response = await AuthHttp.PostAsJsonAsync("api/bitkiresimleri", newImage);
             if (response.IsSuccessStatusCode)
             {
-            await JS.InvokeVoidAsync("alert", "Görsel başarıyla eklendi!");
-            CloseAddImageModal();
-            await LoadImages(); // Reload list
+                await JS.InvokeVoidAsync("alert", "Görsel başarıyla eklendi!");
+                CloseAddImageModal();
+                await LoadImages(); // Reload list
             }
             else
             {
-            await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}");
+                await JS.InvokeVoidAsync("alert", $"Hata: {response.StatusCode}");
             }
-            }
-            catch (Exception ex)
-            {
+        }
+        catch (Exception ex)
+        {
             await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
-            }
-            finally
-            {
+        }
+        finally
+        {
             isSaving = false;
-            }
-            }
+        }
+    }
 
-            private async Task DeleteImage(PlantImageViewModel item)
+    private async Task DeleteImage(PlantImageViewModel item)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", "Bu görseli silmek istediğinize emin misiniz?")) return;
+
+        try
+        {
+            var response = await AuthHttp.DeleteAsync($"api/bitkiresimleri/{item.Id}");
+            if (response.IsSuccessStatusCode)
             {
-            if (!await JS.InvokeAsync<bool>("confirm", "Bu görseli silmek istediğinize emin misiniz?")) return;
-
-                try
-                {
-                var response = await AuthHttp.DeleteAsync($"api/bitkiresimleri/{item.Id}");
-                if (response.IsSuccessStatusCode)
-                {
                 await LoadImages();
-                }
-                else
-                {
+            }
+            else
+            {
                 await JS.InvokeVoidAsync("alert", "Silinemedi. Yetkinizi kontrol edin.");
-                }
-                }
-                catch (Exception ex)
-                {
-                await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
-                }
-                }
-                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
+    }
+}

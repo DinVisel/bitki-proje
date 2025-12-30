@@ -4,7 +4,6 @@
 @using Bitki.Blazor.Services
 @using Bitki.Blazor.Components.Common
 @using Microsoft.AspNetCore.Components.Authorization
-@using Bitki.Core.Entities
 @inject HttpClient Http
 @inject AuthenticatedHttpClient AuthHttp
 @inject NavigationManager Navigation
@@ -69,7 +68,8 @@
                                     }
                                     Kaydet
                                 </button>
-                                <button class="btn btn-secondary btn-sm" @onclick="CancelEdit" disabled="@isSavingEntity">İptal</button>
+                                <button class="btn btn-secondary btn-sm" @onclick="CancelEdit"
+                                    disabled="@isSavingEntity">İptal</button>
                             </div>
                         }
                     </Authorized>
@@ -189,7 +189,8 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
                             <h2 class="h5 mb-1">3. İlişki Yönetimi</h2>
-                            <div class="text-muted small">Ekle/Sil işlemleri yalnızca bitki-bileşik ilişki tablosunu etkiler.</div>
+                            <div class="text-muted small">Ekle/Sil işlemleri yalnızca bitki-bileşik ilişki tablosunu
+                                etkiler.</div>
                         </div>
                         <button class="btn btn-success btn-sm" @onclick="OpenAddModal">
                             <span>➕</span> Bitki ile İlişkilendir
@@ -466,7 +467,7 @@
 
         try
         {
-            var updated = new Bilesikler
+            var updated = new BilesiklerViewModel
             {
                 Id = editModel.Id,
                 Name = editModel.Name,
