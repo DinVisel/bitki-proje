@@ -4,6 +4,7 @@
 @using Bitki.Blazor.Services
 @using Bitki.Blazor.Components.Common
 @using Microsoft.AspNetCore.Components.Authorization
+@using Bitki.Core.Entities
 @inject HttpClient Http
 @inject AuthenticatedHttpClient AuthHttp
 @inject NavigationManager Navigation
@@ -22,46 +23,121 @@
     }
     else if (bilesik != null)
     {
-        @* Header / Bilesik Info *@
-        <div class="detail-header mb-4 p-4 border rounded shadow-sm bg-white">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <h1 class="display-6 fw-bold text-primary mb-1">@bilesik.Name</h1>
-                    @if (!string.IsNullOrEmpty(bilesik.LatinName))
-                    {
-                        <h4 class="text-muted fst-italic">@bilesik.LatinName</h4>
-                    }
-                    @if (!string.IsNullOrEmpty(bilesik.EnglishName))
-                    {
-                        <div class="text-muted">@bilesik.EnglishName</div>
-                    }
-                </div>
-                <div class="text-end">
-                    <span class="badge bg-light text-dark border">ID: @bilesik.Id</span>
-                    <a href="/bilesikler" class="btn btn-outline-secondary btn-sm ms-2">Listeye Dön</a>
-                </div>
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h1 class="display-6 fw-bold text-primary mb-1">@bilesik.Name</h1>
+                @if (!string.IsNullOrEmpty(bilesik.LatinName))
+                {
+                    <h4 class="text-muted fst-italic">@bilesik.LatinName</h4>
+                }
+                @if (!string.IsNullOrEmpty(bilesik.EnglishName))
+                {
+                    <div class="text-muted">@bilesik.EnglishName</div>
+                }
             </div>
-
-            @if (!string.IsNullOrEmpty(bilesik.Description))
-            {
-                <div class="mt-4 pt-3 border-top">
-                    <h6 class="text-uppercase text-muted small fw-bold">Açıklama</h6>
-                    <p class="mb-0">@bilesik.Description</p>
-                </div>
-            }
+            <div class="text-end">
+                <span class="badge bg-light text-dark border">ID: @bilesik.Id</span>
+                <a href="/bilesikler" class="btn btn-outline-secondary btn-sm ms-2">Listeye Dön</a>
+            </div>
         </div>
 
-        @* Relations Section *@
-        <div class="relations-section p-4 border rounded shadow-sm bg-white">
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger">@errorMessage</div>
+        }
+
+        @* SECTION 1: Entity Information *@
+        <div class="p-4 border rounded shadow-sm bg-white mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="mb-0">Bulunduğu Bitkiler</h3>
+                <div>
+                    <h2 class="h5 mb-1">1. Bileşik Bilgileri</h2>
+                    <div class="text-muted small">Tüm alanlar yalnızca bileşik tablosunu günceller.</div>
+                </div>
                 <AuthorizeView Roles="Admin">
                     <Authorized>
-                        <button class="btn btn-success btn-sm" @onclick="OpenAddModal">
-                            <span>➕</span> Bitki ile İlişkilendir
-                        </button>
+                        @if (!isEditMode)
+                        {
+                            <button class="btn btn-outline-primary btn-sm" @onclick="EnableEditMode">Düzenle</button>
+                        }
+                        else
+                        {
+                            <div class="btn-group">
+                                <button class="btn btn-success btn-sm" @onclick="SaveEntityChanges" disabled="@isSavingEntity">
+                                    @if (isSavingEntity)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-1"></span>
+                                    }
+                                    Kaydet
+                                </button>
+                                <button class="btn btn-secondary btn-sm" @onclick="CancelEdit" disabled="@isSavingEntity">İptal</button>
+                            </div>
+                        }
                     </Authorized>
                 </AuthorizeView>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Ad</label>
+                    @if (isEditMode)
+                    {
+                        <input type="text" class="form-control" @bind="editModel.Name" />
+                    }
+                    else
+                    {
+                        <div class="form-control-plaintext">@DisplayValue(bilesik.Name)</div>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">İngilizce Ad</label>
+                    @if (isEditMode)
+                    {
+                        <input type="text" class="form-control" @bind="editModel.EnglishName" />
+                    }
+                    else
+                    {
+                        <div class="form-control-plaintext">@DisplayValue(bilesik.EnglishName)</div>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Latince Ad</label>
+                    @if (isEditMode)
+                    {
+                        <input type="text" class="form-control" @bind="editModel.LatinName" />
+                    }
+                    else
+                    {
+                        <div class="form-control-plaintext">@DisplayValue(bilesik.LatinName)</div>
+                    }
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Açıklama</label>
+                    @if (isEditMode)
+                    {
+                        <textarea class="form-control" rows="3" @bind="editModel.Description"></textarea>
+                    }
+                    else
+                    {
+                        @if (!string.IsNullOrWhiteSpace(bilesik.Description))
+                        {
+                            <div class="border rounded p-3 bg-light">@bilesik.Description</div>
+                        }
+                        else
+                        {
+                            <div class="text-muted">Bilgi bulunmamaktadır.</div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* SECTION 2: Related Entities (READ-ONLY) *@
+        <div class="p-4 border rounded shadow-sm bg-white mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 class="h5 mb-1">2. İlişkili Bitkiler</h2>
+                    <div class="text-muted small">Bu liste ilişki tablosundan okunur ve yalnızca görüntüleme içindir.</div>
+                </div>
             </div>
 
             @if (relationsLoading)
@@ -79,11 +155,6 @@
                                 <th>Bitki Adı</th>
                                 <th>Miktar</th>
                                 <th>Birim/Açıklama</th>
-                                <AuthorizeView Roles="Admin">
-                                    <Authorized>
-                                        <th class="text-end" style="width: 100px;">İşlemler</th>
-                                    </Authorized>
-                                </AuthorizeView>
                             </tr>
                         </thead>
                         <tbody>
@@ -97,15 +168,6 @@
                                     </td>
                                     <td>@(rel.Amount?.ToString() ?? "—")</td>
                                     <td>@(rel.Description ?? "—")</td>
-                                    <AuthorizeView Roles="Admin">
-                                        <Authorized>
-                                            <td class="text-end">
-                                                <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteRelation(rel)">
-                                                    🗑️
-                                                </button>
-                                            </td>
-                                        </Authorized>
-                                    </AuthorizeView>
                                 </tr>
                             }
                         </tbody>
@@ -119,6 +181,70 @@
                 </div>
             }
         </div>
+
+        @* SECTION 3: Relationship Management (ADMIN ONLY) *@
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <div class="p-4 border rounded shadow-sm bg-white mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h2 class="h5 mb-1">3. İlişki Yönetimi</h2>
+                            <div class="text-muted small">Ekle/Sil işlemleri yalnızca bitki-bileşik ilişki tablosunu etkiler.</div>
+                        </div>
+                        <button class="btn btn-success btn-sm" @onclick="OpenAddModal">
+                            <span>➕</span> Bitki ile İlişkilendir
+                        </button>
+                    </div>
+
+                    @if (relationsLoading)
+                    {
+                        <div class="text-center py-3">
+                            <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+                        </div>
+                    }
+                    else if (relations != null && relations.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Bitki Adı</th>
+                                        <th>Miktar</th>
+                                        <th>Birim/Açıklama</th>
+                                        <th class="text-end" style="width: 100px;">İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var rel in relations)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <a href="/bitki/@rel.PlantId" class="text-decoration-none fw-bold">
+                                                    @rel.PlantName
+                                                </a>
+                                            </td>
+                                            <td>@(rel.Amount?.ToString() ?? "—")</td>
+                                            <td>@(rel.Description ?? "—")</td>
+                                            <td class="text-end">
+                                                <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteRelation(rel)">
+                                                    🗑️
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-light border text-center py-4 text-muted">
+                            Bu bileşik henüz hiçbir bitki ile ilişkilendirilmemiş.
+                        </div>
+                    }
+                </div>
+            </Authorized>
+        </AuthorizeView>
     }
     else
     {
@@ -224,9 +350,13 @@
     public int Id { get; set; }
 
     private BilesiklerViewModel? bilesik;
+    private BilesikEditModel editModel = new();
     private List<BitkiBilesikViewModel>? relations;
     private bool isLoading = true;
     private bool relationsLoading = false;
+    private bool isEditMode = false;
+    private bool isSavingEntity = false;
+    private string? errorMessage;
 
     // Modal State
     private bool showAddModal = false;
@@ -247,6 +377,7 @@
         isLoading = true;
         try
         {
+            errorMessage = null;
             // Update to use the correct endpoint for fetching by ID
             // Assuming we can fetch by ID or using query. If there is no specific GetById for BilesiklerViewModel, we use query.
             // BilesiklerRepository likely has GetById, exposed as GET api/bilesikler/{id}
@@ -254,11 +385,13 @@
 
             if (bilesik != null)
             {
+                MapToEditModel();
                 await LoadRelations();
             }
         }
         catch (Exception ex)
         {
+            errorMessage = "Bileşik bilgileri yüklenemedi.";
             Console.WriteLine(ex);
         }
         finally
@@ -296,6 +429,73 @@
     }
 
     // Modal Actions
+    private void EnableEditMode()
+    {
+        if (bilesik == null) return;
+
+        MapToEditModel();
+        isEditMode = true;
+    }
+
+    private void CancelEdit()
+    {
+        MapToEditModel();
+        isEditMode = false;
+    }
+
+    private void MapToEditModel()
+    {
+        if (bilesik == null) return;
+
+        editModel = new BilesikEditModel
+        {
+            Id = bilesik.Id,
+            Name = bilesik.Name,
+            EnglishName = bilesik.EnglishName,
+            LatinName = bilesik.LatinName,
+            Description = bilesik.Description
+        };
+    }
+
+    private async Task SaveEntityChanges()
+    {
+        if (bilesik == null) return;
+
+        isSavingEntity = true;
+        errorMessage = null;
+
+        try
+        {
+            var updated = new Bilesikler
+            {
+                Id = editModel.Id,
+                Name = editModel.Name,
+                EnglishName = editModel.EnglishName,
+                LatinName = editModel.LatinName,
+                Description = editModel.Description
+            };
+
+            var response = await AuthHttp.PutAsJsonAsync($"api/bilesikler/{updated.Id}", updated);
+            if (response.IsSuccessStatusCode)
+            {
+                isEditMode = false;
+                await LoadData();
+            }
+            else
+            {
+                errorMessage = "Bileşik güncellenemedi. Yetkinizi veya alanları kontrol edin.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Hata: {ex.Message}";
+        }
+        finally
+        {
+            isSavingEntity = false;
+        }
+    }
+
     private void OpenAddModal()
     {
         selectedPlant = null;
@@ -426,5 +626,16 @@
         {
             await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
         }
+    }
+
+    private static string DisplayValue(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value!;
+
+    private class BilesikEditModel
+    {
+        public long Id { get; set; }
+        public string? Name { get; set; }
+        public string? EnglishName { get; set; }
+        public string? LatinName { get; set; }
+        public string? Description { get; set; }
     }
 }
