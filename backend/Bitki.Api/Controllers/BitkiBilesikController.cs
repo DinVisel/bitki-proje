@@ -19,8 +19,18 @@ namespace Bitki.Api.Controllers
         [HttpPost("query")]
         public async Task<ActionResult<FilterResponse<BitkiBilesik>>> Query([FromBody] FilterRequest request)
         {
-            try { return Ok(await _repository.QueryAsync(request)); }
-            catch (Exception ex) { return BadRequest(new { error = ex.Message }); }
+            try
+            {
+                Console.WriteLine($"[DEBUG] Query Request: SortColumn={request.SortColumn}, SortDirection={request.SortDirection}, FilterColumn={request.Filters?.Keys.FirstOrDefault()}");
+                // Log allowed columns from repo if possible, or just the error
+                return Ok(await _repository.QueryAsync(request));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DEBUG] Query Error: {ex.Message}");
+                Console.WriteLine($"[DEBUG] StackTrace: {ex.StackTrace}");
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         [HttpGet("{id}")]

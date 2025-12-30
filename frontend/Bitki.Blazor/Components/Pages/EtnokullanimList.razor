@@ -34,8 +34,7 @@
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="EtnokullanimViewModel" Item="selectedItem"
-                    Title="@($"Etnokullanım - ID: {selectedItem.Id}")" Fields="inspectorFields" OnSave="HandleSave"
-                    OnDelete="HandleDelete" />
+                    Title="@($"Etnokullanım - ID: {selectedItem.Id}")" Fields="inspectorFields" ViewOnly="true" />
             </InspectorContent>
         </RecordExplorer>
 

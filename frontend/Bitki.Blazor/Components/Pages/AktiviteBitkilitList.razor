@@ -35,7 +35,7 @@
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="AktiviteBitkilitViewModel" Item="selectedItem"
                     Title="@($"Aktivite Bitki Literatür - {selectedItem.TurkishName}")" Fields="inspectorFields"
-                    OnSave="HandleSave" OnDelete="HandleDelete" />
+                    ViewOnly="true" />
             </InspectorContent>
         </RecordExplorer>
 

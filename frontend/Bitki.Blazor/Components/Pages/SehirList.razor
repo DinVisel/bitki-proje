@@ -34,7 +34,7 @@
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="SehirViewModel" Item="selectedItem" Title="@($"Şehir - {selectedItem.Name}")"
-                    Fields="inspectorFields" OnSave="HandleSave" OnDelete="HandleDelete" />
+                    Fields="inspectorFields" ViewOnly="true" />
             </InspectorContent>
         </RecordExplorer>
 

@@ -34,8 +34,7 @@
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="BilesiklerViewModel" Item="selectedItem"
-                    Title="@($"Bileşik Detayları - {selectedItem.Name}")" Fields="inspectorFields" OnSave="HandleSave"
-                    OnDelete="HandleDelete" />
+                    Title="@($"Bileşik Detayları - {selectedItem.Name}")" Fields="inspectorFields" ViewOnly="true" />
             </InspectorContent>
         </RecordExplorer>
 

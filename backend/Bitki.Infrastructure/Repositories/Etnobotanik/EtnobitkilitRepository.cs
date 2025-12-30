@@ -25,8 +25,8 @@ namespace Bitki.Infrastructure.Repositories.Etnobotanik
                 { "LiteratureId", "eb.litno" },
                 { "LiteratureName", "l.yazaradi" }
             };
-            var allowedColumns = new[] { "id", "turkcead", "durum", "litno", "yazaradi" };
-            var searchableColumns = new[] { "turkcead", "durum", "yazaradi" };
+            var allowedColumns = new[] { "id", "turkcead", "durum", "litno", "yazaradi", "eb.id", "eb.turkcead", "eb.durum", "eb.litno", "l.yazaradi" };
+            var searchableColumns = new[] { "eb.turkcead", "eb.durum", "l.yazaradi" };
             _queryBuilder = new QueryBuilder("etnobitkilit", allowedColumns, searchableColumns, columnMappings);
         }
 
@@ -42,7 +42,7 @@ namespace Bitki.Infrastructure.Repositories.Etnobotanik
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
-            var customJoin = "dbo.etnobitkilit eb LEFT JOIN dbo.literatur l ON eb.litno = l.id";
+            var customJoin = "dbo.etnobitkilit eb LEFT JOIN dbo.literatur l ON eb.litno = l.litid";
 
             var selectColumns = @"
                 eb.id AS Id, 

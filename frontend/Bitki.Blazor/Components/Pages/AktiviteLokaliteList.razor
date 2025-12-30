@@ -34,8 +34,7 @@
             FilteredCount="filteredCount" OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="AktiviteLokaliteViewModel" Item="selectedItem"
-                    Title="@($"Aktivite Lokalite - {selectedItem.LocalName}")" Fields="inspectorFields" OnSave="HandleSave"
-                    OnDelete="HandleDelete" />
+                    Title="@($"Aktivite Lokalite - {selectedItem.LocalName}")" Fields="inspectorFields" ViewOnly="true" />
             </InspectorContent>
         </RecordExplorer>
 

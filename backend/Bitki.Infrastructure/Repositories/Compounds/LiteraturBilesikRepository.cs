@@ -17,7 +17,7 @@ namespace Bitki.Infrastructure.Repositories.Compounds
             _connectionFactory = connectionFactory;
 
             var allowedColumns = new[] { "id", "literaturno", "bilesikno", "aciklama", "baslik", "adi" };
-            var searchableColumns = new[] { "aciklama" };
+            var searchableColumns = new[] { "aciklama", "l.baslik", "b.adi" };
             var columnMappings = new Dictionary<string, string>
             {
                 { "Id", "lb.id" },

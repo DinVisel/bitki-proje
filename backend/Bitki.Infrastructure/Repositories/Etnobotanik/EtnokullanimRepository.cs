@@ -17,7 +17,7 @@ namespace Bitki.Infrastructure.Repositories.Etnobotanik
             _connectionFactory = connectionFactory;
 
             var allowedColumns = new[] { "id", "aciklama", "lokaliteno", "tariholusturma", "yereladi" };
-            var searchableColumns = new[] { "aciklama" };
+            var searchableColumns = new[] { "aciklama", "el.yereladi" };
             var columnMappings = new Dictionary<string, string>
             {
                 { "Id", "ek.id" },

@@ -19,8 +19,12 @@ namespace Bitki.Infrastructure.Repositories
             _connectionFactory = connectionFactory;
 
             // Define allowed and searchable columns
-            var allowedColumns = new[] { "bitkiid", "turkce", "bitki", "aciklama", "familya", "genus" };
-            var searchableColumns = new[] { "turkce", "bitki", "aciklama", "familya", "genus" };
+            // Must include BOTH raw names AND aliased names (b.turkce, f.familya, etc.)
+            var allowedColumns = new[] {
+                "bitkiid", "turkce", "bitki", "aciklama", "familya", "genus",
+                "b.bitkiid", "b.turkce", "b.bitki", "b.aciklama", "f.familya", "g.genus"
+            };
+            var searchableColumns = new[] { "b.turkce", "b.bitki", "b.aciklama", "f.familya", "g.genus" };
 
             // Map UI property names → DB column names
             var columnMappings = new Dictionary<string, string>

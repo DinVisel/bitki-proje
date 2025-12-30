@@ -34,8 +34,7 @@
             FilteredCount="filteredCount" OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="AktiviteTestYeriViewModel" Item="selectedItem"
-                    Title="@($"Aktivite Test Yeri - {selectedItem.Name}")" Fields="inspectorFields" OnSave="HandleSave"
-                    OnDelete="HandleDelete" />
+                    Title="@($"Aktivite Test Yeri - {selectedItem.Name}")" Fields="inspectorFields" ViewOnly="true" />
             </InspectorContent>
         </RecordExplorer>
 

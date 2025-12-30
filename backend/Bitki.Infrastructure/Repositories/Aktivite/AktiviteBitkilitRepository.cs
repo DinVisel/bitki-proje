@@ -29,8 +29,8 @@ namespace Bitki.Infrastructure.Repositories.Aktivite
                 { "FamilyName", "f.familya" },
                 { "GenusName", "g.genus" }
             };
-            var allowedColumns = new[] { "id", "turkcead", "durum", "litno", "familyano", "genusno", "yazaradi", "familya", "genus" };
-            var searchableColumns = new[] { "turkcead", "durum", "yazaradi", "familya", "genus" };
+            var allowedColumns = new[] { "id", "turkcead", "durum", "litno", "familyano", "genusno", "yazaradi", "familya", "genus", "ab.id", "ab.turkcead", "ab.durum", "l.yazaradi", "f.familya", "g.genus" };
+            var searchableColumns = new[] { "ab.turkcead", "ab.durum", "l.yazaradi", "f.familya", "g.genus" };
             _queryBuilder = new QueryBuilder("aktivitebitkilit", allowedColumns, searchableColumns, columnMappings);
         }
 
@@ -46,7 +46,7 @@ namespace Bitki.Infrastructure.Repositories.Aktivite
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
-            var customJoin = "dbo.aktivitebitkilit ab LEFT JOIN dbo.literatur l ON ab.litno = l.id LEFT JOIN dbo.familya f ON ab.familyano = f.familyaid LEFT JOIN dbo.genus g ON ab.genusno = g.genusid";
+            var customJoin = "dbo.aktivitebitkilit ab LEFT JOIN dbo.literatur l ON ab.litno = l.litid LEFT JOIN dbo.familya f ON ab.familyano = f.familyaid LEFT JOIN dbo.genus g ON ab.genusno = g.genusid";
 
             var selectColumns = @"
                 ab.id AS Id, 

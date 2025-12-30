@@ -35,14 +35,13 @@
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedBitki">
                 <RecordInspector TItem="BitkiViewModel" Item="selectedBitki"
-                    Title="@($"Bitki Detayları - {selectedBitki.Name}")" Fields="inspectorFields" OnSave="HandleSave"
-                    OnDelete="HandleDelete">
+                    Title="@($"Bitki Detayları - {selectedBitki.Name}")" Fields="inspectorFields" ViewOnly="true">
                     <AdditionalContent Context="bitki">
                         @if (bitki.Id > 0)
                         {
                             <div class="detail-link-section">
-                                <a href="/bitki/@bitki.Id" class="btn btn-outline-primary btn-sm">
-                                    📋 Tüm Detayları Görüntüle
+                                <a href="/bitki/@bitki.Id" class="btn btn-primary">
+                                    📋 Tüm Detayları Görüntüle ve Düzenle
                                 </a>
                             </div>
                             <ImageGallery PlantId="bitki.Id" />
@@ -325,20 +324,20 @@
 
     private List<ColumnDef> columns = new()
 {
-    new ColumnDef { Title = "Türkçe Ad", PropertyName = "Name" },
-    new ColumnDef { Title = "Latince Ad", PropertyName = "LatinName" },
-    new ColumnDef { Title = "Aile", PropertyName = "FamilyName" },
-    new ColumnDef { Title = "Cins", PropertyName = "GenusName" }
+new ColumnDef { Title = "Türkçe Ad", PropertyName = "Name" },
+new ColumnDef { Title = "Latince Ad", PropertyName = "LatinName" },
+new ColumnDef { Title = "Aile", PropertyName = "FamilyName" },
+new ColumnDef { Title = "Cins", PropertyName = "GenusName" }
 };
 
     private List<InspectorField> inspectorFields = new()
 {
-    new InspectorField { Label = "Türkçe Ad", PropertyName = "Name", Editable = true, FieldGroup = "Genel Bilgiler" },
-    new InspectorField { Label = "Latince Ad", PropertyName = "LatinName", Editable = true, FieldGroup = "Taksonomi" },
-    new InspectorField { Label = "Aile", PropertyName = "FamilyName", Editable = true, FieldGroup = "Taksonomi" },
-    new InspectorField { Label = "Cins", PropertyName = "GenusName", Editable = true, FieldGroup = "Taksonomi" },
-    new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true, FieldGroup = "Ek Bilgiler" },
-    new InspectorField { Label = "Habitat", PropertyName = "Habitat", Editable = true, FieldGroup = "Ek Bilgiler" }
+new InspectorField { Label = "Türkçe Ad", PropertyName = "Name", Editable = true, FieldGroup = "Genel Bilgiler" },
+new InspectorField { Label = "Latince Ad", PropertyName = "LatinName", Editable = true, FieldGroup = "Taksonomi" },
+new InspectorField { Label = "Aile", PropertyName = "FamilyName", Editable = true, FieldGroup = "Taksonomi" },
+new InspectorField { Label = "Cins", PropertyName = "GenusName", Editable = true, FieldGroup = "Taksonomi" },
+new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true, FieldGroup = "Ek Bilgiler" },
+new InspectorField { Label = "Habitat", PropertyName = "Habitat", Editable = true, FieldGroup = "Ek Bilgiler" }
 };
 
     protected override async Task OnInitializedAsync()

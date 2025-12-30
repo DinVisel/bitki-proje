@@ -19,8 +19,17 @@ namespace Bitki.Api.Controllers
         [HttpPost("query")]
         public async Task<ActionResult<FilterResponse<BitkiResimleri>>> Query([FromBody] FilterRequest request)
         {
-            try { return Ok(await _repository.QueryAsync(request)); }
-            catch (Exception ex) { return BadRequest(new { error = ex.Message }); }
+            try
+            {
+                // Log request details
+                Console.WriteLine($"[DEBUG] BitkiResimleri Query: Sort={request.SortColumn}, Dir={request.SortDirection}");
+                return Ok(await _repository.QueryAsync(request));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DEBUG] BitkiResimleri Error: {ex.Message}");
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         [HttpGet("{id}")]

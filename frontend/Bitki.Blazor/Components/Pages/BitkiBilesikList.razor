@@ -34,8 +34,7 @@
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="BitkiBilesikViewModel" Item="selectedItem"
-                    Title="@($"Bitki-Bileşik - ID: {selectedItem.Id}")" Fields="inspectorFields" OnSave="HandleSave"
-                    OnDelete="HandleDelete" />
+                    Title="@($"Bitki-Bileşik - ID: {selectedItem.Id}")" Fields="inspectorFields" ViewOnly="true" />
             </InspectorContent>
         </RecordExplorer>
 

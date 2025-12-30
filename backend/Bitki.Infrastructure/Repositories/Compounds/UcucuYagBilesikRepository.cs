@@ -17,14 +17,14 @@ namespace Bitki.Infrastructure.Repositories.Compounds
         {
             _connectionFactory = connectionFactory;
 
-            var allowedColumns = new[] { "ucucuyagno", "bilesikno", "miktar", "birim" };
-            var searchableColumns = new[] { "miktar", "birim" };
+            var allowedColumns = new[] { "amount", "unit", "essentialoilname", "compoundname", "uy.ucucuyagadi", "bl.adi", "uyb.miktar", "uyb.birim" };
+            var searchableColumns = new[] { "uy.ucucuyagadi", "bl.adi", "uyb.birim" };
             var columnMappings = new Dictionary<string, string>
             {
-                { "EssentialOilId", "ucucuyagno" },
-                { "CompoundId", "bilesikno" },
-                { "Amount", "miktar" },
-                { "Unit", "birim" }
+                { "Amount", "uyb.miktar" },
+                { "Unit", "uyb.birim" },
+                { "EssentialOilName", "uy.ucucuyagadi" },
+                { "CompoundName", "bl.adi" }
             };
             _queryBuilder = new QueryBuilder("ucucuyagbilesik", allowedColumns, searchableColumns, columnMappings);
         }
@@ -32,7 +32,12 @@ namespace Bitki.Infrastructure.Repositories.Compounds
         public async Task<IEnumerable<UcucuYagBilesik>> GetAllAsync()
         {
             using var connection = _connectionFactory.CreateConnection();
-            return await connection.QueryAsync<UcucuYagBilesik>("SELECT ucucuyagno AS EssentialOilId, bilesikno AS CompoundId, miktar AS Amount, birim AS Unit FROM dbo.ucucuyagbilesik");
+            return await connection.QueryAsync<UcucuYagBilesik>(@"
+                SELECT uyb.ucucuyagno AS EssentialOilId, uyb.bilesikno AS CompoundId, uyb.miktar AS Amount, uyb.birim AS Unit,
+                       uy.ucucuyagadi AS EssentialOilName, bl.adi AS CompoundName
+                FROM dbo.ucucuyagbilesik uyb
+                LEFT JOIN dbo.ucuyag uy ON uyb.ucucuyagno = uy.id
+                LEFT JOIN dbo.bilesikler bl ON uyb.bilesikno = bl.bilesikid");
         }
 
         public async Task<FilterResponse<UcucuYagBilesik>> QueryAsync(FilterRequest request)
@@ -41,14 +46,31 @@ namespace Bitki.Infrastructure.Repositories.Compounds
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
-            var selectColumns = "ucucuyagno AS EssentialOilId, bilesikno AS CompoundId, miktar AS Amount, birim AS Unit";
-            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize);
+            // FORCE DEFAULT SORT if not provided or invalid
+            if (string.IsNullOrWhiteSpace(request.SortColumn) || request.SortColumn.Equals("id", StringComparison.OrdinalIgnoreCase))
+            {
+                request.SortColumn = "EssentialOilName";
+            }
 
-            var totalCountSql = "SELECT COUNT(*) FROM dbo.ucucuyagbilesik";
-            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted);
+            var selectColumns = @"
+                uyb.ucucuyagno AS EssentialOilId, 
+                uyb.bilesikno AS CompoundId, 
+                uyb.miktar AS Amount, 
+                uyb.birim AS Unit,
+                uy.ucucuyagadi AS EssentialOilName, 
+                bl.adi AS CompoundName";
+
+            var fromClause = @"
+                dbo.ucucuyagbilesik uyb
+                LEFT JOIN dbo.ucuyag uy ON uyb.ucucuyagno = uy.id
+                LEFT JOIN dbo.bilesikler bl ON uyb.bilesikno = bl.bilesikid";
+
+            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize, fromClause);
+
+            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted, fromClause);
 
             var data = await connection.QueryAsync<UcucuYagBilesik>(selectSql, parameters);
-            var totalCount = await connection.ExecuteScalarAsync<int>(totalCountSql);
+            var totalCount = await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM dbo.ucucuyagbilesik");
             var filteredCount = await connection.ExecuteScalarAsync<int>(filteredCountSql, parameters);
 
             return new FilterResponse<UcucuYagBilesik>

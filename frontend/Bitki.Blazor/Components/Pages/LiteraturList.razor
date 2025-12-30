@@ -35,7 +35,7 @@
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="LiteraturViewModel" Item="selectedItem"
                     Title="@($"Literatur Detayları - {selectedItem.AuthorName}")" Fields="inspectorFields"
-                    OnSave="HandleSave" OnDelete="HandleDelete" />
+                    ViewOnly="true" />
             </InspectorContent>
         </RecordExplorer>
 

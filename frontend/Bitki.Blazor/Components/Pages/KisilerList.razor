@@ -34,7 +34,7 @@
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="KisilerViewModel" Item="selectedItem" Title="@($"Kişi - {selectedItem.FullName}")"
-                    Fields="inspectorFields" OnSave="HandleSave" OnDelete="HandleDelete" />
+                    Fields="inspectorFields" ViewOnly="true" />
             </InspectorContent>
         </RecordExplorer>
 

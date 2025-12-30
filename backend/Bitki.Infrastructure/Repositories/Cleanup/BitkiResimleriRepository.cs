@@ -17,15 +17,19 @@ namespace Bitki.Infrastructure.Repositories.Cleanup
         {
             _connectionFactory = connectionFactory;
 
-            var allowedColumns = new[] { "bitkiresimid", "bitkino", "resimyeri", "aciklama", "turkcead" };
-            var searchableColumns = new[] { "resimyeri", "aciklama" };
+            // Include lowercase UI names, aliased versions, and raw column names
+            var allowedColumns = new[] {
+                "id", "plantid", "imagelocation", "description", "plantname",
+                "br.bitkiresimid", "br.bitkino", "br.resimyeri", "br.aciklama", "b.turkce"
+            };
+            var searchableColumns = new[] { "br.resimyeri", "br.aciklama", "b.turkce" };
             var columnMappings = new Dictionary<string, string>
             {
                 { "Id", "br.bitkiresimid" },
                 { "PlantId", "br.bitkino" },
                 { "ImageLocation", "br.resimyeri" },
                 { "Description", "br.aciklama" },
-                { "PlantName", "b.turkcead" }
+                { "PlantName", "b.turkce" }
             };
             _queryBuilder = new QueryBuilder("bitkiresimleri", allowedColumns, searchableColumns, columnMappings);
         }
@@ -35,7 +39,7 @@ namespace Bitki.Infrastructure.Repositories.Cleanup
             using var connection = _connectionFactory.CreateConnection();
             return await connection.QueryAsync<BitkiResimleri>(@"
                 SELECT br.bitkiresimid AS Id, br.bitkino AS PlantId, br.resimyeri AS ImageLocation, br.aciklama AS Description,
-                       b.turkcead AS PlantName
+                       b.turkce AS PlantName
                 FROM dbo.bitkiresimleri br
                 LEFT JOIN dbo.bitki b ON br.bitkino = b.bitkiid
                 ORDER BY br.bitkiresimid");
@@ -52,7 +56,7 @@ namespace Bitki.Infrastructure.Repositories.Cleanup
                 br.bitkino AS PlantId, 
                 br.resimyeri AS ImageLocation, 
                 br.aciklama AS Description,
-                b.turkcead AS PlantName";
+                b.turkce AS PlantName";
 
             var fromClause = "dbo.bitkiresimleri br LEFT JOIN dbo.bitki b ON br.bitkino = b.bitkiid";
 

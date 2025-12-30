@@ -11,27 +11,30 @@
     {
         <div class="inspector-header">
             <h5>@Title</h5>
-            <AuthorizeView Roles="Admin">
-                <Authorized>
-                    @if (!isEditMode)
-                    {
-                        <div class="action-buttons">
-                            <button class="btn btn-sm btn-primary" @onclick="EnableEditMode">Edit</button>
-                            @if (OnDelete.HasDelegate)
-                            {
-                                <button class="btn btn-sm btn-danger" @onclick="HandleDelete">Delete</button>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="action-buttons">
-                            <button class="btn btn-sm btn-success" @onclick="HandleSave">Save</button>
-                            <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button>
-                        </div>
-                    }
-                </Authorized>
-            </AuthorizeView>
+            @if (!ViewOnly)
+            {
+                <AuthorizeView Roles="Admin">
+                    <Authorized>
+                        @if (!isEditMode)
+                        {
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-primary" @onclick="EnableEditMode">Edit</button>
+                                @if (OnDelete.HasDelegate)
+                                {
+                                    <button class="btn btn-sm btn-danger" @onclick="HandleDelete">Delete</button>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-success" @onclick="HandleSave">Save</button>
+                                <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button>
+                            </div>
+                        }
+                    </Authorized>
+                </AuthorizeView>
+            }
         </div>
 
         <div class="inspector-body">
@@ -109,6 +112,7 @@
     [Parameter] public TItem? Item { get; set; }
     [Parameter] public string Title { get; set; } = "Record Details";
     [Parameter] public List<InspectorField>? Fields { get; set; }
+    [Parameter] public bool ViewOnly { get; set; } = true;
     [Parameter] public RenderFragment<TItem>? AdditionalContent { get; set; }
     [Parameter] public EventCallback<TItem> OnSave { get; set; }
     [Parameter] public EventCallback<TItem> OnDelete { get; set; }

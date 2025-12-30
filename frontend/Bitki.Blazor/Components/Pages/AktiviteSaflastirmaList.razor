@@ -34,8 +34,7 @@
             FilteredCount="filteredCount" OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="AktiviteSaflastirmaViewModel" Item="selectedItem"
-                    Title="@($"Aktivite Saflaştırma - {selectedItem.Name}")" Fields="inspectorFields" OnSave="HandleSave"
-                    OnDelete="HandleDelete" />
+                    Title="@($"Aktivite Saflaştırma - {selectedItem.Name}")" Fields="inspectorFields" ViewOnly="true" />
             </InspectorContent>
         </RecordExplorer>
 

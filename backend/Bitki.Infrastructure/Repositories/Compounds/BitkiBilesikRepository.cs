@@ -17,16 +17,13 @@ namespace Bitki.Infrastructure.Repositories.Compounds
         {
             _connectionFactory = connectionFactory;
 
-            var allowedColumns = new[] { "id", "bitkino", "bilesikno", "miktar", "aciklama", "turkcead", "adi" };
-            var searchableColumns = new[] { "miktar", "aciklama" };
+            var allowedColumns = new[] { "amount", "description", "plantname", "compoundname", "b.turkce", "bl.adi", "bb.miktar", "bb.aciklama" };
+            var searchableColumns = new[] { "b.turkce", "bl.adi", "bb.aciklama" };
             var columnMappings = new Dictionary<string, string>
             {
-                { "Id", "bb.id" },
-                { "PlantId", "bb.bitkino" },
-                { "CompoundId", "bb.bilesikno" },
                 { "Amount", "bb.miktar" },
                 { "Description", "bb.aciklama" },
-                { "PlantName", "b.turkcead" },
+                { "PlantName", "b.turkce" },
                 { "CompoundName", "bl.adi" }
             };
             _queryBuilder = new QueryBuilder("bitkibilesik", allowedColumns, searchableColumns, columnMappings);
@@ -37,10 +34,10 @@ namespace Bitki.Infrastructure.Repositories.Compounds
             using var connection = _connectionFactory.CreateConnection();
             return await connection.QueryAsync<BitkiBilesik>(@"
                 SELECT bb.id AS Id, bb.bitkino AS PlantId, bb.bilesikno AS CompoundId, bb.miktar AS Amount, bb.aciklama AS Description,
-                       b.turkcead AS PlantName, bl.adi AS CompoundName
+                       b.turkce AS PlantName, bl.adi AS CompoundName
                 FROM dbo.bitkibilesik bb
                 LEFT JOIN dbo.bitki b ON bb.bitkino = b.bitkiid
-                LEFT JOIN dbo.bilesikler bl ON bb.bilesikno = bl.id
+                LEFT JOIN dbo.bilesikler bl ON bb.bilesikno = bl.bilesikid
                 ORDER BY bb.id DESC");
         }
 
@@ -50,19 +47,25 @@ namespace Bitki.Infrastructure.Repositories.Compounds
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
+            // FORCE DEFAULT SORT if not provided or invalid
+            if (string.IsNullOrWhiteSpace(request.SortColumn) || request.SortColumn.Equals("id", StringComparison.OrdinalIgnoreCase))
+            {
+                request.SortColumn = "PlantName";
+            }
+
             var selectColumns = @"
                 bb.id AS Id, 
                 bb.bitkino AS PlantId, 
                 bb.bilesikno AS CompoundId, 
                 bb.miktar AS Amount, 
                 bb.aciklama AS Description,
-                b.turkcead AS PlantName,
+                b.turkce AS PlantName,
                 bl.adi AS CompoundName";
 
             var fromClause = @"
                 dbo.bitkibilesik bb
                 LEFT JOIN dbo.bitki b ON bb.bitkino = b.bitkiid
-                LEFT JOIN dbo.bilesikler bl ON bb.bilesikno = bl.id";
+                LEFT JOIN dbo.bilesikler bl ON bb.bilesikno = bl.bilesikid";
 
             var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize, fromClause);
 

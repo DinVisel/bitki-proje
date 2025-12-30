@@ -34,7 +34,7 @@
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="UcucuYagBilesikViewModel" Item="selectedItem" Title="Uçucu Yağ-Bileşik"
-                    Fields="inspectorFields" OnSave="HandleSave" OnDelete="HandleDelete" />
+                    Fields="inspectorFields" ViewOnly="true" />
             </InspectorContent>
         </RecordExplorer>
 
@@ -102,8 +102,8 @@
 
     private List<ColumnDef> columns = new()
 {
-new ColumnDef { Title = "Uçucu Yağ ID", PropertyName = "EssentialOilId" },
-new ColumnDef { Title = "Bileşik ID", PropertyName = "CompoundId" },
+new ColumnDef { Title = "Uçucu Yağ", PropertyName = "EssentialOilName" },
+new ColumnDef { Title = "Bileşik", PropertyName = "CompoundName" },
 new ColumnDef { Title = "Miktar", PropertyName = "Amount" },
 new ColumnDef { Title = "Birim", PropertyName = "Unit" }
 };

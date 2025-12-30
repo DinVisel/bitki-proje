@@ -148,6 +148,8 @@ namespace Bitki.Api.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"[DEBUG] Bitki Query Error: {ex.Message}");
+                Console.WriteLine($"[DEBUG] StackTrace: {ex.StackTrace}");
                 return BadRequest(new { error = ex.Message });
             }
         }
