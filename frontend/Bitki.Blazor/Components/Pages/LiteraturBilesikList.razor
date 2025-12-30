@@ -59,12 +59,12 @@
                 <div class="form-group mb-3">
                     <label class="form-label">Literatür *</label>
                     <SearchableSelect Options="literatureOptions" Placeholder="Literatür seçin"
-                                      @bind-Value="EditingLiteratureId" />
+                        @bind-Value="EditingLiteratureId" />
                 </div>
                 <div class="form-group mb-3">
                     <label class="form-label">Bileşik *</label>
                     <SearchableSelect Options="compoundOptions" Placeholder="Bileşik seçin"
-                                      @bind-Value="EditingCompoundId" />
+                        @bind-Value="EditingCompoundId" />
                 </div>
                 <div class="form-group">
                     <label class="form-label">Açıklama</label>
@@ -106,14 +106,20 @@ new ColumnDef { Title = "Bileşik", PropertyName = "CompoundName" },
 new ColumnDef { Title = "Açıklama", PropertyName = "Description" }
 };
 
-    private List<InspectorField> inspectorFields = new()
+    private List<InspectorField> inspectorFields = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        inspectorFields = new()
 {
-new InspectorField { Label = "Literatür", PropertyName = "LiteratureName", Editable = true, RenderEditControl = LiteratureSelector },
-new InspectorField { Label = "Bileşik", PropertyName = "CompoundName", Editable = true, RenderEditControl = CompoundSelector },
+new InspectorField { Label = "Literatür", PropertyName = "LiteratureName", Editable = true, RenderEditControl =
+LiteratureSelector },
+new InspectorField { Label = "Bileşik", PropertyName = "CompoundName", Editable = true, RenderEditControl =
+CompoundSelector },
 new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true }
 };
-
-    protected override async Task OnInitializedAsync() => await LoadDataWithFilter();
+        await LoadDataWithFilter();
+    }
 
     private async Task LoadDataWithFilter()
     {
@@ -162,7 +168,11 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
         await LoadDataWithFilter();
     }
 
-    private void OpenAddModal() { editingItem = new(); EditingLiteratureId = null; EditingCompoundId = null; isEditingInModal = false; showAddModal = true; }
+    private void OpenAddModal()
+    {
+        editingItem = new(); EditingLiteratureId = null; EditingCompoundId = null;
+        isEditingInModal = false; showAddModal = true;
+    }
     private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
     private async Task HandleCreateOrUpdate()
@@ -278,9 +288,9 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
         {
             var literature = await Http.GetFromJsonAsync<List<LiteraturViewModel>>("api/literatur") ?? new();
             literatureOptions = literature
-                .OrderBy(l => l.FullName ?? l.ResearchName ?? l.AuthorName)
-                .Select(l => new SelectOption(l.Id, l.FullName ?? l.ResearchName ?? l.AuthorName ?? $"Literatür #{l.Id}"))
-                .ToList();
+            .OrderBy(l => l.FullName ?? l.ResearchName ?? l.AuthorName)
+            .Select(l => new SelectOption(l.Id, l.FullName ?? l.ResearchName ?? l.AuthorName ?? $"Literatür #{l.Id}"))
+            .ToList();
         }
 
         if (!compoundOptions.Any())
@@ -302,7 +312,11 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
         builder.AddAttribute(1, "Options", literatureOptions);
         builder.AddAttribute(2, "Placeholder", "Literatür seçin");
         builder.AddAttribute(3, "Value", (long?)item.LiteratureId);
-        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id => { item.LiteratureId = id.HasValue ? (int)id.Value : 0; SyncNames(item); }));
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id =>
+        {
+            item.LiteratureId =
+    id.HasValue ? (int)id.Value : 0; SyncNames(item);
+        }));
         builder.CloseComponent();
     };
 
@@ -312,7 +326,11 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
         builder.AddAttribute(1, "Options", compoundOptions);
         builder.AddAttribute(2, "Placeholder", "Bileşik seçin");
         builder.AddAttribute(3, "Value", (long?)item.CompoundId);
-        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id => { item.CompoundId = id.HasValue ? (int)id.Value : 0; SyncNames(item); }));
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id =>
+        {
+            item.CompoundId = id.HasValue
+    ? (int)id.Value : 0; SyncNames(item);
+        }));
         builder.CloseComponent();
     };
 }

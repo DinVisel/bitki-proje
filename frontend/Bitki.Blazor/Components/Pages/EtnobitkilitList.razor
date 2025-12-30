@@ -65,8 +65,9 @@
                     <input type="text" class="form-control" @bind="editingItem.Status" />
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Literatür ID</label>
-                    <input type="number" class="form-control" @bind="editingItem.LiteratureId" />
+                    <label class="form-label">Literatür *</label>
+                    <SearchableSelect Options="literatureOptions" Placeholder="Literatür seçin"
+                        @bind-Value="EditingLiteratureId" />
                 </div>
             </div>
             <div class="modal-footer">
@@ -104,14 +105,19 @@ new ColumnDef { Title = "Durum", PropertyName = "Status" },
 new ColumnDef { Title = "Literatür", PropertyName = "LiteratureName" }
 };
 
-    private List<InspectorField> inspectorFields = new()
+    private List<InspectorField> inspectorFields = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        inspectorFields = new()
 {
 new InspectorField { Label = "Türkçe Ad", PropertyName = "TurkishName", Editable = true },
 new InspectorField { Label = "Durum", PropertyName = "Status", Editable = true },
-new InspectorField { Label = "Literatür", PropertyName = "LiteratureName", Editable = false }
+new InspectorField { Label = "Literatür", PropertyName = "LiteratureName", Editable = true, RenderEditControl =
+LiteratureSelector }
 };
-
-    protected override async Task OnInitializedAsync() => await LoadDataWithFilter();
+        await LoadDataWithFilter();
+    }
 
     private async Task LoadDataWithFilter()
     {
@@ -119,6 +125,7 @@ new InspectorField { Label = "Literatür", PropertyName = "LiteratureName", Edit
         errorMessage = null;
         try
         {
+            await EnsureOptionsAsync();
             var response = await Http.PostAsJsonAsync("api/etnobitkilit/query", currentFilter);
             if (response.IsSuccessStatusCode)
             {
@@ -159,7 +166,13 @@ new InspectorField { Label = "Literatür", PropertyName = "LiteratureName", Edit
         await LoadDataWithFilter();
     }
 
-    private void OpenAddModal() { editingItem = new(); isEditingInModal = false; showAddModal = true; }
+    private void OpenAddModal()
+    {
+        editingItem = new();
+        EditingLiteratureId = null;
+        isEditingInModal = false;
+        showAddModal = true;
+    }
     private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
     private async Task HandleCreateOrUpdate()
@@ -199,6 +212,7 @@ new InspectorField { Label = "Literatür", PropertyName = "LiteratureName", Edit
     {
         try
         {
+            SyncNames(item);
             var r = await AuthHttp.PutAsJsonAsync($"api/etnobitkilit/{item.Id}", item);
             if (r.IsSuccessStatusCode)
             {
@@ -243,4 +257,45 @@ new InspectorField { Label = "Literatür", PropertyName = "LiteratureName", Edit
             catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
         }
     }
+
+    private List<SelectOption> literatureOptions = new();
+
+    private long? EditingLiteratureId
+    {
+        get => editingItem.LiteratureId == 0 ? null : editingItem.LiteratureId;
+        set
+        {
+            editingItem.LiteratureId = value.HasValue ? (int)value.Value : 0;
+            editingItem.LiteratureName = literatureOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private async Task EnsureOptionsAsync()
+    {
+        if (!literatureOptions.Any())
+        {
+            var literatures = await Http.GetFromJsonAsync<List<LiteraturViewModel>>("api/literatur") ?? new();
+            literatureOptions = literatures.OrderBy(l => l.ResearchName).Select(l => new SelectOption(l.Id, l.ResearchName ??
+            $"Literatür #{l.Id}")).ToList();
+        }
+    }
+
+    private void SyncNames(EtnobitkilitViewModel item)
+    {
+        item.LiteratureName = literatureOptions.FirstOrDefault(o => o.Id == item.LiteratureId)?.Name ?? item.LiteratureName;
+    }
+
+    private RenderFragment<EtnobitkilitViewModel> LiteratureSelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", literatureOptions);
+        builder.AddAttribute(2, "Placeholder", "Literatür seçin");
+        builder.AddAttribute(3, "Value", (long?)item.LiteratureId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id =>
+    {
+        item.LiteratureId = id.HasValue ? (int)id.Value : 0;
+        SyncNames(item);
+    }));
+        builder.CloseComponent();
+    };
 }

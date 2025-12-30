@@ -58,12 +58,12 @@
                 <div class="form-group mb-3">
                     <label class="form-label">Uçucu Yağ *</label>
                     <SearchableSelect Options="essentialOilOptions" Placeholder="Uçucu yağ seçin"
-                                      @bind-Value="EditingEssentialOilId" />
+                        @bind-Value="EditingEssentialOilId" />
                 </div>
                 <div class="form-group mb-3">
                     <label class="form-label">Bileşik *</label>
                     <SearchableSelect Options="compoundOptions" Placeholder="Bileşik seçin"
-                                      @bind-Value="EditingCompoundId" />
+                        @bind-Value="EditingCompoundId" />
                 </div>
                 <div class="form-group mb-3">
                     <label class="form-label">Miktar</label>
@@ -110,15 +110,21 @@ new ColumnDef { Title = "Miktar", PropertyName = "Amount" },
 new ColumnDef { Title = "Birim", PropertyName = "Unit" }
 };
 
-    private List<InspectorField> inspectorFields = new()
+    private List<InspectorField> inspectorFields = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        inspectorFields = new()
 {
-new InspectorField { Label = "Uçucu Yağ", PropertyName = "EssentialOilName", Editable = true, RenderEditControl = EssentialOilSelector },
-new InspectorField { Label = "Bileşik", PropertyName = "CompoundName", Editable = true, RenderEditControl = CompoundSelector },
+new InspectorField { Label = "Uçucu Yağ", PropertyName = "EssentialOilName", Editable = true, RenderEditControl =
+EssentialOilSelector },
+new InspectorField { Label = "Bileşik", PropertyName = "CompoundName", Editable = true, RenderEditControl =
+CompoundSelector },
 new InspectorField { Label = "Miktar", PropertyName = "Amount", Editable = true },
 new InspectorField { Label = "Birim", PropertyName = "Unit", Editable = true }
 };
-
-    protected override async Task OnInitializedAsync() => await LoadDataWithFilter();
+        await LoadDataWithFilter();
+    }
 
     private async Task LoadDataWithFilter()
     {
@@ -167,7 +173,11 @@ new InspectorField { Label = "Birim", PropertyName = "Unit", Editable = true }
         await LoadDataWithFilter();
     }
 
-    private void OpenAddModal() { editingItem = new(); EditingEssentialOilId = null; EditingCompoundId = null; isEditingInModal = false; showAddModal = true; }
+    private void OpenAddModal()
+    {
+        editingItem = new(); EditingEssentialOilId = null; EditingCompoundId = null;
+        isEditingInModal = false; showAddModal = true;
+    }
     private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
     private async Task HandleCreateOrUpdate()
@@ -295,7 +305,8 @@ new InspectorField { Label = "Birim", PropertyName = "Unit", Editable = true }
 
     private void SyncNames(UcucuYagBilesikViewModel item)
     {
-        item.EssentialOilName = essentialOilOptions.FirstOrDefault(o => o.Id == item.EssentialOilId)?.Name ?? item.EssentialOilName;
+        item.EssentialOilName = essentialOilOptions.FirstOrDefault(o => o.Id == item.EssentialOilId)?.Name ??
+        item.EssentialOilName;
         item.CompoundName = compoundOptions.FirstOrDefault(o => o.Id == item.CompoundId)?.Name ?? item.CompoundName;
     }
 
@@ -305,7 +316,11 @@ new InspectorField { Label = "Birim", PropertyName = "Unit", Editable = true }
         builder.AddAttribute(1, "Options", essentialOilOptions);
         builder.AddAttribute(2, "Placeholder", "Uçucu yağ seçin");
         builder.AddAttribute(3, "Value", (long?)item.EssentialOilId);
-        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id => { item.EssentialOilId = id.HasValue ? (int)id.Value : 0; SyncNames(item); }));
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id =>
+        {
+            item.EssentialOilId =
+    id.HasValue ? (int)id.Value : 0; SyncNames(item);
+        }));
         builder.CloseComponent();
     };
 
@@ -315,7 +330,11 @@ new InspectorField { Label = "Birim", PropertyName = "Unit", Editable = true }
         builder.AddAttribute(1, "Options", compoundOptions);
         builder.AddAttribute(2, "Placeholder", "Bileşik seçin");
         builder.AddAttribute(3, "Value", (long?)item.CompoundId);
-        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id => { item.CompoundId = id.HasValue ? (int)id.Value : 0; SyncNames(item); }));
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id =>
+        {
+            item.CompoundId = id.HasValue
+    ? (int)id.Value : 0; SyncNames(item);
+        }));
         builder.CloseComponent();
     };
 }

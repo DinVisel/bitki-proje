@@ -114,14 +114,19 @@ new ColumnDef { Title = "Bitki Adı", PropertyName = "PlantName" },
 new ColumnDef { Title = "Açıklama", PropertyName = "Description" }
 };
 
-    private List<InspectorField> inspectorFields = new()
+    private List<InspectorField> inspectorFields = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        inspectorFields = new()
 {
-new InspectorField { Label = "Bitki Adı", PropertyName = "PlantName", Editable = true, RenderEditControl = PlantSelector },
+new InspectorField { Label = "Bitki Adı", PropertyName = "PlantName", Editable = true, RenderEditControl = PlantSelector
+},
 new InspectorField { Label = "Resim Konumu", PropertyName = "ImageLocation", Editable = true },
 new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true }
 };
-
-    protected override async Task OnInitializedAsync() => await LoadDataWithFilter();
+        await LoadDataWithFilter();
+    }
 
     private async Task LoadDataWithFilter()
     {
@@ -170,7 +175,10 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
         await LoadDataWithFilter();
     }
 
-    private void OpenAddModal() { editingItem = new(); EditingPlantId = null; isEditingInModal = false; showAddModal = true; }
+    private void OpenAddModal()
+    {
+        editingItem = new(); EditingPlantId = null; isEditingInModal = false; showAddModal = true;
+    }
     private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
     private async Task HandleCreateOrUpdate()
@@ -289,7 +297,11 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
         builder.AddAttribute(1, "Options", plantOptions);
         builder.AddAttribute(2, "Placeholder", "Bitki seçin");
         builder.AddAttribute(3, "Value", (long?)item.PlantId);
-        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id => { item.PlantId = id.HasValue ? (int)id.Value : 0; SyncPlant(item); }));
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id =>
+        {
+            item.PlantId = id.HasValue ?
+    (int)id.Value : 0; SyncPlant(item);
+        }));
         builder.CloseComponent();
     };
 }

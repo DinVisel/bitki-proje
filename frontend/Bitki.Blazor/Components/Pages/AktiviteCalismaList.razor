@@ -61,12 +61,13 @@
                     <textarea class="form-control" rows="2" @bind="editingItem.Description"></textarea>
                 </div>
                 <div class="form-group mb-3">
-                    <label class="form-label">Lokalite ID</label>
-                    <input type="number" class="form-control" @bind="editingItem.LocalityId" />
+                    <label class="form-label">Lokalite *</label>
+                    <SearchableSelect Options="localityOptions" Placeholder="Lokalite seçin"
+                        @bind-Value="EditingLocalityId" />
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Etki ID</label>
-                    <input type="number" class="form-control" @bind="editingItem.EffectId" />
+                    <label class="form-label">Etki *</label>
+                    <SearchableSelect Options="effectOptions" Placeholder="Etki seçin" @bind-Value="EditingEffectId" />
                 </div>
             </div>
             <div class="modal-footer">
@@ -104,15 +105,20 @@ new ColumnDef { Title = "Lokalite", PropertyName = "LocalityName" },
 new ColumnDef { Title = "Etki", PropertyName = "EffectName" }
 };
 
-    private List<InspectorField> inspectorFields = new()
+    private List<InspectorField> inspectorFields = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        inspectorFields = new()
 {
 new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true },
 new InspectorField { Label = "Oluşturma Tarihi", PropertyName = "CreatedDate", Editable = false },
-new InspectorField { Label = "Lokalite", PropertyName = "LocalityName", Editable = false },
-new InspectorField { Label = "Etki", PropertyName = "EffectName", Editable = false }
+new InspectorField { Label = "Lokalite", PropertyName = "LocalityName", Editable = true, RenderEditControl =
+LocalitySelector },
+new InspectorField { Label = "Etki", PropertyName = "EffectName", Editable = true, RenderEditControl = EffectSelector }
 };
-
-    protected override async Task OnInitializedAsync() => await LoadDataWithFilter();
+        await LoadDataWithFilter();
+    }
 
     private async Task LoadDataWithFilter()
     {
@@ -120,6 +126,7 @@ new InspectorField { Label = "Etki", PropertyName = "EffectName", Editable = fal
         errorMessage = null;
         try
         {
+            await EnsureOptionsAsync();
             var response = await Http.PostAsJsonAsync("api/aktivitecalisma/query", currentFilter);
             if (response.IsSuccessStatusCode)
             {
@@ -163,6 +170,8 @@ new InspectorField { Label = "Etki", PropertyName = "EffectName", Editable = fal
     private void OpenAddModal()
     {
         editingItem = new() { CreatedDate = DateTime.Now };
+        EditingLocalityId = null;
+        EditingEffectId = null;
         isEditingInModal = false;
         showAddModal = true;
     }
@@ -206,6 +215,7 @@ new InspectorField { Label = "Etki", PropertyName = "EffectName", Editable = fal
     {
         try
         {
+            SyncNames(item);
             var response = await AuthHttp.PutAsJsonAsync($"api/aktivitecalisma/{item.Id}", item);
             if (response.IsSuccessStatusCode)
             {
@@ -250,4 +260,75 @@ new InspectorField { Label = "Etki", PropertyName = "EffectName", Editable = fal
             catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
         }
     }
+
+    private List<SelectOption> localityOptions = new();
+    private List<SelectOption> effectOptions = new();
+
+    private long? EditingLocalityId
+    {
+        get => editingItem.LocalityId == 0 ? null : editingItem.LocalityId;
+        set
+        {
+            editingItem.LocalityId = value.HasValue ? (int)value.Value : 0;
+            editingItem.LocalityName = localityOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private long? EditingEffectId
+    {
+        get => editingItem.EffectId == 0 ? null : editingItem.EffectId;
+        set
+        {
+            editingItem.EffectId = value.HasValue ? (int)value.Value : 0;
+            editingItem.EffectName = effectOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private async Task EnsureOptionsAsync()
+    {
+        if (!localityOptions.Any())
+        {
+            var localities = await Http.GetFromJsonAsync<List<AktiviteLokaliteViewModel>>("api/aktivitelokalite") ?? new();
+            localityOptions = localities.OrderBy(l => l.LocalName).Select(l => new SelectOption(l.Id, l.LocalName ?? $"Lokalite #{l.Id}")).ToList();
+        }
+        if (!effectOptions.Any())
+        {
+            var effects = await Http.GetFromJsonAsync<List<AktiviteEtkiViewModel>>("api/aktiviteetki") ?? new();
+            effectOptions = effects.OrderBy(e => e.Name).Select(e => new SelectOption(e.Id, e.Name ?? $"Etki #{e.Id}")).ToList();
+        }
+    }
+
+    private void SyncNames(AktiviteCalismaViewModel item)
+    {
+        item.LocalityName = localityOptions.FirstOrDefault(o => o.Id == item.LocalityId)?.Name ?? item.LocalityName;
+        item.EffectName = effectOptions.FirstOrDefault(o => o.Id == item.EffectId)?.Name ?? item.EffectName;
+    }
+
+    private RenderFragment<AktiviteCalismaViewModel> LocalitySelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", localityOptions);
+        builder.AddAttribute(2, "Placeholder", "Lokalite seçin");
+        builder.AddAttribute(3, "Value", (long?)item.LocalityId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id =>
+    {
+        item.LocalityId = id.HasValue ? (int)id.Value : 0;
+        SyncNames(item);
+    }));
+        builder.CloseComponent();
+    };
+
+    private RenderFragment<AktiviteCalismaViewModel> EffectSelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", effectOptions);
+        builder.AddAttribute(2, "Placeholder", "Etki seçin");
+        builder.AddAttribute(3, "Value", (long?)item.EffectId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id =>
+    {
+        item.EffectId = id.HasValue ? (int)id.Value : 0;
+        SyncNames(item);
+    }));
+        builder.CloseComponent();
+    };
 }

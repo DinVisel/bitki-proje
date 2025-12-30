@@ -65,12 +65,12 @@
                     <input type="text" class="form-control" @bind="editingItem.Location" />
                 </div>
                 <div class="form-group mb-3">
-                    <label class="form-label">Şehir ID</label>
-                    <input type="number" class="form-control" @bind="editingItem.CityId" />
+                    <label class="form-label">Şehir *</label>
+                    <SearchableSelect Options="cityOptions" Placeholder="Şehir seçin" @bind-Value="EditingCityId" />
                 </div>
                 <div class="form-group">
-                    <label class="form-label">İlçe ID</label>
-                    <input type="number" class="form-control" @bind="editingItem.DistrictId" />
+                    <label class="form-label">İlçe *</label>
+                    <SearchableSelect Options="districtOptions" Placeholder="İlçe seçin" @bind-Value="EditingDistrictId" />
                 </div>
             </div>
             <div class="modal-footer">
@@ -109,15 +109,20 @@ new ColumnDef { Title = "Şehir", PropertyName = "CityName" },
 new ColumnDef { Title = "İlçe", PropertyName = "DistrictName" }
 };
 
-    private List<InspectorField> inspectorFields = new()
+    private List<InspectorField> inspectorFields = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        inspectorFields = new()
 {
 new InspectorField { Label = "Yerel Adı", PropertyName = "LocalName", Editable = true },
 new InspectorField { Label = "Mevki", PropertyName = "Location", Editable = true },
-new InspectorField { Label = "Şehir", PropertyName = "CityName", Editable = false },
-new InspectorField { Label = "İlçe", PropertyName = "DistrictName", Editable = false }
+new InspectorField { Label = "Şehir", PropertyName = "CityName", Editable = true, RenderEditControl = CitySelector },
+new InspectorField { Label = "İlçe", PropertyName = "DistrictName", Editable = true, RenderEditControl =
+DistrictSelector }
 };
-
-    protected override async Task OnInitializedAsync() => await LoadDataWithFilter();
+        await LoadDataWithFilter();
+    }
 
     private async Task LoadDataWithFilter()
     {
@@ -125,6 +130,7 @@ new InspectorField { Label = "İlçe", PropertyName = "DistrictName", Editable =
         errorMessage = null;
         try
         {
+            await EnsureOptionsAsync();
             var response = await Http.PostAsJsonAsync("api/aktivitelokalite/query", currentFilter);
             if (response.IsSuccessStatusCode)
             {
@@ -165,7 +171,14 @@ new InspectorField { Label = "İlçe", PropertyName = "DistrictName", Editable =
         await LoadDataWithFilter();
     }
 
-    private void OpenAddModal() { editingItem = new(); isEditingInModal = false; showAddModal = true; }
+    private void OpenAddModal()
+    {
+        editingItem = new();
+        EditingCityId = null;
+        EditingDistrictId = null;
+        isEditingInModal = false;
+        showAddModal = true;
+    }
     private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
     private async Task HandleCreateOrUpdate()
@@ -205,6 +218,7 @@ new InspectorField { Label = "İlçe", PropertyName = "DistrictName", Editable =
     {
         try
         {
+            SyncNames(item);
             var r = await AuthHttp.PutAsJsonAsync($"api/aktivitelokalite/{item.Id}", item);
             if (r.IsSuccessStatusCode)
             {
@@ -249,4 +263,75 @@ new InspectorField { Label = "İlçe", PropertyName = "DistrictName", Editable =
             catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
         }
     }
+
+    private List<SelectOption> cityOptions = new();
+    private List<SelectOption> districtOptions = new();
+
+    private long? EditingCityId
+    {
+        get => editingItem.CityId == 0 ? null : editingItem.CityId;
+        set
+        {
+            editingItem.CityId = value.HasValue ? (int)value.Value : 0;
+            editingItem.CityName = cityOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private long? EditingDistrictId
+    {
+        get => editingItem.DistrictId == 0 ? null : editingItem.DistrictId;
+        set
+        {
+            editingItem.DistrictId = value.HasValue ? (int)value.Value : 0;
+            editingItem.DistrictName = districtOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private async Task EnsureOptionsAsync()
+    {
+        if (!cityOptions.Any())
+        {
+            var cities = await Http.GetFromJsonAsync<List<SehirViewModel>>("api/sehir") ?? new();
+            cityOptions = cities.OrderBy(c => c.Name).Select(c => new SelectOption(c.Id, c.Name ?? $"Şehir #{c.Id}")).ToList();
+        }
+        if (!districtOptions.Any())
+        {
+            var districts = await Http.GetFromJsonAsync<List<IlceViewModel>>("api/ilce") ?? new();
+            districtOptions = districts.OrderBy(d => d.Name).Select(d => new SelectOption(d.Id, d.Name ?? $"İlçe #{d.Id}")).ToList();
+        }
+    }
+
+    private void SyncNames(AktiviteLokaliteViewModel item)
+    {
+        item.CityName = cityOptions.FirstOrDefault(o => o.Id == item.CityId)?.Name ?? item.CityName;
+        item.DistrictName = districtOptions.FirstOrDefault(o => o.Id == item.DistrictId)?.Name ?? item.DistrictName;
+    }
+
+    private RenderFragment<AktiviteLokaliteViewModel> CitySelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", cityOptions);
+        builder.AddAttribute(2, "Placeholder", "Şehir seçin");
+        builder.AddAttribute(3, "Value", (long?)item.CityId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id =>
+    {
+        item.CityId = id.HasValue ? (int)id.Value : 0;
+        SyncNames(item);
+    }));
+        builder.CloseComponent();
+    };
+
+    private RenderFragment<AktiviteLokaliteViewModel> DistrictSelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", districtOptions);
+        builder.AddAttribute(2, "Placeholder", "İlçe seçin");
+        builder.AddAttribute(3, "Value", (long?)item.DistrictId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id =>
+    {
+        item.DistrictId = id.HasValue ? (int)id.Value : 0;
+        SyncNames(item);
+    }));
+        builder.CloseComponent();
+    };
 }

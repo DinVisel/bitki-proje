@@ -65,16 +65,17 @@
                     <input type="text" class="form-control" @bind="editingItem.Status" />
                 </div>
                 <div class="form-group mb-3">
-                    <label class="form-label">Literatür ID</label>
-                    <input type="number" class="form-control" @bind="editingItem.LiteratureId" />
+                    <label class="form-label">Literatür *</label>
+                    <SearchableSelect Options="literatureOptions" Placeholder="Literatür seçin"
+                        @bind-Value="EditingLiteratureId" />
                 </div>
                 <div class="form-group mb-3">
-                    <label class="form-label">Familya ID</label>
-                    <input type="number" class="form-control" @bind="editingItem.FamilyId" />
+                    <label class="form-label">Familya *</label>
+                    <SearchableSelect Options="familyOptions" Placeholder="Familya seçin" @bind-Value="EditingFamilyId" />
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Genus ID</label>
-                    <input type="number" class="form-control" @bind="editingItem.GenusId" />
+                    <label class="form-label">Genus *</label>
+                    <SearchableSelect Options="genusOptions" Placeholder="Genus seçin" @bind-Value="EditingGenusId" />
                 </div>
             </div>
             <div class="modal-footer">
@@ -114,16 +115,22 @@ new ColumnDef { Title = "Familya", PropertyName = "FamilyName" },
 new ColumnDef { Title = "Genus", PropertyName = "GenusName" }
 };
 
-    private List<InspectorField> inspectorFields = new()
+    private List<InspectorField> inspectorFields = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        inspectorFields = new()
 {
 new InspectorField { Label = "Türkçe Ad", PropertyName = "TurkishName", Editable = true },
 new InspectorField { Label = "Durum", PropertyName = "Status", Editable = true },
-new InspectorField { Label = "Literatür", PropertyName = "LiteratureName", Editable = false },
-new InspectorField { Label = "Familya", PropertyName = "FamilyName", Editable = false },
-new InspectorField { Label = "Genus", PropertyName = "GenusName", Editable = false }
+new InspectorField { Label = "Literatür", PropertyName = "LiteratureName", Editable = true, RenderEditControl =
+LiteratureSelector },
+new InspectorField { Label = "Familya", PropertyName = "FamilyName", Editable = true, RenderEditControl = FamilySelector
+},
+new InspectorField { Label = "Genus", PropertyName = "GenusName", Editable = true, RenderEditControl = GenusSelector }
 };
-
-    protected override async Task OnInitializedAsync() => await LoadDataWithFilter();
+        await LoadDataWithFilter();
+    }
 
     private async Task LoadDataWithFilter()
     {
@@ -131,6 +138,7 @@ new InspectorField { Label = "Genus", PropertyName = "GenusName", Editable = fal
         errorMessage = null;
         try
         {
+            await EnsureOptionsAsync();
             var response = await Http.PostAsJsonAsync("api/aktivitebitkilit/query", currentFilter);
             if (response.IsSuccessStatusCode)
             {
@@ -171,7 +179,15 @@ new InspectorField { Label = "Genus", PropertyName = "GenusName", Editable = fal
         await LoadDataWithFilter();
     }
 
-    private void OpenAddModal() { editingItem = new(); isEditingInModal = false; showAddModal = true; }
+    private void OpenAddModal()
+    {
+        editingItem = new();
+        EditingLiteratureId = null;
+        EditingFamilyId = null;
+        EditingGenusId = null;
+        isEditingInModal = false;
+        showAddModal = true;
+    }
     private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
     private async Task HandleCreateOrUpdate()
@@ -211,6 +227,7 @@ new InspectorField { Label = "Genus", PropertyName = "GenusName", Editable = fal
     {
         try
         {
+            SyncNames(item);
             var response = await AuthHttp.PutAsJsonAsync($"api/aktivitebitkilit/{item.Id}", item);
             if (response.IsSuccessStatusCode)
             {
@@ -255,4 +272,107 @@ new InspectorField { Label = "Genus", PropertyName = "GenusName", Editable = fal
             catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
         }
     }
+
+    private List<SelectOption> literatureOptions = new();
+    private List<SelectOption> familyOptions = new();
+    private List<SelectOption> genusOptions = new();
+
+    private long? EditingLiteratureId
+    {
+        get => editingItem.LiteratureId == 0 ? null : editingItem.LiteratureId;
+        set
+        {
+            editingItem.LiteratureId = value.HasValue ? (int)value.Value : 0;
+            editingItem.LiteratureName = literatureOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private long? EditingFamilyId
+    {
+        get => editingItem.FamilyId == 0 ? null : editingItem.FamilyId;
+        set
+        {
+            editingItem.FamilyId = value.HasValue ? (int)value.Value : 0;
+            editingItem.FamilyName = familyOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private long? EditingGenusId
+    {
+        get => editingItem.GenusId == 0 ? null : editingItem.GenusId;
+        set
+        {
+            editingItem.GenusId = value.HasValue ? (int)value.Value : 0;
+            editingItem.GenusName = genusOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private async Task EnsureOptionsAsync()
+    {
+        if (!literatureOptions.Any())
+        {
+            var literatures = await Http.GetFromJsonAsync<List<LiteraturViewModel>>("api/literatur") ?? new();
+            literatureOptions = literatures.OrderBy(l => l.ResearchName).Select(l => new SelectOption(l.Id, l.ResearchName ??
+            $"Literatür #{l.Id}")).ToList();
+        }
+        if (!familyOptions.Any())
+        {
+            var families = await Http.GetFromJsonAsync<List<FamilyaViewModel>>("api/familya") ?? new();
+            familyOptions = families.OrderBy(f => f.Name).Select(f => new SelectOption(f.Id, f.Name ?? $"Familya #{f.Id}")).ToList();
+        }
+        if (!genusOptions.Any())
+        {
+            var genera = await Http.GetFromJsonAsync<List<GenusViewModel>>("api/genus") ?? new();
+            genusOptions = genera.OrderBy(g => g.Name).Select(g => new SelectOption(g.Id, g.Name ?? $"Genus #{g.Id}")).ToList();
+        }
+    }
+
+    private void SyncNames(AktiviteBitkilitViewModel item)
+    {
+        item.LiteratureName = literatureOptions.FirstOrDefault(o => o.Id == item.LiteratureId)?.Name ?? item.LiteratureName;
+        item.FamilyName = familyOptions.FirstOrDefault(o => o.Id == item.FamilyId)?.Name ?? item.FamilyName;
+        item.GenusName = genusOptions.FirstOrDefault(o => o.Id == item.GenusId)?.Name ?? item.GenusName;
+    }
+
+    private RenderFragment<AktiviteBitkilitViewModel> LiteratureSelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", literatureOptions);
+        builder.AddAttribute(2, "Placeholder", "Literatür seçin");
+        builder.AddAttribute(3, "Value", (long?)item.LiteratureId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id =>
+    {
+        item.LiteratureId = id.HasValue ? (int)id.Value : 0;
+        SyncNames(item);
+    }));
+        builder.CloseComponent();
+    };
+
+    private RenderFragment<AktiviteBitkilitViewModel> FamilySelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", familyOptions);
+        builder.AddAttribute(2, "Placeholder", "Familya seçin");
+        builder.AddAttribute(3, "Value", (long?)item.FamilyId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id =>
+    {
+        item.FamilyId = id.HasValue ? (int)id.Value : 0;
+        SyncNames(item);
+    }));
+        builder.CloseComponent();
+    };
+
+    private RenderFragment<AktiviteBitkilitViewModel> GenusSelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", genusOptions);
+        builder.AddAttribute(2, "Placeholder", "Genus seçin");
+        builder.AddAttribute(3, "Value", (long?)item.GenusId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id =>
+    {
+        item.GenusId = id.HasValue ? (int)id.Value : 0;
+        SyncNames(item);
+    }));
+        builder.CloseComponent();
+    };
 }

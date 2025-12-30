@@ -61,8 +61,8 @@
                     <input type="text" class="form-control" @bind="editingItem.Name" />
                 </div>
                 <div class="form-group mb-3">
-                    <label class="form-label">Familya ID</label>
-                    <input type="number" class="form-control" @bind="editingItem.FamilyId" />
+                    <label class="form-label">Familya *</label>
+                    <SearchableSelect Options="familyOptions" Placeholder="Familya seçin" @bind-Value="EditingFamilyId" />
                 </div>
                 <div class="form-group">
                     <label class="form-label">Açıklama</label>
@@ -104,14 +104,19 @@ new ColumnDef { Title = "Familya", PropertyName = "FamilyName" },
 new ColumnDef { Title = "Açıklama", PropertyName = "Description" }
 };
 
-    private List<InspectorField> inspectorFields = new()
+    private List<InspectorField> inspectorFields = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        inspectorFields = new()
 {
 new InspectorField { Label = "Ad", PropertyName = "Name", Editable = true },
-new InspectorField { Label = "Familya", PropertyName = "FamilyName", Editable = false },
+new InspectorField { Label = "Familya", PropertyName = "FamilyName", Editable = true, RenderEditControl = FamilySelector
+},
 new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true }
 };
-
-    protected override async Task OnInitializedAsync() => await LoadDataWithFilter();
+        await LoadDataWithFilter();
+    }
 
     private async Task LoadDataWithFilter()
     {
@@ -119,6 +124,7 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
         errorMessage = null;
         try
         {
+            await EnsureOptionsAsync();
             var response = await Http.PostAsJsonAsync("api/genus/query", currentFilter);
             if (response.IsSuccessStatusCode)
             {
@@ -159,7 +165,11 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
         await LoadDataWithFilter();
     }
 
-    private void OpenAddModal() { editingItem = new(); isEditingInModal = false; showAddModal = true; }
+    private void OpenAddModal()
+    {
+        editingItem = new(); EditingFamilyId = null; isEditingInModal = false; showAddModal =
+        true;
+    }
     private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
     private async Task HandleCreateOrUpdate()
@@ -243,4 +253,39 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
             catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
         }
     }
+
+    private List<SelectOption> familyOptions = new();
+
+    private long? EditingFamilyId
+    {
+        get => editingItem.FamilyId == 0 ? null : editingItem.FamilyId;
+        set
+        {
+            editingItem.FamilyId = value.HasValue ? (int)value.Value : 0;
+            editingItem.FamilyName = familyOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private async Task EnsureOptionsAsync()
+    {
+        if (!familyOptions.Any())
+        {
+            var families = await Http.GetFromJsonAsync<List<FamilyaViewModel>>("api/familya") ?? new();
+            familyOptions = families.OrderBy(f => f.Name).Select(f => new SelectOption(f.Id, f.Name ?? $"Familya #{f.Id}")).ToList();
+        }
+    }
+
+    private RenderFragment<GenusViewModel> FamilySelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", familyOptions);
+        builder.AddAttribute(2, "Placeholder", "Familya seçin");
+        builder.AddAttribute(3, "Value", (long?)item.FamilyId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id =>
+    {
+        item.FamilyId = id.HasValue ? (int)id.Value : 0;
+        item.FamilyName = familyOptions.FirstOrDefault(o => o.Id == id)?.Name ?? item.FamilyName;
+    }));
+        builder.CloseComponent();
+    };
 }

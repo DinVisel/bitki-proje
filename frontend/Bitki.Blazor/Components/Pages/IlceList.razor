@@ -98,13 +98,17 @@ new ColumnDef { Title = "Ad", PropertyName = "Name" },
 new ColumnDef { Title = "Şehir", PropertyName = "CityName" }
 };
 
-    private List<InspectorField> inspectorFields = new()
+    private List<InspectorField> inspectorFields = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        inspectorFields = new()
 {
 new InspectorField { Label = "Ad", PropertyName = "Name", Editable = true },
 new InspectorField { Label = "Şehir", PropertyName = "CityName", Editable = true, RenderEditControl = CitySelector }
 };
-
-    protected override async Task OnInitializedAsync() => await LoadDataWithFilter();
+        await LoadDataWithFilter();
+    }
 
     private async Task LoadDataWithFilter()
     {
@@ -153,7 +157,10 @@ new InspectorField { Label = "Şehir", PropertyName = "CityName", Editable = tru
         await LoadDataWithFilter();
     }
 
-    private void OpenAddModal() { editingItem = new(); EditingCityId = null; isEditingInModal = false; showAddModal = true; }
+    private void OpenAddModal()
+    {
+        editingItem = new(); EditingCityId = null; isEditingInModal = false; showAddModal = true;
+    }
     private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
     private async Task HandleCreateOrUpdate()
@@ -265,7 +272,11 @@ new InspectorField { Label = "Şehir", PropertyName = "CityName", Editable = tru
         builder.AddAttribute(1, "Options", cityOptions);
         builder.AddAttribute(2, "Placeholder", "Şehir seçin");
         builder.AddAttribute(3, "Value", (long?)item.CityId);
-        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id => { item.CityId = id.HasValue ? (int)id.Value : 0; item.CityName = cityOptions.FirstOrDefault(o => o.Id == id)?.Name ?? item.CityName; }));
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id =>
+        {
+            item.CityId = id.HasValue ?
+    (int)id.Value : 0; item.CityName = cityOptions.FirstOrDefault(o => o.Id == id)?.Name ?? item.CityName;
+        }));
         builder.CloseComponent();
     };
 }
