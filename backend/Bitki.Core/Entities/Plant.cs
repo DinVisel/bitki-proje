@@ -8,6 +8,8 @@ namespace Bitki.Core.Entities
         public string? Name { get; set; }
         public string? LatinName { get; set; }
         public string? Family { get; set; }
+        public string? FamilyName { get; set; }
+        public string? GenusName { get; set; }
         public string? Description { get; set; }
         public string? Habitat { get; set; }
     }

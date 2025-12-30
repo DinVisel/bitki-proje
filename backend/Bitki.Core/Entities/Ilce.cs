@@ -5,5 +5,6 @@ namespace Bitki.Core.Entities
         public long Id { get; set; }
         public string Name { get; set; } = null!;
         public int CityId { get; set; }
+        public string? CityName { get; set; }
     }
 }

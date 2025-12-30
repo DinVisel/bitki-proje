@@ -99,17 +99,15 @@
 
     private List<ColumnDef> columns = new()
 {
-new ColumnDef { Title = "ID", PropertyName = "Id" },
 new ColumnDef { Title = "Ad", PropertyName = "Name" },
-new ColumnDef { Title = "Familya ID", PropertyName = "FamilyId" },
+new ColumnDef { Title = "Familya", PropertyName = "FamilyName" },
 new ColumnDef { Title = "Açıklama", PropertyName = "Description" }
 };
 
     private List<InspectorField> inspectorFields = new()
 {
-new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
 new InspectorField { Label = "Ad", PropertyName = "Name", Editable = true },
-new InspectorField { Label = "Familya ID", PropertyName = "FamilyId", Editable = true },
+new InspectorField { Label = "Familya", PropertyName = "FamilyName", Editable = false },
 new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true }
 };
 

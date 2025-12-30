@@ -19,16 +19,18 @@ namespace Bitki.Infrastructure.Repositories
             _connectionFactory = connectionFactory;
 
             // Define allowed and searchable columns
-            var allowedColumns = new[] { "bitkiid", "turkce", "bitki", "aciklama" };
-            var searchableColumns = new[] { "turkce", "bitki", "aciklama" };
+            var allowedColumns = new[] { "bitkiid", "turkce", "bitki", "aciklama", "familya", "genus" };
+            var searchableColumns = new[] { "turkce", "bitki", "aciklama", "familya", "genus" };
 
             // Map UI property names → DB column names
             var columnMappings = new Dictionary<string, string>
             {
-                { "Id", "bitkiid" },
-                { "Name", "turkce" },
-                { "LatinName", "bitki" },
-                { "Description", "aciklama" }
+                { "Id", "b.bitkiid" },
+                { "Name", "b.turkce" },
+                { "LatinName", "b.bitki" },
+                { "Description", "b.aciklama" },
+                { "FamilyName", "f.familya" },
+                { "GenusName", "g.genus" }
             };
             _queryBuilder = new QueryBuilder("bitki", allowedColumns, searchableColumns, columnMappings);
         }
@@ -38,11 +40,15 @@ namespace Bitki.Infrastructure.Repositories
             using var connection = _connectionFactory.CreateConnection();
             var sql = @"
                 SELECT 
-                    bitkiid AS Id, 
-                    turkce AS Name, 
-                    bitki AS LatinName, 
-                    aciklama AS Description
-                FROM dbo.bitki";
+                    b.bitkiid AS Id, 
+                    b.turkce AS Name, 
+                    b.bitki AS LatinName, 
+                    b.aciklama AS Description,
+                    f.familya AS FamilyName,
+                    g.genus AS GenusName
+                FROM dbo.bitki b
+                LEFT JOIN dbo.genus g ON b.genusno = g.genusid
+                LEFT JOIN dbo.familya f ON g.familyano = f.familyaid";
             return await connection.QueryAsync<Plant>(sql);
         }
 
@@ -374,7 +380,19 @@ namespace Bitki.Infrastructure.Repositories
             var parameters = new DynamicParameters();
 
             // Build SELECT query
-            var selectColumns = "bitkiid AS Id, turkce AS Name, bitki AS LatinName, aciklama AS Description";
+            var selectColumns = @"
+                b.bitkiid AS Id, 
+                b.turkce AS Name, 
+                b.bitki AS LatinName, 
+                b.aciklama AS Description,
+                f.familya AS FamilyName,
+                g.genus AS GenusName";
+
+            var customJoin = @"
+                dbo.bitki b
+                LEFT JOIN dbo.genus g ON b.genusno = g.genusid
+                LEFT JOIN dbo.familya f ON g.familyano = f.familyaid";
+
             var selectSql = _queryBuilder.BuildSelectQuery(
                 selectColumns,
                 request.SearchText,
@@ -384,7 +402,8 @@ namespace Bitki.Infrastructure.Repositories
                 parameters,
                 request.IncludeDeleted,
                 request.PageNumber,
-                request.PageSize
+                request.PageSize,
+                customJoin
             );
 
             // Build COUNT query for total records
@@ -395,7 +414,8 @@ namespace Bitki.Infrastructure.Repositories
                 request.SearchText,
                 request.Filters,
                 parameters,
-                request.IncludeDeleted
+                request.IncludeDeleted,
+                customJoin
             );
 
             // Execute queries

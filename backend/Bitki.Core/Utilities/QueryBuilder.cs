@@ -126,11 +126,17 @@ namespace Bitki.Core.Utilities
             DynamicParameters parameters,
             bool includeDeleted = false,
             int? pageNumber = null,
-            int? pageSize = null)
+            int? pageSize = null,
+            string? customTableOrJoin = null)
         {
             var sql = new StringBuilder();
             sql.AppendLine($"SELECT {selectColumns}");
-            sql.AppendLine($"FROM {_schema}.{_tableName}");
+
+            var fromClause = !string.IsNullOrWhiteSpace(customTableOrJoin)
+                ? customTableOrJoin
+                : $"{_schema}.{_tableName}";
+
+            sql.AppendLine($"FROM {fromClause}");
 
             var whereClauses = new List<string>();
 
@@ -183,11 +189,17 @@ namespace Bitki.Core.Utilities
             string? searchText,
             Dictionary<string, string>? filters,
             DynamicParameters parameters,
-            bool includeDeleted = false)
+            bool includeDeleted = false,
+            string? customTableOrJoin = null)
         {
             var sql = new StringBuilder();
             sql.AppendLine($"SELECT COUNT(*)");
-            sql.AppendLine($"FROM {_schema}.{_tableName}");
+
+            var fromClause = !string.IsNullOrWhiteSpace(customTableOrJoin)
+                ? customTableOrJoin
+                : $"{_schema}.{_tableName}";
+
+            sql.AppendLine($"FROM {fromClause}");
 
             var whereClauses = new List<string>();
 

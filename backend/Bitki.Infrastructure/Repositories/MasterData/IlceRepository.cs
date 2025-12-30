@@ -17,13 +17,14 @@ namespace Bitki.Infrastructure.Repositories.MasterData
         {
             _connectionFactory = connectionFactory;
 
-            var allowedColumns = new[] { "ilceid", "ilce", "sehirno" };
-            var searchableColumns = new[] { "ilce" };
+            var allowedColumns = new[] { "ilceid", "ilce", "sehirno", "sehir" };
+            var searchableColumns = new[] { "ilce", "sehir" };
             var columnMappings = new Dictionary<string, string>
             {
-                { "Id", "ilceid" },
-                { "Name", "ilce" },
-                { "CityId", "sehirno" }
+                { "Id", "i.ilceid" },
+                { "Name", "i.ilce" },
+                { "CityId", "i.sehirno" },
+                { "CityName", "s.sehir" }
             };
 
             _queryBuilder = new QueryBuilder("ilce", allowedColumns, searchableColumns, columnMappings);
@@ -43,7 +44,9 @@ namespace Bitki.Infrastructure.Repositories.MasterData
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
-            var selectColumns = "ilceid AS Id, ilce AS Name, sehirno AS CityId";
+            var selectColumns = "i.ilceid AS Id, i.ilce AS Name, i.sehirno AS CityId, s.sehir AS CityName";
+            var customJoin = "dbo.ilce i LEFT JOIN dbo.sehir s ON i.sehirno = s.sehirid";
+
             var selectSql = _queryBuilder.BuildSelectQuery(
                 selectColumns,
                 request.SearchText,
@@ -53,7 +56,8 @@ namespace Bitki.Infrastructure.Repositories.MasterData
                 parameters,
                 request.IncludeDeleted,
                 request.PageNumber,
-                request.PageSize
+                request.PageSize,
+                customJoin
             );
 
             var totalCountSql = "SELECT COUNT(*) FROM dbo.ilce";
@@ -61,7 +65,8 @@ namespace Bitki.Infrastructure.Repositories.MasterData
                 request.SearchText,
                 request.Filters,
                 parameters,
-                request.IncludeDeleted
+                request.IncludeDeleted,
+                customJoin
             );
 
             var data = await connection.QueryAsync<Ilce>(selectSql, parameters);

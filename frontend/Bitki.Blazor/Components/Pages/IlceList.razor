@@ -94,16 +94,14 @@
 
     private List<ColumnDef> columns = new()
 {
-new ColumnDef { Title = "ID", PropertyName = "Id" },
 new ColumnDef { Title = "Ad", PropertyName = "Name" },
-new ColumnDef { Title = "Şehir ID", PropertyName = "CityId" }
+new ColumnDef { Title = "Şehir", PropertyName = "CityName" }
 };
 
     private List<InspectorField> inspectorFields = new()
 {
-new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
 new InspectorField { Label = "Ad", PropertyName = "Name", Editable = true },
-new InspectorField { Label = "Şehir ID", PropertyName = "CityId", Editable = true }
+new InspectorField { Label = "Şehir", PropertyName = "CityName", Editable = false }
 };
 
     protected override async Task OnInitializedAsync() => await LoadDataWithFilter();

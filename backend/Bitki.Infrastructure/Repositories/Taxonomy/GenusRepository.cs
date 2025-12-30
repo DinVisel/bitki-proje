@@ -17,16 +17,17 @@ namespace Bitki.Infrastructure.Repositories.Taxonomy
         {
             _connectionFactory = connectionFactory;
 
-            var allowedColumns = new[] { "genusid", "genus", "familyano", "aciklama" };
-            var searchableColumns = new[] { "genus", "aciklama" };
+            var allowedColumns = new[] { "genusid", "genus", "familyano", "aciklama", "familya" };
+            var searchableColumns = new[] { "genus", "aciklama", "familya" };
 
             // Map UI property names → DB column names
             var columnMappings = new Dictionary<string, string>
             {
-                { "Id", "genusid" },
-                { "Name", "genus" },
-                { "FamilyId", "familyano" },
-                { "Description", "aciklama" }
+                { "Id", "g.genusid" },
+                { "Name", "g.genus" },
+                { "FamilyId", "g.familyano" },
+                { "Description", "g.aciklama" },
+                { "FamilyName", "f.familya" }
             };
 
             _queryBuilder = new QueryBuilder("genus", allowedColumns, searchableColumns, columnMappings);
@@ -46,7 +47,9 @@ namespace Bitki.Infrastructure.Repositories.Taxonomy
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
-            var selectColumns = "genusid AS Id, genus AS Name, familyano AS FamilyId, aciklama AS Description";
+            var selectColumns = "g.genusid AS Id, g.genus AS Name, g.familyano AS FamilyId, g.aciklama AS Description, f.familya AS FamilyName";
+            var customJoin = "dbo.genus g LEFT JOIN dbo.familya f ON g.familyano = f.familyaid";
+
             var selectSql = _queryBuilder.BuildSelectQuery(
                 selectColumns,
                 request.SearchText,
@@ -56,11 +59,18 @@ namespace Bitki.Infrastructure.Repositories.Taxonomy
                 parameters,
                 request.IncludeDeleted,
                 request.PageNumber,
-                request.PageSize
+                request.PageSize,
+                customJoin
             );
 
             var totalCountSql = "SELECT COUNT(*) FROM dbo.genus";
-            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted);
+            var filteredCountSql = _queryBuilder.BuildCountQuery(
+                request.SearchText,
+                request.Filters,
+                parameters,
+                request.IncludeDeleted,
+                customJoin
+            );
 
             var data = await connection.QueryAsync<Genus>(selectSql, parameters);
             var totalCount = await connection.ExecuteScalarAsync<int>(totalCountSql);

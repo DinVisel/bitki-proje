@@ -325,20 +325,20 @@
 
     private List<ColumnDef> columns = new()
 {
-new ColumnDef { Title = "ID", PropertyName = "Id" },
-new ColumnDef { Title = "Türkçe Ad", PropertyName = "Name" },
-new ColumnDef { Title = "Latince Ad", PropertyName = "LatinName" },
-new ColumnDef { Title = "Açıklama", PropertyName = "Description" }
+    new ColumnDef { Title = "Türkçe Ad", PropertyName = "Name" },
+    new ColumnDef { Title = "Latince Ad", PropertyName = "LatinName" },
+    new ColumnDef { Title = "Aile", PropertyName = "FamilyName" },
+    new ColumnDef { Title = "Cins", PropertyName = "GenusName" }
 };
 
     private List<InspectorField> inspectorFields = new()
 {
-new InspectorField { Label = "ID", PropertyName = "Id", Editable = false, FieldGroup = "Genel Bilgiler" },
-new InspectorField { Label = "Türkçe Ad", PropertyName = "Name", Editable = true, FieldGroup = "Genel Bilgiler" },
-new InspectorField { Label = "Latince Ad", PropertyName = "LatinName", Editable = true, FieldGroup = "Taksonomi" },
-new InspectorField { Label = "Aile", PropertyName = "Family", Editable = true, FieldGroup = "Taksonomi" },
-new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true, FieldGroup = "Ek Bilgiler" },
-new InspectorField { Label = "Habitat", PropertyName = "Habitat", Editable = true, FieldGroup = "Ek Bilgiler" }
+    new InspectorField { Label = "Türkçe Ad", PropertyName = "Name", Editable = true, FieldGroup = "Genel Bilgiler" },
+    new InspectorField { Label = "Latince Ad", PropertyName = "LatinName", Editable = true, FieldGroup = "Taksonomi" },
+    new InspectorField { Label = "Aile", PropertyName = "FamilyName", Editable = true, FieldGroup = "Taksonomi" },
+    new InspectorField { Label = "Cins", PropertyName = "GenusName", Editable = true, FieldGroup = "Taksonomi" },
+    new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true, FieldGroup = "Ek Bilgiler" },
+    new InspectorField { Label = "Habitat", PropertyName = "Habitat", Editable = true, FieldGroup = "Ek Bilgiler" }
 };
 
     protected override async Task OnInitializedAsync()
