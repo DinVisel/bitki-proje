@@ -34,8 +34,8 @@
             FilteredCount="filteredCount" OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="AktiviteBitkilitViewModel" Item="selectedItem"
-                    Title="@($"Aktivite Bitki Literatür - {selectedItem.TurkishName}")" Fields="inspectorFields"
-                    ViewOnly="true" />
+                    Title="@($"Aktivite-Bitki - {selectedItem.TurkishName}")" Fields="inspectorFields" ViewOnly="false"
+                    OnSave="HandleSave" OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
 

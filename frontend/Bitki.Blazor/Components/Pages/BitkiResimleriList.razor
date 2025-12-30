@@ -34,7 +34,8 @@
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="BitkiResimleriViewModel" Item="selectedItem"
-                    Title="@($"Resim - ID: {selectedItem.Id}")" Fields="inspectorFields" ViewOnly="true">
+                    Title="@($"Resim - ID: {selectedItem.Id}")" Fields="inspectorFields" ViewOnly="false"
+                    OnSave="HandleSave" OnDelete="HandleDelete">
                     <AdditionalContent Context="item">
                         @if (!string.IsNullOrEmpty(item.ImageLocation))
                         {

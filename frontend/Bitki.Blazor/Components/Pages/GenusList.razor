@@ -34,7 +34,8 @@
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="GenusViewModel" Item="selectedItem"
-                    Title="@($"Genus Detayları - {selectedItem.Name}")" Fields="inspectorFields" ViewOnly="true" />
+                    Title="@($"Genus Detayları - {selectedItem.Name}")" Fields="inspectorFields" ViewOnly="false"
+                    OnSave="HandleSave" OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
 

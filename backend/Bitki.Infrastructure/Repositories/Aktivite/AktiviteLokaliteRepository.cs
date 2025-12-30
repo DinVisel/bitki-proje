@@ -27,7 +27,7 @@ namespace Bitki.Infrastructure.Repositories.Aktivite
                 { "CityName", "s.sehir" },
                 { "DistrictName", "i.ilce" }
             };
-            var allowedColumns = new[] { "id", "yereladi", "mevki", "sehirno", "ilceno", "sehir", "ilce" };
+            var allowedColumns = new[] { "id", "yereladi", "mevki", "sehirno", "ilceno", "sehir", "ilce", "al.id", "al.yereladi", "al.mevki", "al.sehirno", "al.ilceno", "s.sehir", "i.ilce" };
             var searchableColumns = new[] { "yereladi", "mevki", "sehir", "ilce" };
             _queryBuilder = new QueryBuilder("aktivitelokalite", allowedColumns, searchableColumns, columnMappings);
         }

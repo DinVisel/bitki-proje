@@ -34,7 +34,8 @@
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="AktiviteCalismaViewModel" Item="selectedItem"
-                    Title="@($"Aktivite Çalışma - ID: {selectedItem.Id}")" Fields="inspectorFields" ViewOnly="true" />
+                    Title="@($"Aktivite Çalışma - {selectedItem.Description ?? selectedItem.Id.ToString()}")"
+                    Fields="inspectorFields" ViewOnly="false" OnSave="HandleSave" OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
 

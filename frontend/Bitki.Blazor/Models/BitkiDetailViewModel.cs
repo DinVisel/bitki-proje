@@ -86,9 +86,15 @@ namespace Bitki.Blazor.Models
         public string? Endemism { get; set; }
         public string? EndemismDescription { get; set; }
         public string? FloweringTime { get; set; }
+        public int? FirstFloweringTime { get; set; }
+        public int? LastFloweringTime { get; set; }
         public string? Habitat { get; set; }
         public string? Altitude { get; set; }
+        public int? MinAltitude { get; set; }
+        public int? MaxAltitude { get; set; }
         public string? Distribution { get; set; }
+        public string? DistributionTurkey { get; set; }
+        public string? DistributionWorld { get; set; }
         public string? Phytogeography { get; set; }
 
         // Other Information

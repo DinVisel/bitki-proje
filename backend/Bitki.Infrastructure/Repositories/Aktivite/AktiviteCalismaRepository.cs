@@ -27,7 +27,7 @@ namespace Bitki.Infrastructure.Repositories.Aktivite
                 { "LocalityName", "al.yereladi" },
                 { "EffectName", "ae.adi" }
             };
-            var allowedColumns = new[] { "id", "aciklama", "tariholusturma", "lokaliteno", "etkino", "yereladi", "adi" };
+            var allowedColumns = new[] { "id", "aciklama", "tariholusturma", "lokaliteno", "etkino", "yereladi", "adi", "ac.id", "ac.aciklama", "ac.tariholusturma", "ac.lokaliteno", "ac.etkino", "al.yereladi", "ae.adi" };
             var searchableColumns = new[] { "aciklama", "yereladi", "adi" };
             _queryBuilder = new QueryBuilder("aktivitecalisma", allowedColumns, searchableColumns, columnMappings);
         }

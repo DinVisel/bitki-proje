@@ -34,7 +34,8 @@
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="EtnobitkilitViewModel" Item="selectedItem"
-                    Title="@($"Etnobitkilit - {selectedItem.TurkishName}")" Fields="inspectorFields" ViewOnly="true" />
+                    Title="@($"Etnobitkilit - {selectedItem.TurkishName}")" Fields="inspectorFields" ViewOnly="false"
+                    OnSave="HandleSave" OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
 

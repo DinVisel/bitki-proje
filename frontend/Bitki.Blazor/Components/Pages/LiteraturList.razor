@@ -33,9 +33,8 @@
             ShowSearch="true" IsLoading="isLoading" TotalCount="totalCount" FilteredCount="filteredCount"
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
-                <RecordInspector TItem="LiteraturViewModel" Item="selectedItem"
-                    Title="@($"Literatur Detayları - {selectedItem.AuthorName}")" Fields="inspectorFields"
-                    ViewOnly="true" />
+                <RecordInspector TItem="LiteraturViewModel" Item="selectedItem" Title="@($"Literatür - {selectedItem.Id}")"
+                    Fields="inspectorFields" ViewOnly="false" OnSave="HandleSave" OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
 

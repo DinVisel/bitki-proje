@@ -34,7 +34,8 @@
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="LiteraturKonularViewModel" Item="selectedItem"
-                    Title="@($"Konu - {selectedItem.Topic}")" Fields="inspectorFields" ViewOnly="true" />
+                    Title="@($"Literatür Konusu - {selectedItem.Topic}")" Fields="inspectorFields" ViewOnly="false"
+                    OnSave="HandleSave" OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
 

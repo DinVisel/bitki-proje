@@ -34,7 +34,7 @@
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="IlceViewModel" Item="selectedItem" Title="@($"İlçe - {selectedItem.Name}")"
-                    Fields="inspectorFields" ViewOnly="true" />
+                    Fields="inspectorFields" ViewOnly="false" OnSave="HandleSave" OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
 

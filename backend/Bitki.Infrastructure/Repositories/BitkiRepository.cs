@@ -106,13 +106,19 @@ namespace Bitki.Infrastructure.Repositories
                         THEN CONCAT(b.ilkcicek::text, '-', b.soncicek::text)
                         ELSE NULL 
                     END AS FloweringTime,
+                    b.ilkcicek AS FirstFloweringTime,
+                    b.soncicek AS LastFloweringTime,
                     b.hayatformu AS Habitat,
                     CASE 
                         WHEN b.minyuseklik IS NOT NULL AND b.maxyukseklik IS NOT NULL 
                         THEN CONCAT(b.minyuseklik::text, '-', b.maxyukseklik::text, ' m')
                         ELSE NULL 
                     END AS Altitude,
+                    b.minyuseklik AS MinAltitude,
+                    b.maxyukseklik AS MaxAltitude,
                     CONCAT(COALESCE(b.tdagilim, ''), ' ', COALESCE(b.ddagilim, '')) AS Distribution,
+                    b.tdagilim AS DistributionTurkey,
+                    b.ddagilim AS DistributionWorld,
                     b.davis AS Phytogeography,
                     b.sinonimler AS CommonNames,
                     b.davis AS Notes,
@@ -230,13 +236,19 @@ namespace Bitki.Infrastructure.Repositories
                         THEN CONCAT(b.ilkcicek::text, '-', b.soncicek::text)
                         ELSE NULL 
                     END AS FloweringTime,
+                    b.ilkcicek AS FirstFloweringTime,
+                    b.soncicek AS LastFloweringTime,
                     b.hayatformu AS Habitat,
                     CASE 
                         WHEN b.minyuseklik IS NOT NULL AND b.maxyukseklik IS NOT NULL 
                         THEN CONCAT(b.minyuseklik::text, '-', b.maxyukseklik::text, ' m')
                         ELSE NULL 
                     END AS Altitude,
+                    b.minyuseklik AS MinAltitude,
+                    b.maxyukseklik AS MaxAltitude,
                     CONCAT(COALESCE(b.tdagilim, ''), ' ', COALESCE(b.ddagilim, '')) AS Distribution,
+                    b.tdagilim AS DistributionTurkey,
+                    b.ddagilim AS DistributionWorld,
                     b.davis AS Phytogeography,
                     b.sinonimler AS CommonNames,
                     b.davis AS Notes,
@@ -364,7 +376,33 @@ namespace Bitki.Infrastructure.Repositories
                 UPDATE dbo.bitki 
                 SET turkce = @Name, 
                     bitki = @LatinName, 
-                    aciklama = @Description
+                    genusno = @GenusId,
+                    aciklama = @Description,
+                    tibbi = @IsMedicinal,
+                    gida = @IsFood,
+                    kultur = @IsCultural,
+                    zehir = @IsPoisonous,
+                    tf = @IsTurkishFlora,
+                    adalar = @IsIslandSpecies,
+                    varliksupheli = @ExistenceDoubtful,
+                    revizyon = @NeedsRevision,
+                    ex = @IsExtinct,
+                    eksikteshis = @IncompleteIdentification,
+                    kontrolok = @ControlOk,
+                    yayinok = @PublicationOk,
+                    endemizm = @Endemism,
+                    revizyonaciklama = @EndemismDescription,
+                    ilkcicek = @FirstFloweringTime,
+                    soncicek = @LastFloweringTime,
+                    hayatformu = @Habitat,
+                    minyuseklik = @MinAltitude,
+                    maxyukseklik = @MaxAltitude,
+                    tdagilim = @DistributionTurkey,
+                    ddagilim = @DistributionWorld,
+                    davis = @Phytogeography,
+                    sinonimler = @CommonNames,
+                    species = @TaxonName,
+                    subspecies = @TaxonKind
                 WHERE bitkiid = @Id";
             await connection.ExecuteAsync(sql, plant);
         }

@@ -34,7 +34,8 @@
             FilteredCount="filteredCount" OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
                 <RecordInspector TItem="LiteraturBilesikViewModel" Item="selectedItem"
-                    Title="@($"Literatür Bileşik - ID: {selectedItem.Id}")" Fields="inspectorFields" ViewOnly="true" />
+                    Title="@($"Literatür - Bileşik Detayı")" Fields="inspectorFields" ViewOnly="false" OnSave="HandleSave"
+                    OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
 

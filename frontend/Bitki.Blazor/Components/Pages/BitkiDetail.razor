@@ -44,10 +44,21 @@
         @* Header Section *@
         <div class="detail-header">
             <div class="header-content">
-                <h1>@bitki.DisplayName</h1>
-                @if (!string.IsNullOrEmpty(bitki.LatinName) && bitki.LatinName != bitki.TurkishName)
+                @if (!isEditMode)
                 {
-                    <div class="latin-name">@bitki.LatinName</div>
+                    <h1>@bitki.DisplayName</h1>
+                    @if (!string.IsNullOrEmpty(bitki.LatinName) && bitki.LatinName != bitki.TurkishName)
+                    {
+                        <div class="latin-name">@bitki.LatinName</div>
+                    }
+                }
+                else
+                {
+                    <div class="edit-header-inputs">
+                        <InputText @bind-Value="editModel.Name" class="form-control form-control-lg mb-2"
+                            placeholder="Türkçe Ad" />
+                        <InputText @bind-Value="editModel.LatinName" class="form-control mb-2" placeholder="Latince Ad" />
+                    </div>
                 }
                 <div class="metadata-row">
                     <AuthorizeView Roles="Admin">
@@ -140,13 +151,34 @@
                 <CollapsibleSection Title="Temel Bilgiler">
                     <div class="field-grid">
                         <span class="field-label">Türkçe Ad</span>
-                        <span class="field-value">@DisplayValue(bitki.TurkishName)</span>
+                        @if (!isEditMode)
+                        {
+                            <span class="field-value">@DisplayValue(bitki.TurkishName)</span>
+                        }
+                        else
+                        {
+                            <InputText @bind-Value="editModel.Name" class="form-control form-control-sm" />
+                        }
 
                         <span class="field-label">Latince Ad</span>
-                        <span class="field-value">@DisplayValue(bitki.LatinName)</span>
+                        @if (!isEditMode)
+                        {
+                            <span class="field-value">@DisplayValue(bitki.LatinName)</span>
+                        }
+                        else
+                        {
+                            <InputText @bind-Value="editModel.LatinName" class="form-control form-control-sm" />
+                        }
 
                         <span class="field-label">Yerel Adlar</span>
-                        <span class="field-value">@DisplayValue(bitki.CommonNames)</span>
+                        @if (!isEditMode)
+                        {
+                            <span class="field-value">@DisplayValue(bitki.CommonNames)</span>
+                        }
+                        else
+                        {
+                            <InputText @bind-Value="editModel.CommonNames" class="form-control form-control-sm" />
+                        }
 
                         <span class="field-label">Durum</span>
                         <span class="field-value">@DisplayValue(bitki.Status)</span>
@@ -154,31 +186,38 @@
                 </CollapsibleSection>
 
                 <CollapsibleSection Title="Açıklama">
-                    @if (!string.IsNullOrEmpty(bitki.Description))
+                    @if (!isEditMode)
                     {
-                        @if (bitki.Description.Length > 300)
+                        @if (!string.IsNullOrEmpty(bitki.Description))
                         {
-                            <div class="long-text-container">
-                                <div class="description-box long-text-content @(descriptionExpanded ? "expanded" : "")">
-                                    @bitki.Description
+                            @if (bitki.Description.Length > 300)
+                            {
+                                <div class="long-text-container">
+                                    <div class="description-box long-text-content @(descriptionExpanded ? "expanded" : "")">
+                                        @bitki.Description
+                                    </div>
+                                    @if (!descriptionExpanded)
+                                    {
+                                        <div class="long-text-gradient"></div>
+                                    }
+                                    <button class="show-more-btn" @onclick="@(() => descriptionExpanded = !descriptionExpanded)">
+                                        @(descriptionExpanded ? "Daha az göster" : "Daha fazla göster")
+                                    </button>
                                 </div>
-                                @if (!descriptionExpanded)
-                                {
-                                    <div class="long-text-gradient"></div>
-                                }
-                                <button class="show-more-btn" @onclick="@(() => descriptionExpanded = !descriptionExpanded)">
-                                    @(descriptionExpanded ? "Daha az göster" : "Daha fazla göster")
-                                </button>
-                            </div>
+                            }
+                            else
+                            {
+                                <div class="description-box">@bitki.Description</div>
+                            }
                         }
                         else
                         {
-                            <div class="description-box">@bitki.Description</div>
+                            <span class="empty-value">Bilgi bulunmamaktadır</span>
                         }
                     }
                     else
                     {
-                        <span class="empty-value">Bilgi bulunmamaktadır</span>
+                        <InputTextArea @bind-Value="editModel.Description" class="form-control" rows="6" />
                     }
                 </CollapsibleSection>
 
@@ -199,43 +238,73 @@
                 }
 
                 <CollapsibleSection Title="Özellikler" DefaultExpanded="false">
-                    <div class="flags-detail-grid">
-                        <div class="flag-item @(bitki.IsMedicinal ? "active" : "")">
-                            <span class="flag-indicator"></span>Tıbbi Kullanım
-                        </div>
-                        <div class="flag-item @(bitki.IsFood ? "active" : "")">
-                            <span class="flag-indicator"></span>Gıda Olarak
-                        </div>
-                        <div class="flag-item @(bitki.IsCultural ? "active" : "")">
-                            <span class="flag-indicator"></span>Kültür Bitkisi
-                        </div>
-                        <div class="flag-item @(bitki.IsPoisonous ? "active" : "")">
-                            <span class="flag-indicator"></span>Zehirli
-                        </div>
-                        <div class="flag-item @(bitki.IsTurkishFlora ? "active" : "")">
-                            <span class="flag-indicator"></span>Türkiye Florası
-                        </div>
-                        <div class="flag-item @(bitki.IsIslandSpecies ? "active" : "")">
-                            <span class="flag-indicator"></span>Ada Türü
-                        </div>
-                        <div class="flag-item @(bitki.ExistenceDoubtful ? "active" : "")">
-                            <span class="flag-indicator"></span>Varlık Şüpheli
-                        </div>
-                        <div class="flag-item @(bitki.NeedsRevision ? "active" : "")">
-                            <span class="flag-indicator"></span>Revizyon Gerekli
-                        </div>
-                        <div class="flag-item @(bitki.IsExtinct ? "active" : "")">
-                            <span class="flag-indicator"></span>Yok Olmuş
-                        </div>
-                        <div class="flag-item @(bitki.IncompleteIdentification ? "active" : "")">
-                            <span class="flag-indicator"></span>Eksik Teşhis
-                        </div>
-                        <div class="flag-item @(bitki.ControlOk ? "active" : "")">
-                            <span class="flag-indicator"></span>Kontrol OK
-                        </div>
-                        <div class="flag-item @(bitki.PublicationOk ? "active" : "")">
-                            <span class="flag-indicator"></span>Yayın OK
-                        </div>
+                    <div class="flags-detail-grid @(isEditMode ? "edit-flags" : "")">
+                        @if (!isEditMode)
+                        {
+                            <div class="flag-item @(bitki.IsMedicinal ? "active" : "")"><span class="flag-indicator"></span>Tıbbi
+                                Kullanım</div>
+                            <div class="flag-item @(bitki.IsFood ? "active" : "")"><span class="flag-indicator"></span>Gıda Olarak
+                            </div>
+                            <div class="flag-item @(bitki.IsCultural ? "active" : "")"><span class="flag-indicator"></span>Kültür
+                                Bitkisi</div>
+                            <div class="flag-item @(bitki.IsPoisonous ? "active" : "")"><span class="flag-indicator"></span>Zehirli
+                            </div>
+                            <div class="flag-item @(bitki.IsTurkishFlora ? "active" : "")"><span
+                                    class="flag-indicator"></span>Türkiye Florası</div>
+                            <div class="flag-item @(bitki.IsIslandSpecies ? "active" : "")"><span class="flag-indicator"></span>Ada
+                                Türü</div>
+                            <div class="flag-item @(bitki.ExistenceDoubtful ? "active" : "")"><span
+                                    class="flag-indicator"></span>Varlık Şüpheli</div>
+                            <div class="flag-item @(bitki.NeedsRevision ? "active" : "")"><span
+                                    class="flag-indicator"></span>Revizyon Gerekli</div>
+                            <div class="flag-item @(bitki.IsExtinct ? "active" : "")"><span class="flag-indicator"></span>Yok Olmuş
+                            </div>
+                            <div class="flag-item @(bitki.IncompleteIdentification ? "active" : "")"><span
+                                    class="flag-indicator"></span>Eksik Teşhis</div>
+                            <div class="flag-item @(bitki.ControlOk ? "active" : "")"><span class="flag-indicator"></span>Kontrol OK
+                            </div>
+                            <div class="flag-item @(bitki.PublicationOk ? "active" : "")"><span class="flag-indicator"></span>Yayın
+                                OK</div>
+                        }
+                        else
+                        {
+                            <label class="flag-checkbox">
+                                <InputCheckbox @bind-Value="editModel.IsMedicinal" /> Tıbbi Kullanım
+                            </label>
+                            <label class="flag-checkbox">
+                                <InputCheckbox @bind-Value="editModel.IsFood" /> Gıda Olarak
+                            </label>
+                            <label class="flag-checkbox">
+                                <InputCheckbox @bind-Value="editModel.IsCultural" /> Kültür Bitkisi
+                            </label>
+                            <label class="flag-checkbox">
+                                <InputCheckbox @bind-Value="editModel.IsPoisonous" /> Zehirli
+                            </label>
+                            <label class="flag-checkbox">
+                                <InputCheckbox @bind-Value="editModel.IsTurkishFlora" /> Türkiye Florası
+                            </label>
+                            <label class="flag-checkbox">
+                                <InputCheckbox @bind-Value="editModel.IsIslandSpecies" /> Ada Türü
+                            </label>
+                            <label class="flag-checkbox">
+                                <InputCheckbox @bind-Value="editModel.ExistenceDoubtful" /> Varlık Şüpheli
+                            </label>
+                            <label class="flag-checkbox">
+                                <InputCheckbox @bind-Value="editModel.NeedsRevision" /> Revizyon Gerekli
+                            </label>
+                            <label class="flag-checkbox warning">
+                                <InputCheckbox @bind-Value="editModel.IsExtinct" /> Yok Olmuş
+                            </label>
+                            <label class="flag-checkbox">
+                                <InputCheckbox @bind-Value="editModel.IncompleteIdentification" /> Eksik Teşhis
+                            </label>
+                            <label class="flag-checkbox">
+                                <InputCheckbox @bind-Value="editModel.ControlOk" /> Kontrol OK
+                            </label>
+                            <label class="flag-checkbox">
+                                <InputCheckbox @bind-Value="editModel.PublicationOk" /> Yayın OK
+                            </label>
+                        }
                     </div>
                 </CollapsibleSection>
             }
@@ -245,27 +314,68 @@
                     <div class="field-grid">
                         <span class="field-label">Familya</span>
                         <span class="field-value">
-                            @DisplayValue(bitki.FamilyName)
-                            @if (!string.IsNullOrEmpty(bitki.FamilyTurkishName))
+                            @if (!isEditMode)
                             {
-                                <span class="text-muted"> (@bitki.FamilyTurkishName)</span>
+                                @DisplayValue(bitki.FamilyName)
+                                @if (!string.IsNullOrEmpty(bitki.FamilyTurkishName))
+                                {
+                                    <span class="text-muted"> (@bitki.FamilyTurkishName)</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">Genus seçimine göre otomatik belirlenir (@bitki.FamilyName)</span>
                             }
                         </span>
 
                         <span class="field-label">Genus</span>
-                        <span class="field-value">@DisplayValue(bitki.GenusName)</span>
+                        @if (!isEditMode)
+                        {
+                            <span class="field-value">@DisplayValue(bitki.GenusName)</span>
+                        }
+                        else
+                        {
+                            <InputSelect @bind-Value="editModel.GenusId" class="form-control form-control-sm">
+                                <option value="">Seçiniz...</option>
+                                @foreach (var g in genera)
+                                {
+                                    <option value="@((int)g.Id)">@g.Name</option>
+                                }
+                            </InputSelect>
+                        }
 
                         <span class="field-label">Takson Adı</span>
-                        <span class="field-value">@DisplayValue(bitki.TaxonName)</span>
+                        @if (!isEditMode)
+                        {
+                            <span class="field-value">@DisplayValue(bitki.TaxonName)</span>
+                        }
+                        else
+                        {
+                            <InputText @bind-Value="editModel.TaxonName" class="form-control form-control-sm" />
+                        }
 
                         <span class="field-label">Takson Düzeyi</span>
                         <span class="field-value">@DisplayValue(bitki.TaxonLevel)</span>
 
                         <span class="field-label">Takson Cinsi</span>
-                        <span class="field-value">@DisplayValue(bitki.TaxonKind)</span>
+                        @if (!isEditMode)
+                        {
+                            <span class="field-value">@DisplayValue(bitki.TaxonKind)</span>
+                        }
+                        else
+                        {
+                            <InputText @bind-Value="editModel.TaxonKind" class="form-control form-control-sm" />
+                        }
 
                         <span class="field-label">Takson Otörü</span>
-                        <span class="field-value">@DisplayValue(bitki.TaxonOtor)</span>
+                        @if (!isEditMode)
+                        {
+                            <span class="field-value">@DisplayValue(bitki.TaxonOtor)</span>
+                        }
+                        else
+                        {
+                            <span class="field-value text-muted">Otomatiktir</span>
+                        }
                     </div>
                 </CollapsibleSection>
 
@@ -303,41 +413,105 @@
                 <CollapsibleSection Title="Endemizm & Fitocoğrafya">
                     <div class="field-grid">
                         <span class="field-label">Endemizm</span>
-                        <span class="field-value">@DisplayValue(bitki.Endemism)</span>
+                        @if (!isEditMode)
+                        {
+                            <span class="field-value">@DisplayValue(bitki.Endemism)</span>
+                        }
+                        else
+                        {
+                            <InputText @bind-Value="editModel.Endemism" class="form-control form-control-sm" />
+                        }
 
                         <span class="field-label">Endemizm Açıklama</span>
-                        <span class="field-value">@DisplayValue(bitki.EndemismDescription)</span>
+                        @if (!isEditMode)
+                        {
+                            <span class="field-value">@DisplayValue(bitki.EndemismDescription)</span>
+                        }
+                        else
+                        {
+                            <InputText @bind-Value="editModel.EndemismDescription" class="form-control form-control-sm" />
+                        }
 
                         <span class="field-label">Fitocoğrafya</span>
-                        <span class="field-value">@DisplayValue(bitki.Phytogeography)</span>
+                        @if (!isEditMode)
+                        {
+                            <span class="field-value">@DisplayValue(bitki.Phytogeography)</span>
+                        }
+                        else
+                        {
+                            <InputText @bind-Value="editModel.Phytogeography" class="form-control form-control-sm" />
+                        }
 
                         <span class="field-label">Çiçeklenme Zamanı</span>
-                        <span class="field-value">@DisplayValue(bitki.FloweringTime)</span>
+                        @if (!isEditMode)
+                        {
+                            <span class="field-value">@DisplayValue(bitki.FloweringTime)</span>
+                        }
+                        else
+                        {
+                            <div class="d-flex gap-2">
+                                <InputNumber @bind-Value="editModel.FirstFloweringTime" class="form-control form-control-sm"
+                                    placeholder="Başlangıç Ayı (1-12)" />
+                                <span class="align-self-center">-</span>
+                                <InputNumber @bind-Value="editModel.LastFloweringTime" class="form-control form-control-sm"
+                                    placeholder="Bitiş Ayı (1-12)" />
+                            </div>
+                        }
 
                         <span class="field-label">Rakım/Yükseklik</span>
-                        <span class="field-value">@DisplayValue(bitki.Altitude)</span>
+                        @if (!isEditMode)
+                        {
+                            <span class="field-value">@DisplayValue(bitki.Altitude)</span>
+                        }
+                        else
+                        {
+                            <div class="d-flex gap-2">
+                                <InputNumber @bind-Value="editModel.MinAltitude" class="form-control form-control-sm"
+                                    placeholder="Min (m)" />
+                                <span class="align-self-center">-</span>
+                                <InputNumber @bind-Value="editModel.MaxAltitude" class="form-control form-control-sm"
+                                    placeholder="Max (m)" />
+                            </div>
+                        }
                     </div>
                 </CollapsibleSection>
 
                 <CollapsibleSection Title="Yaşam Alanı">
-                    @if (!string.IsNullOrEmpty(bitki.Habitat))
+                    @if (!isEditMode)
                     {
-                        <div class="description-box">@bitki.Habitat</div>
+                        @if (!string.IsNullOrEmpty(bitki.Habitat))
+                        {
+                            <div class="description-box">@bitki.Habitat</div>
+                        }
+                        else
+                        {
+                            <span class="empty-value">Bilgi bulunmamaktadır</span>
+                        }
                     }
                     else
                     {
-                        <span class="empty-value">Bilgi bulunmamaktadır</span>
+                        <InputTextArea @bind-Value="editModel.Habitat" class="form-control" rows="3" />
                     }
                 </CollapsibleSection>
 
                 <CollapsibleSection Title="Dağılım">
-                    @if (!string.IsNullOrEmpty(bitki.Distribution))
+                    @if (!isEditMode)
                     {
-                        <div class="description-box">@bitki.Distribution</div>
+                        @if (!string.IsNullOrEmpty(bitki.Distribution))
+                        {
+                            <div class="description-box">@bitki.Distribution</div>
+                        }
+                        else
+                        {
+                            <span class="empty-value">Bilgi bulunmamaktadır</span>
+                        }
                     }
                     else
                     {
-                        <span class="empty-value">Bilgi bulunmamaktadır</span>
+                        <InputTextArea @bind-Value="editModel.DistributionTurkey" class="form-control" rows="3"
+                            placeholder="Türkiye Dağılımı" />
+                        <InputTextArea @bind-Value="editModel.DistributionWorld" class="form-control mt-2" rows="3"
+                            placeholder="Dünya Dağılımı" />
                     }
                 </CollapsibleSection>
 
@@ -475,6 +649,10 @@
     public int Id { get; set; }
 
     private BitkiDetailViewModel? bitki;
+    private BitkiEditModel editModel = new();
+    private List<GenusViewModel> genera = new();
+    private List<FamilyaViewModel> families = new();
+
     private bool isLoading = true;
     private string? errorMessage;
     private string activeTab = "general";
@@ -648,19 +826,139 @@ new(bitki.DisplayName)
         }
     }
 
-    private void EnableEditMode()
+    private async Task LoadLookups()
     {
+        try
+        {
+            if (!genera.Any())
+            {
+                genera = await Http.GetFromJsonAsync<List<GenusViewModel>>("api/genus") ?? new();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading lookups: {ex.Message}");
+        }
+    }
+
+    private async void EnableEditMode()
+    {
+        if (bitki == null) return;
+
+        // Load lookups if not loaded
+        await LoadLookups();
+
+        // Map ViewModel to EditModel
+        editModel = new BitkiEditModel
+        {
+            Id = bitki.Id,
+            Name = bitki.TurkishName,
+            LatinName = bitki.LatinName,
+            Description = bitki.Description,
+            GenusId = bitki.GenusId,
+
+            // Flags
+            IsMedicinal = bitki.IsMedicinal,
+            IsFood = bitki.IsFood,
+            IsCultural = bitki.IsCultural,
+            IsPoisonous = bitki.IsPoisonous,
+            IsTurkishFlora = bitki.IsTurkishFlora,
+            IsIslandSpecies = bitki.IsIslandSpecies,
+            ExistenceDoubtful = bitki.ExistenceDoubtful,
+            NeedsRevision = bitki.NeedsRevision,
+            IsExtinct = bitki.IsExtinct,
+            IncompleteIdentification = bitki.IncompleteIdentification,
+            ControlOk = bitki.ControlOk,
+            PublicationOk = bitki.PublicationOk,
+
+            // Ecology
+            Endemism = bitki.Endemism,
+            EndemismDescription = bitki.EndemismDescription,
+            FirstFloweringTime = bitki.FirstFloweringTime,
+            LastFloweringTime = bitki.LastFloweringTime,
+            Habitat = bitki.Habitat,
+            MinAltitude = bitki.MinAltitude,
+            MaxAltitude = bitki.MaxAltitude,
+            DistributionTurkey = bitki.DistributionTurkey,
+            DistributionWorld = bitki.DistributionWorld,
+            Phytogeography = bitki.Phytogeography,
+
+            // Taxonomy & Other
+            CommonNames = bitki.CommonNames,
+            TaxonName = bitki.TaxonName,
+            TaxonKind = bitki.TaxonKind
+        };
+
         isEditMode = true;
+        StateHasChanged();
     }
 
     private void CancelEdit()
     {
         isEditMode = false;
+        editModel = new();
     }
 
     private async Task SaveChanges()
     {
-        // TODO: Implement save logic via API
-        isEditMode = false;
+        try
+        {
+            // Map EditModel to Plant entity for API
+            var plantToUpdate = new Plant
+            {
+                Id = editModel.Id,
+                Name = editModel.Name,
+                LatinName = editModel.LatinName,
+                Description = editModel.Description,
+                GenusId = editModel.GenusId,
+
+                // Flags
+                IsMedicinal = editModel.IsMedicinal,
+                IsFood = editModel.IsFood,
+                IsCultural = editModel.IsCultural,
+                IsPoisonous = editModel.IsPoisonous,
+                IsTurkishFlora = editModel.IsTurkishFlora,
+                IsIslandSpecies = editModel.IsIslandSpecies,
+                ExistenceDoubtful = editModel.ExistenceDoubtful,
+                NeedsRevision = editModel.NeedsRevision,
+                IsExtinct = editModel.IsExtinct,
+                IncompleteIdentification = editModel.IncompleteIdentification,
+                ControlOk = editModel.ControlOk,
+                PublicationOk = editModel.PublicationOk,
+
+                // Ecology
+                Endemism = editModel.Endemism,
+                EndemismDescription = editModel.EndemismDescription,
+                FirstFloweringTime = editModel.FirstFloweringTime,
+                LastFloweringTime = editModel.LastFloweringTime,
+                Habitat = editModel.Habitat,
+                MinAltitude = editModel.MinAltitude,
+                MaxAltitude = editModel.MaxAltitude,
+                DistributionTurkey = editModel.DistributionTurkey,
+                DistributionWorld = editModel.DistributionWorld,
+                Phytogeography = editModel.Phytogeography,
+
+                // Taxonomy & Other
+                CommonNames = editModel.CommonNames,
+                TaxonName = editModel.TaxonName,
+                TaxonKind = editModel.TaxonKind
+            };
+
+            var response = await Http.PutAsJsonAsync($"api/bitki/{editModel.Id}", plantToUpdate);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await LoadData();
+                isEditMode = false;
+            }
+            else
+            {
+                errorMessage = "Kayıt güncellenirken bir hata oluştu.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Hata: {ex.Message}";
+        }
     }
 }

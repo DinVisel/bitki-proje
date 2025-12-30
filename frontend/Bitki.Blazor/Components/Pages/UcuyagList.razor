@@ -34,8 +34,8 @@
             ShowSearch="true" IsLoading="isLoading" TotalCount="totalCount" FilteredCount="filteredCount"
             OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged">
             <InspectorContent Context="selectedItem">
-                <RecordInspector TItem="UcuyagViewModel" Item="selectedItem"
-                    Title="@($"Uçucu Yağ Detayları - {selectedItem.Name}")" Fields="inspectorFields" ViewOnly="true" />
+                <RecordInspector TItem="UcuyagViewModel" Item="selectedItem" Title="@($"Uçucu Yağ - {selectedItem.Name}")"
+                    Fields="inspectorFields" ViewOnly="false" OnSave="HandleSave" OnDelete="HandleDelete" />
             </InspectorContent>
         </RecordExplorer>
 
