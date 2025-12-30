@@ -8,5 +8,10 @@ namespace Bitki.Core.Entities
         public int LiteratureId { get; set; }
         public int? FamilyId { get; set; }
         public int? GenusId { get; set; }
+
+        // Relational properties
+        public string? LiteratureName { get; set; }
+        public string? FamilyName { get; set; }
+        public string? GenusName { get; set; }
     }
 }

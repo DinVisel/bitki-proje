@@ -6,5 +6,8 @@ namespace Bitki.Core.Entities
         public string? TurkishName { get; set; }
         public string? Status { get; set; }
         public int LiteratureId { get; set; }
+
+        // Relational properties
+        public string? LiteratureName { get; set; }
     }
 }

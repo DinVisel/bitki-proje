@@ -7,5 +7,8 @@ namespace Bitki.Blazor.Models
         public DateTime? CreatedDate { get; set; }
         public int LocalityId { get; set; }
         public int? EffectId { get; set; }
+
+        public string? LocalityName { get; set; }
+        public string? EffectName { get; set; }
     }
 }

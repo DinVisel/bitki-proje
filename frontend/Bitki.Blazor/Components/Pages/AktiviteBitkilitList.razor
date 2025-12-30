@@ -107,20 +107,20 @@
 
     private List<ColumnDef> columns = new()
 {
-new ColumnDef { Title = "ID", PropertyName = "Id" },
 new ColumnDef { Title = "Türkçe Ad", PropertyName = "TurkishName" },
 new ColumnDef { Title = "Durum", PropertyName = "Status" },
-new ColumnDef { Title = "Literatür ID", PropertyName = "LiteratureId" }
+new ColumnDef { Title = "Literatür", PropertyName = "LiteratureName" },
+new ColumnDef { Title = "Familya", PropertyName = "FamilyName" },
+new ColumnDef { Title = "Genus", PropertyName = "GenusName" }
 };
 
     private List<InspectorField> inspectorFields = new()
 {
-new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
 new InspectorField { Label = "Türkçe Ad", PropertyName = "TurkishName", Editable = true },
 new InspectorField { Label = "Durum", PropertyName = "Status", Editable = true },
-new InspectorField { Label = "Literatür ID", PropertyName = "LiteratureId", Editable = true },
-new InspectorField { Label = "Familya ID", PropertyName = "FamilyId", Editable = true },
-new InspectorField { Label = "Genus ID", PropertyName = "GenusId", Editable = true }
+new InspectorField { Label = "Literatür", PropertyName = "LiteratureName", Editable = false },
+new InspectorField { Label = "Familya", PropertyName = "FamilyName", Editable = false },
+new InspectorField { Label = "Genus", PropertyName = "GenusName", Editable = false }
 };
 
     protected override async Task OnInitializedAsync() => await LoadDataWithFilter();

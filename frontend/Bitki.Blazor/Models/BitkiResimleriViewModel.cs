@@ -6,5 +6,6 @@ namespace Bitki.Blazor.Models
         public int PlantId { get; set; }
         public string? ImageLocation { get; set; }
         public string? Description { get; set; }
+        public string? PlantName { get; set; }
     }
 }

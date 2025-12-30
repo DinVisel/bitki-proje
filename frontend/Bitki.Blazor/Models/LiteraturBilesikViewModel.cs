@@ -6,5 +6,7 @@ namespace Bitki.Blazor.Models
         public int? LiteratureId { get; set; }
         public int? CompoundId { get; set; }
         public string? Description { get; set; }
+        public string? LiteratureName { get; set; }
+        public string? CompoundName { get; set; }
     }
 }

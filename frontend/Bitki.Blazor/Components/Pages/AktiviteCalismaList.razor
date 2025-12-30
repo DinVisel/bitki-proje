@@ -99,19 +99,17 @@
 
     private List<ColumnDef> columns = new()
 {
-new ColumnDef { Title = "ID", PropertyName = "Id" },
 new ColumnDef { Title = "Açıklama", PropertyName = "Description" },
-new ColumnDef { Title = "Lokalite ID", PropertyName = "LocalityId" },
-new ColumnDef { Title = "Etki ID", PropertyName = "EffectId" }
+new ColumnDef { Title = "Lokalite", PropertyName = "LocalityName" },
+new ColumnDef { Title = "Etki", PropertyName = "EffectName" }
 };
 
     private List<InspectorField> inspectorFields = new()
 {
-new InspectorField { Label = "ID", PropertyName = "Id", Editable = false },
 new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true },
 new InspectorField { Label = "Oluşturma Tarihi", PropertyName = "CreatedDate", Editable = false },
-new InspectorField { Label = "Lokalite ID", PropertyName = "LocalityId", Editable = true },
-new InspectorField { Label = "Etki ID", PropertyName = "EffectId", Editable = true }
+new InspectorField { Label = "Lokalite", PropertyName = "LocalityName", Editable = false },
+new InspectorField { Label = "Etki", PropertyName = "EffectName", Editable = false }
 };
 
     protected override async Task OnInitializedAsync() => await LoadDataWithFilter();

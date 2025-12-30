@@ -16,16 +16,19 @@ namespace Bitki.Infrastructure.Repositories.Aktivite
         {
             _connectionFactory = connectionFactory;
 
-            var allowedColumns = new[] { "id", "yereladi", "mevki", "sehirno", "ilceno" };
-            var searchableColumns = new[] { "yereladi", "mevki" };
+
             var columnMappings = new Dictionary<string, string>
             {
-                { "Id", "id" },
-                { "LocalName", "yereladi" },
-                { "Location", "mevki" },
-                { "CityId", "sehirno" },
-                { "DistrictId", "ilceno" }
+                { "Id", "al.id" },
+                { "LocalName", "al.yereladi" },
+                { "Location", "al.mevki" },
+                { "CityId", "al.sehirno" },
+                { "DistrictId", "al.ilceno" },
+                { "CityName", "s.sehir" },
+                { "DistrictName", "i.ilce" }
             };
+            var allowedColumns = new[] { "id", "yereladi", "mevki", "sehirno", "ilceno", "sehir", "ilce" };
+            var searchableColumns = new[] { "yereladi", "mevki", "sehir", "ilce" };
             _queryBuilder = new QueryBuilder("aktivitelokalite", allowedColumns, searchableColumns, columnMappings);
         }
 
@@ -41,11 +44,21 @@ namespace Bitki.Infrastructure.Repositories.Aktivite
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
-            var selectColumns = "id AS Id, yereladi AS LocalName, mevki AS Location, sehirno AS CityId, ilceno AS DistrictId";
-            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize);
+            var customJoin = "dbo.aktivitelokalite al LEFT JOIN dbo.sehir s ON al.sehirno = s.sehirid LEFT JOIN dbo.ilce i ON al.ilceno = i.ilceid";
+
+            var selectColumns = @"
+                al.id AS Id, 
+                al.yereladi AS LocalName, 
+                al.mevki AS Location, 
+                al.sehirno AS CityId, 
+                al.ilceno AS DistrictId,
+                s.sehir AS CityName,
+                i.ilce AS DistrictName";
+
+            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize, customJoin);
 
             var totalCountSql = "SELECT COUNT(*) FROM dbo.aktivitelokalite";
-            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted);
+            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted, customJoin);
 
             var data = await connection.QueryAsync<AktiviteLokalite>(selectSql, parameters);
             var totalCount = await connection.ExecuteScalarAsync<int>(totalCountSql);

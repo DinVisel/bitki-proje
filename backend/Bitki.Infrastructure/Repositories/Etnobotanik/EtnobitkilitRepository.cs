@@ -16,15 +16,17 @@ namespace Bitki.Infrastructure.Repositories.Etnobotanik
         {
             _connectionFactory = connectionFactory;
 
-            var allowedColumns = new[] { "id", "turkcead", "durum", "litno" };
-            var searchableColumns = new[] { "turkcead", "durum" };
+
             var columnMappings = new Dictionary<string, string>
             {
-                { "Id", "id" },
-                { "TurkishName", "turkcead" },
-                { "Status", "durum" },
-                { "LiteratureId", "litno" }
+                { "Id", "eb.id" },
+                { "TurkishName", "eb.turkcead" },
+                { "Status", "eb.durum" },
+                { "LiteratureId", "eb.litno" },
+                { "LiteratureName", "l.yazaradi" }
             };
+            var allowedColumns = new[] { "id", "turkcead", "durum", "litno", "yazaradi" };
+            var searchableColumns = new[] { "turkcead", "durum", "yazaradi" };
             _queryBuilder = new QueryBuilder("etnobitkilit", allowedColumns, searchableColumns, columnMappings);
         }
 
@@ -40,11 +42,19 @@ namespace Bitki.Infrastructure.Repositories.Etnobotanik
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
-            var selectColumns = "id AS Id, turkcead AS TurkishName, durum AS Status, litno AS LiteratureId";
-            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize);
+            var customJoin = "dbo.etnobitkilit eb LEFT JOIN dbo.literatur l ON eb.litno = l.id";
+
+            var selectColumns = @"
+                eb.id AS Id, 
+                eb.turkcead AS TurkishName, 
+                eb.durum AS Status, 
+                eb.litno AS LiteratureId,
+                l.yazaradi AS LiteratureName";
+
+            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize, customJoin);
 
             var totalCountSql = "SELECT COUNT(*) FROM dbo.etnobitkilit";
-            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted);
+            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted, customJoin);
 
             var data = await connection.QueryAsync<Etnobitkilit>(selectSql, parameters);
             var totalCount = await connection.ExecuteScalarAsync<int>(totalCountSql);

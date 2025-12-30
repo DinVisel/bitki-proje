@@ -16,14 +16,16 @@ namespace Bitki.Infrastructure.Repositories.Compounds
         {
             _connectionFactory = connectionFactory;
 
-            var allowedColumns = new[] { "id", "literaturno", "bilesikno", "aciklama" };
+            var allowedColumns = new[] { "id", "literaturno", "bilesikno", "aciklama", "baslik", "adi" };
             var searchableColumns = new[] { "aciklama" };
             var columnMappings = new Dictionary<string, string>
             {
-                { "Id", "id" },
-                { "LiteratureId", "literaturno" },
-                { "CompoundId", "bilesikno" },
-                { "Description", "aciklama" }
+                { "Id", "lb.id" },
+                { "LiteratureId", "lb.literaturno" },
+                { "CompoundId", "lb.bilesikno" },
+                { "Description", "lb.aciklama" },
+                { "LiteratureName", "l.baslik" },
+                { "CompoundName", "b.adi" }
             };
             _queryBuilder = new QueryBuilder("literaturbilesik", allowedColumns, searchableColumns, columnMappings);
         }
@@ -31,7 +33,13 @@ namespace Bitki.Infrastructure.Repositories.Compounds
         public async Task<IEnumerable<LiteraturBilesik>> GetAllAsync()
         {
             using var connection = _connectionFactory.CreateConnection();
-            return await connection.QueryAsync<LiteraturBilesik>("SELECT id AS Id, literaturno AS LiteratureId, bilesikno AS CompoundId, aciklama AS Description FROM dbo.literaturbilesik ORDER BY id DESC");
+            return await connection.QueryAsync<LiteraturBilesik>(@"
+                SELECT lb.id AS Id, lb.literaturno AS LiteratureId, lb.bilesikno AS CompoundId, lb.aciklama AS Description,
+                       l.baslik AS LiteratureName, b.adi AS CompoundName
+                FROM dbo.literaturbilesik lb
+                LEFT JOIN dbo.literatur l ON lb.literaturno = l.id
+                LEFT JOIN dbo.bilesikler b ON lb.bilesikno = b.id
+                ORDER BY lb.id DESC");
         }
 
         public async Task<FilterResponse<LiteraturBilesik>> QueryAsync(FilterRequest request)
@@ -40,11 +48,23 @@ namespace Bitki.Infrastructure.Repositories.Compounds
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
-            var selectColumns = "id AS Id, literaturno AS LiteratureId, bilesikno AS CompoundId, aciklama AS Description";
-            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize);
+            var selectColumns = @"
+                lb.id AS Id, 
+                lb.literaturno AS LiteratureId, 
+                lb.bilesikno AS CompoundId, 
+                lb.aciklama AS Description,
+                l.baslik AS LiteratureName,
+                b.adi AS CompoundName";
+
+            var fromClause = @"
+                dbo.literaturbilesik lb
+                LEFT JOIN dbo.literatur l ON lb.literaturno = l.id
+                LEFT JOIN dbo.bilesikler b ON lb.bilesikno = b.id";
+
+            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize, fromClause);
 
             var totalCountSql = "SELECT COUNT(*) FROM dbo.literaturbilesik";
-            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted);
+            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted, fromClause);
 
             var data = await connection.QueryAsync<LiteraturBilesik>(selectSql, parameters);
             var totalCount = await connection.ExecuteScalarAsync<int>(totalCountSql);

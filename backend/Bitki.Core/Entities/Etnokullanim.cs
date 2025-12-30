@@ -6,5 +6,6 @@ namespace Bitki.Core.Entities
         public string? Description { get; set; }
         public int LocalityId { get; set; }
         public DateTime? CreatedDate { get; set; }
+        public string? LocalityName { get; set; }
     }
 }

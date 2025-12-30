@@ -16,16 +16,19 @@ namespace Bitki.Infrastructure.Repositories.Aktivite
         {
             _connectionFactory = connectionFactory;
 
-            var allowedColumns = new[] { "id", "aciklama", "tariholusturma", "lokaliteno", "etkino" };
-            var searchableColumns = new[] { "aciklama" };
+
             var columnMappings = new Dictionary<string, string>
             {
-                { "Id", "id" },
-                { "Description", "aciklama" },
-                { "CreatedDate", "tariholusturma" },
-                { "LocalityId", "lokaliteno" },
-                { "EffectId", "etkino" }
+                { "Id", "ac.id" },
+                { "Description", "ac.aciklama" },
+                { "CreatedDate", "ac.tariholusturma" },
+                { "LocalityId", "ac.lokaliteno" },
+                { "EffectId", "ac.etkino" },
+                { "LocalityName", "al.yereladi" },
+                { "EffectName", "ae.adi" }
             };
+            var allowedColumns = new[] { "id", "aciklama", "tariholusturma", "lokaliteno", "etkino", "yereladi", "adi" };
+            var searchableColumns = new[] { "aciklama", "yereladi", "adi" };
             _queryBuilder = new QueryBuilder("aktivitecalisma", allowedColumns, searchableColumns, columnMappings);
         }
 
@@ -41,11 +44,21 @@ namespace Bitki.Infrastructure.Repositories.Aktivite
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
-            var selectColumns = "id AS Id, aciklama AS Description, tariholusturma AS CreatedDate, lokaliteno AS LocalityId, etkino AS EffectId";
-            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize);
+            var customJoin = "dbo.aktivitecalisma ac LEFT JOIN dbo.aktivitelokalite al ON ac.lokaliteno = al.id LEFT JOIN dbo.aktiviteetki ae ON ac.etkino = ae.id";
+
+            var selectColumns = @"
+                ac.id AS Id, 
+                ac.aciklama AS Description, 
+                ac.tariholusturma AS CreatedDate, 
+                ac.lokaliteno AS LocalityId, 
+                ac.etkino AS EffectId,
+                al.yereladi AS LocalityName,
+                ae.adi AS EffectName";
+
+            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize, customJoin);
 
             var totalCountSql = "SELECT COUNT(*) FROM dbo.aktivitecalisma";
-            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted);
+            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted, customJoin);
 
             var data = await connection.QueryAsync<AktiviteCalisma>(selectSql, parameters);
             var totalCount = await connection.ExecuteScalarAsync<int>(totalCountSql);

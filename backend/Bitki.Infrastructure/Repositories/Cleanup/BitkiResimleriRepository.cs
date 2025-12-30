@@ -17,14 +17,15 @@ namespace Bitki.Infrastructure.Repositories.Cleanup
         {
             _connectionFactory = connectionFactory;
 
-            var allowedColumns = new[] { "bitkiresimid", "bitkino", "resimyeri", "aciklama" };
+            var allowedColumns = new[] { "bitkiresimid", "bitkino", "resimyeri", "aciklama", "turkcead" };
             var searchableColumns = new[] { "resimyeri", "aciklama" };
             var columnMappings = new Dictionary<string, string>
             {
-                { "Id", "bitkiresimid" },
-                { "PlantId", "bitkino" },
-                { "ImageLocation", "resimyeri" },
-                { "Description", "aciklama" }
+                { "Id", "br.bitkiresimid" },
+                { "PlantId", "br.bitkino" },
+                { "ImageLocation", "br.resimyeri" },
+                { "Description", "br.aciklama" },
+                { "PlantName", "b.turkcead" }
             };
             _queryBuilder = new QueryBuilder("bitkiresimleri", allowedColumns, searchableColumns, columnMappings);
         }
@@ -32,7 +33,12 @@ namespace Bitki.Infrastructure.Repositories.Cleanup
         public async Task<IEnumerable<BitkiResimleri>> GetAllAsync()
         {
             using var connection = _connectionFactory.CreateConnection();
-            return await connection.QueryAsync<BitkiResimleri>("SELECT bitkiresimid AS Id, bitkino AS PlantId, resimyeri AS ImageLocation, aciklama AS Description FROM dbo.bitkiresimleri ORDER BY bitkiresimid");
+            return await connection.QueryAsync<BitkiResimleri>(@"
+                SELECT br.bitkiresimid AS Id, br.bitkino AS PlantId, br.resimyeri AS ImageLocation, br.aciklama AS Description,
+                       b.turkcead AS PlantName
+                FROM dbo.bitkiresimleri br
+                LEFT JOIN dbo.bitki b ON br.bitkino = b.bitkiid
+                ORDER BY br.bitkiresimid");
         }
 
         public async Task<FilterResponse<BitkiResimleri>> QueryAsync(FilterRequest request)
@@ -41,11 +47,19 @@ namespace Bitki.Infrastructure.Repositories.Cleanup
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
-            var selectColumns = "bitkiresimid AS Id, bitkino AS PlantId, resimyeri AS ImageLocation, aciklama AS Description";
-            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize);
+            var selectColumns = @"
+                br.bitkiresimid AS Id, 
+                br.bitkino AS PlantId, 
+                br.resimyeri AS ImageLocation, 
+                br.aciklama AS Description,
+                b.turkcead AS PlantName";
+
+            var fromClause = "dbo.bitkiresimleri br LEFT JOIN dbo.bitki b ON br.bitkino = b.bitkiid";
+
+            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize, fromClause);
 
             var totalCountSql = "SELECT COUNT(*) FROM dbo.bitkiresimleri";
-            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted);
+            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted, fromClause);
 
             var data = await connection.QueryAsync<BitkiResimleri>(selectSql, parameters);
             var totalCount = await connection.ExecuteScalarAsync<int>(totalCountSql);

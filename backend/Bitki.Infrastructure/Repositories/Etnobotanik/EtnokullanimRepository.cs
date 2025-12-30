@@ -16,14 +16,15 @@ namespace Bitki.Infrastructure.Repositories.Etnobotanik
         {
             _connectionFactory = connectionFactory;
 
-            var allowedColumns = new[] { "id", "aciklama", "lokaliteno", "tariholusturma" };
+            var allowedColumns = new[] { "id", "aciklama", "lokaliteno", "tariholusturma", "yereladi" };
             var searchableColumns = new[] { "aciklama" };
             var columnMappings = new Dictionary<string, string>
             {
-                { "Id", "id" },
-                { "Description", "aciklama" },
-                { "LocalityId", "lokaliteno" },
-                { "CreatedDate", "tariholusturma" }
+                { "Id", "ek.id" },
+                { "Description", "ek.aciklama" },
+                { "LocalityId", "ek.lokaliteno" },
+                { "CreatedDate", "ek.tariholusturma" },
+                { "LocalityName", "el.yereladi" }
             };
             _queryBuilder = new QueryBuilder("etnokullanim", allowedColumns, searchableColumns, columnMappings);
         }
@@ -31,7 +32,12 @@ namespace Bitki.Infrastructure.Repositories.Etnobotanik
         public async Task<IEnumerable<Etnokullanim>> GetAllAsync()
         {
             using var connection = _connectionFactory.CreateConnection();
-            return await connection.QueryAsync<Etnokullanim>("SELECT id AS Id, aciklama AS Description, lokaliteno AS LocalityId, tariholusturma AS CreatedDate FROM dbo.etnokullanim ORDER BY id");
+            return await connection.QueryAsync<Etnokullanim>(@"
+                SELECT ek.id AS Id, ek.aciklama AS Description, ek.lokaliteno AS LocalityId, ek.tariholusturma AS CreatedDate,
+                       el.yereladi AS LocalityName
+                FROM dbo.etnokullanim ek
+                LEFT JOIN dbo.etnolokalite el ON ek.lokaliteno = el.id
+                ORDER BY ek.id");
         }
 
         public async Task<FilterResponse<Etnokullanim>> QueryAsync(FilterRequest request)
@@ -40,11 +46,21 @@ namespace Bitki.Infrastructure.Repositories.Etnobotanik
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
-            var selectColumns = "id AS Id, aciklama AS Description, lokaliteno AS LocalityId, tariholusturma AS CreatedDate";
-            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize);
+            var selectColumns = @"
+                ek.id AS Id, 
+                ek.aciklama AS Description, 
+                ek.lokaliteno AS LocalityId, 
+                ek.tariholusturma AS CreatedDate,
+                el.yereladi AS LocalityName";
+
+            var fromClause = @"
+                dbo.etnokullanim ek
+                LEFT JOIN dbo.etnolokalite el ON ek.lokaliteno = el.id";
+
+            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize, fromClause);
 
             var totalCountSql = "SELECT COUNT(*) FROM dbo.etnokullanim";
-            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted);
+            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted, fromClause);
 
             var data = await connection.QueryAsync<Etnokullanim>(selectSql, parameters);
             var totalCount = await connection.ExecuteScalarAsync<int>(totalCountSql);

@@ -16,17 +16,21 @@ namespace Bitki.Infrastructure.Repositories.Aktivite
         {
             _connectionFactory = connectionFactory;
 
-            var allowedColumns = new[] { "id", "turkcead", "durum", "litno", "familyano", "genusno" };
-            var searchableColumns = new[] { "turkcead", "durum" };
+
             var columnMappings = new Dictionary<string, string>
             {
-                { "Id", "id" },
-                { "TurkishName", "turkcead" },
-                { "Status", "durum" },
-                { "LiteratureId", "litno" },
-                { "FamilyId", "familyano" },
-                { "GenusId", "genusno" }
+                { "Id", "ab.id" },
+                { "TurkishName", "ab.turkcead" },
+                { "Status", "ab.durum" },
+                { "LiteratureId", "ab.litno" },
+                { "FamilyId", "ab.familyano" },
+                { "GenusId", "ab.genusno" },
+                { "LiteratureName", "l.yazaradi" },
+                { "FamilyName", "f.familya" },
+                { "GenusName", "g.genus" }
             };
+            var allowedColumns = new[] { "id", "turkcead", "durum", "litno", "familyano", "genusno", "yazaradi", "familya", "genus" };
+            var searchableColumns = new[] { "turkcead", "durum", "yazaradi", "familya", "genus" };
             _queryBuilder = new QueryBuilder("aktivitebitkilit", allowedColumns, searchableColumns, columnMappings);
         }
 
@@ -42,11 +46,23 @@ namespace Bitki.Infrastructure.Repositories.Aktivite
             using var connection = _connectionFactory.CreateConnection();
             var parameters = new DynamicParameters();
 
-            var selectColumns = "id AS Id, turkcead AS TurkishName, durum AS Status, litno AS LiteratureId, familyano AS FamilyId, genusno AS GenusId";
-            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize);
+            var customJoin = "dbo.aktivitebitkilit ab LEFT JOIN dbo.literatur l ON ab.litno = l.id LEFT JOIN dbo.familya f ON ab.familyano = f.familyaid LEFT JOIN dbo.genus g ON ab.genusno = g.genusid";
+
+            var selectColumns = @"
+                ab.id AS Id, 
+                ab.turkcead AS TurkishName, 
+                ab.durum AS Status, 
+                ab.litno AS LiteratureId, 
+                ab.familyano AS FamilyId, 
+                ab.genusno AS GenusId,
+                l.yazaradi AS LiteratureName,
+                f.familya AS FamilyName,
+                g.genus AS GenusName";
+
+            var selectSql = _queryBuilder.BuildSelectQuery(selectColumns, request.SearchText, request.Filters, request.SortColumn, request.SortDirection, parameters, request.IncludeDeleted, request.PageNumber, request.PageSize, customJoin);
 
             var totalCountSql = "SELECT COUNT(*) FROM dbo.aktivitebitkilit";
-            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted);
+            var filteredCountSql = _queryBuilder.BuildCountQuery(request.SearchText, request.Filters, parameters, request.IncludeDeleted, customJoin);
 
             var data = await connection.QueryAsync<AktiviteBitkilit>(selectSql, parameters);
             var totalCount = await connection.ExecuteScalarAsync<int>(totalCountSql);

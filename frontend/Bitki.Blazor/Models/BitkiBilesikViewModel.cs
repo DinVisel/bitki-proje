@@ -7,5 +7,7 @@ namespace Bitki.Blazor.Models
         public int CompoundId { get; set; }
         public float? Amount { get; set; }
         public string? Description { get; set; }
+        public string? PlantName { get; set; }
+        public string? CompoundName { get; set; }
     }
 }

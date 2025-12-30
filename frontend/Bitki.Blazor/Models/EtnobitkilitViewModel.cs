@@ -6,5 +6,7 @@ namespace Bitki.Blazor.Models
         public string? TurkishName { get; set; }
         public string? Status { get; set; }
         public int LiteratureId { get; set; }
+
+        public string? LiteratureName { get; set; }
     }
 }
