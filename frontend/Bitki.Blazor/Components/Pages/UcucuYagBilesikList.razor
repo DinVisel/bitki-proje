@@ -56,12 +56,14 @@
             </div>
             <div class="modal-body">
                 <div class="form-group mb-3">
-                    <label class="form-label">Uçucu Yağ ID *</label>
-                    <input type="number" class="form-control" @bind="editingItem.EssentialOilId" />
+                    <label class="form-label">Uçucu Yağ *</label>
+                    <SearchableSelect Options="essentialOilOptions" Placeholder="Uçucu yağ seçin"
+                                      @bind-Value="EditingEssentialOilId" />
                 </div>
                 <div class="form-group mb-3">
-                    <label class="form-label">Bileşik ID *</label>
-                    <input type="number" class="form-control" @bind="editingItem.CompoundId" />
+                    <label class="form-label">Bileşik *</label>
+                    <SearchableSelect Options="compoundOptions" Placeholder="Bileşik seçin"
+                                      @bind-Value="EditingCompoundId" />
                 </div>
                 <div class="form-group mb-3">
                     <label class="form-label">Miktar</label>
@@ -110,8 +112,8 @@ new ColumnDef { Title = "Birim", PropertyName = "Unit" }
 
     private List<InspectorField> inspectorFields = new()
 {
-new InspectorField { Label = "Uçucu Yağ ID", PropertyName = "EssentialOilId", Editable = false },
-new InspectorField { Label = "Bileşik ID", PropertyName = "CompoundId", Editable = false },
+new InspectorField { Label = "Uçucu Yağ", PropertyName = "EssentialOilName", Editable = true, RenderEditControl = EssentialOilSelector },
+new InspectorField { Label = "Bileşik", PropertyName = "CompoundName", Editable = true, RenderEditControl = CompoundSelector },
 new InspectorField { Label = "Miktar", PropertyName = "Amount", Editable = true },
 new InspectorField { Label = "Birim", PropertyName = "Unit", Editable = true }
 };
@@ -124,6 +126,7 @@ new InspectorField { Label = "Birim", PropertyName = "Unit", Editable = true }
         errorMessage = null;
         try
         {
+            await EnsureOptionsAsync();
             var response = await Http.PostAsJsonAsync("api/ucucuyagbilesik/query", currentFilter);
             if (response.IsSuccessStatusCode)
             {
@@ -164,14 +167,14 @@ new InspectorField { Label = "Birim", PropertyName = "Unit", Editable = true }
         await LoadDataWithFilter();
     }
 
-    private void OpenAddModal() { editingItem = new(); isEditingInModal = false; showAddModal = true; }
+    private void OpenAddModal() { editingItem = new(); EditingEssentialOilId = null; EditingCompoundId = null; isEditingInModal = false; showAddModal = true; }
     private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
     private async Task HandleCreateOrUpdate()
     {
-        if (editingItem.EssentialOilId == 0 || editingItem.CompoundId == 0)
+        if (EditingEssentialOilId == null || EditingCompoundId == null)
         {
-            await JS.InvokeVoidAsync("alert", "Uçucu Yağ ve Bileşik ID zorunludur.");
+            await JS.InvokeVoidAsync("alert", "Uçucu Yağ ve Bileşik seçilmelidir.");
             return;
         }
         isCreating = true;
@@ -205,6 +208,7 @@ new InspectorField { Label = "Birim", PropertyName = "Unit", Editable = true }
     {
         try
         {
+            SyncNames(item);
             var response = await AuthHttp.PutAsJsonAsync($"api/ucucuyagbilesik/{item.EssentialOilId}/{item.CompoundId}", item);
             if (response.IsSuccessStatusCode)
             {
@@ -226,7 +230,8 @@ new InspectorField { Label = "Birim", PropertyName = "Unit", Editable = true }
 
     private async Task HandleDelete(UcucuYagBilesikViewModel item)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"Uçucu Yağ {item.EssentialOilId} - Bileşik {item.CompoundId} silinsin mi?"))
+        var label = $"{item.EssentialOilName} - {item.CompoundName}";
+        if (await JS.InvokeAsync<bool>("confirm", $"{label} silinsin mi?"))
         {
             try
             {
@@ -249,4 +254,68 @@ new InspectorField { Label = "Birim", PropertyName = "Unit", Editable = true }
             catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
         }
     }
+
+    private List<SelectOption> essentialOilOptions = new();
+    private List<SelectOption> compoundOptions = new();
+
+    private long? EditingEssentialOilId
+    {
+        get => editingItem.EssentialOilId == 0 ? null : editingItem.EssentialOilId;
+        set
+        {
+            editingItem.EssentialOilId = value.HasValue ? (int)value.Value : 0;
+            editingItem.EssentialOilName = essentialOilOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private long? EditingCompoundId
+    {
+        get => editingItem.CompoundId == 0 ? null : editingItem.CompoundId;
+        set
+        {
+            editingItem.CompoundId = value.HasValue ? (int)value.Value : 0;
+            editingItem.CompoundName = compoundOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private async Task EnsureOptionsAsync()
+    {
+        if (!essentialOilOptions.Any())
+        {
+            var oils = await Http.GetFromJsonAsync<List<UcuyagViewModel>>("api/ucuyag") ?? new();
+            essentialOilOptions = oils.OrderBy(o => o.Name).Select(o => new SelectOption(o.Id, o.Name ?? $"Uçucu Yağ #{o.Id}")).ToList();
+        }
+
+        if (!compoundOptions.Any())
+        {
+            var compounds = await Http.GetFromJsonAsync<List<BilesiklerViewModel>>("api/bilesikler") ?? new();
+            compoundOptions = compounds.OrderBy(c => c.Name).Select(c => new SelectOption(c.Id, c.Name ?? $"Bileşik #{c.Id}")).ToList();
+        }
+    }
+
+    private void SyncNames(UcucuYagBilesikViewModel item)
+    {
+        item.EssentialOilName = essentialOilOptions.FirstOrDefault(o => o.Id == item.EssentialOilId)?.Name ?? item.EssentialOilName;
+        item.CompoundName = compoundOptions.FirstOrDefault(o => o.Id == item.CompoundId)?.Name ?? item.CompoundName;
+    }
+
+    private RenderFragment<UcucuYagBilesikViewModel> EssentialOilSelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", essentialOilOptions);
+        builder.AddAttribute(2, "Placeholder", "Uçucu yağ seçin");
+        builder.AddAttribute(3, "Value", (long?)item.EssentialOilId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id => { item.EssentialOilId = id.HasValue ? (int)id.Value : 0; SyncNames(item); }));
+        builder.CloseComponent();
+    };
+
+    private RenderFragment<UcucuYagBilesikViewModel> CompoundSelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", compoundOptions);
+        builder.AddAttribute(2, "Placeholder", "Bileşik seçin");
+        builder.AddAttribute(3, "Value", (long?)item.CompoundId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id => { item.CompoundId = id.HasValue ? (int)id.Value : 0; SyncNames(item); }));
+        builder.CloseComponent();
+    };
 }

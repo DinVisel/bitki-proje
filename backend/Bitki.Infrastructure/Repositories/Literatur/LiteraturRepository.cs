@@ -56,7 +56,7 @@ namespace Bitki.Infrastructure.Repositories.Literatur
                     guvenilirlik AS Reliability, 
                     ozet AS Summary 
                 FROM dbo.literatur 
-                ORDER BY litid DESC 
+                ORDER BY tamadi 
                 LIMIT 1000";
             return await connection.QueryAsync<Bitki.Core.Entities.Literatur>(sql);
         }
@@ -146,4 +146,3 @@ namespace Bitki.Infrastructure.Repositories.Literatur
         }
     }
 }
-

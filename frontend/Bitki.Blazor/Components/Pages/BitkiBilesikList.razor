@@ -57,12 +57,13 @@
             </div>
             <div class="modal-body">
                 <div class="form-group mb-3">
-                    <label class="form-label">Bitki ID *</label>
-                    <input type="number" class="form-control" @bind="editingItem.PlantId" />
+                    <label class="form-label">Bitki *</label>
+                    <SearchableSelect Options="plantOptions" Placeholder="Bitki seçin" @bind-Value="EditingPlantId" />
                 </div>
                 <div class="form-group mb-3">
-                    <label class="form-label">Bileşik ID *</label>
-                    <input type="number" class="form-control" @bind="editingItem.CompoundId" />
+                    <label class="form-label">Bileşik *</label>
+                    <SearchableSelect Options="compoundOptions" Placeholder="Bileşik seçin"
+                                      @bind-Value="EditingCompoundId" />
                 </div>
                 <div class="form-group mb-3">
                     <label class="form-label">Miktar</label>
@@ -110,15 +111,27 @@ new ColumnDef { Title = "Miktar", PropertyName = "Amount" }
 
     private List<InspectorField> inspectorFields = new()
 {
-new InspectorField { Label = "Bitki", PropertyName = "PlantName", Editable = false },
-new InspectorField { Label = "Bileşik", PropertyName = "CompoundName", Editable = false },
-new InspectorField { Label = "Bitki ID", PropertyName = "PlantId", Editable = true },
-new InspectorField { Label = "Bileşik ID", PropertyName = "CompoundId", Editable = true },
+new InspectorField { Label = "Bitki", PropertyName = "PlantName", Editable = true, RenderEditControl = PlantSelector },
+new InspectorField { Label = "Bileşik", PropertyName = "CompoundName", Editable = true, RenderEditControl = CompoundSelector },
 new InspectorField { Label = "Miktar", PropertyName = "Amount", Editable = true },
 new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true }
 };
 
     protected override async Task OnInitializedAsync() => await LoadDataWithFilter();
+    private async Task EnsureOptionsAsync()
+    {
+        if (!plantOptions.Any())
+        {
+            var plants = await Http.GetFromJsonAsync<List<Plant>>("api/bitki") ?? new();
+            plantOptions = plants.OrderBy(p => p.Name).Select(p => new SelectOption(p.Id, p.Name ?? $"Bitki #{p.Id}")).ToList();
+        }
+
+        if (!compoundOptions.Any())
+        {
+            var compounds = await Http.GetFromJsonAsync<List<BilesiklerViewModel>>("api/bilesikler") ?? new();
+            compoundOptions = compounds.OrderBy(c => c.Name).Select(c => new SelectOption(c.Id, c.Name ?? $"Bileşik #{c.Id}")).ToList();
+        }
+    }
 
     private async Task LoadDataWithFilter()
     {
@@ -126,6 +139,7 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
         errorMessage = null;
         try
         {
+            await EnsureOptionsAsync();
             var response = await Http.PostAsJsonAsync("api/bitkibilesik/query", currentFilter);
             if (response.IsSuccessStatusCode)
             {
@@ -166,14 +180,14 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
         await LoadDataWithFilter();
     }
 
-    private void OpenAddModal() { editingItem = new(); isEditingInModal = false; showAddModal = true; }
+    private void OpenAddModal() { editingItem = new(); EditingPlantId = null; EditingCompoundId = null; isEditingInModal = false; showAddModal = true; }
     private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
     private async Task HandleCreateOrUpdate()
     {
-        if (editingItem.PlantId == 0 || editingItem.CompoundId == 0)
+        if (EditingPlantId == null || EditingCompoundId == null)
         {
-            await JS.InvokeVoidAsync("alert", "Bitki ve Bileşik ID zorunludur.");
+            await JS.InvokeVoidAsync("alert", "Bitki ve Bileşik seçilmelidir.");
             return;
         }
         isCreating = true;
@@ -206,6 +220,7 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
     {
         try
         {
+            SyncNames(item);
             var response = await AuthHttp.PutAsJsonAsync($"api/bitkibilesik/{item.Id}", item);
             if (response.IsSuccessStatusCode)
             {
@@ -227,7 +242,8 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
 
     private async Task HandleDelete(BitkiBilesikViewModel item)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"ID {item.Id} silinsin mi?"))
+        var label = $"{item.PlantName} - {item.CompoundName}";
+        if (await JS.InvokeAsync<bool>("confirm", $"{label} silinsin mi?"))
         {
             try
             {
@@ -250,4 +266,53 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
             catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
         }
     }
+
+    private List<SelectOption> plantOptions = new();
+    private List<SelectOption> compoundOptions = new();
+
+    private long? EditingPlantId
+    {
+        get => editingItem.PlantId == 0 ? null : editingItem.PlantId;
+        set
+        {
+            editingItem.PlantId = value.HasValue ? (int)value.Value : 0;
+            editingItem.PlantName = plantOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private long? EditingCompoundId
+    {
+        get => editingItem.CompoundId == 0 ? null : editingItem.CompoundId;
+        set
+        {
+            editingItem.CompoundId = value.HasValue ? (int)value.Value : 0;
+            editingItem.CompoundName = compoundOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private void SyncNames(BitkiBilesikViewModel item)
+    {
+        item.PlantName = plantOptions.FirstOrDefault(o => o.Id == item.PlantId)?.Name ?? item.PlantName;
+        item.CompoundName = compoundOptions.FirstOrDefault(o => o.Id == item.CompoundId)?.Name ?? item.CompoundName;
+    }
+
+    private RenderFragment<BitkiBilesikViewModel> PlantSelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", plantOptions);
+        builder.AddAttribute(2, "Placeholder", "Bitki seçin");
+        builder.AddAttribute(3, "Value", (long?)item.PlantId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id => { item.PlantId = id.HasValue ? (int)id.Value : 0; SyncNames(item); }));
+        builder.CloseComponent();
+    };
+
+    private RenderFragment<BitkiBilesikViewModel> CompoundSelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", compoundOptions);
+        builder.AddAttribute(2, "Placeholder", "Bileşik seçin");
+        builder.AddAttribute(3, "Value", (long?)item.CompoundId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id => { item.CompoundId = id.HasValue ? (int)id.Value : 0; SyncNames(item); }));
+        builder.CloseComponent();
+    };
 }

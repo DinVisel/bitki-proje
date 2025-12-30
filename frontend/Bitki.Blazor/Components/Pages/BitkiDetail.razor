@@ -62,11 +62,6 @@
                     </div>
                 }
                 <div class="metadata-row">
-                    <AuthorizeView Roles="Admin">
-                        <Authorized>
-                            <span class="metadata-badge id-badge">ID: @bitki.Id</span>
-                        </Authorized>
-                    </AuthorizeView>
                     @if (!string.IsNullOrEmpty(bitki.FamilyName))
                     {
                         <span class="metadata-badge">@bitki.FamilyName</span>

@@ -60,8 +60,8 @@
                     <input type="text" class="form-control" @bind="editingItem.Name" />
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Şehir ID</label>
-                    <input type="number" class="form-control" @bind="editingItem.CityId" />
+                    <label class="form-label">Şehir</label>
+                    <SearchableSelect Options="cityOptions" Placeholder="Şehir seçin" @bind-Value="EditingCityId" />
                 </div>
             </div>
             <div class="modal-footer">
@@ -101,7 +101,7 @@ new ColumnDef { Title = "Şehir", PropertyName = "CityName" }
     private List<InspectorField> inspectorFields = new()
 {
 new InspectorField { Label = "Ad", PropertyName = "Name", Editable = true },
-new InspectorField { Label = "Şehir", PropertyName = "CityName", Editable = false }
+new InspectorField { Label = "Şehir", PropertyName = "CityName", Editable = true, RenderEditControl = CitySelector }
 };
 
     protected override async Task OnInitializedAsync() => await LoadDataWithFilter();
@@ -112,6 +112,7 @@ new InspectorField { Label = "Şehir", PropertyName = "CityName", Editable = fal
         errorMessage = null;
         try
         {
+            await EnsureOptionsAsync();
             var response = await Http.PostAsJsonAsync("api/ilce/query", currentFilter);
             if (response.IsSuccessStatusCode)
             {
@@ -152,7 +153,7 @@ new InspectorField { Label = "Şehir", PropertyName = "CityName", Editable = fal
         await LoadDataWithFilter();
     }
 
-    private void OpenAddModal() { editingItem = new(); isEditingInModal = false; showAddModal = true; }
+    private void OpenAddModal() { editingItem = new(); EditingCityId = null; isEditingInModal = false; showAddModal = true; }
     private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
     private async Task HandleCreateOrUpdate()
@@ -236,4 +237,35 @@ new InspectorField { Label = "Şehir", PropertyName = "CityName", Editable = fal
             catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
         }
     }
+
+    private List<SelectOption> cityOptions = new();
+
+    private long? EditingCityId
+    {
+        get => editingItem.CityId == 0 ? null : editingItem.CityId;
+        set
+        {
+            editingItem.CityId = value.HasValue ? (int)value.Value : 0;
+            editingItem.CityName = cityOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private async Task EnsureOptionsAsync()
+    {
+        if (!cityOptions.Any())
+        {
+            var cities = await Http.GetFromJsonAsync<List<SehirViewModel>>("api/sehir") ?? new();
+            cityOptions = cities.OrderBy(c => c.Name).Select(c => new SelectOption(c.Id, c.Name ?? $"Şehir #{c.Id}")).ToList();
+        }
+    }
+
+    private RenderFragment<IlceViewModel> CitySelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", cityOptions);
+        builder.AddAttribute(2, "Placeholder", "Şehir seçin");
+        builder.AddAttribute(3, "Value", (long?)item.CityId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id => { item.CityId = id.HasValue ? (int)id.Value : 0; item.CityName = cityOptions.FirstOrDefault(o => o.Id == id)?.Name ?? item.CityName; }));
+        builder.CloseComponent();
+    };
 }

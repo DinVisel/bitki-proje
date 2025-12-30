@@ -4,6 +4,7 @@
 @using Bitki.Blazor.Components.Common
 @using Bitki.Blazor.Services
 @using Microsoft.AspNetCore.Components.Authorization
+@using Bitki.Blazor.Components.Common
 @using static Bitki.Blazor.Components.Common.RecordInspector<Bitki.Blazor.Models.EtnokullanimViewModel>
 @inject HttpClient Http
 @inject AuthenticatedHttpClient AuthHttp
@@ -61,8 +62,8 @@
                     <textarea class="form-control" rows="2" @bind="editingItem.Description"></textarea>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Lokalite ID</label>
-                    <input type="number" class="form-control" @bind="editingItem.LocalityId" />
+                    <label class="form-label">Lokalite</label>
+                    <SearchableSelect Options="localityOptions" Placeholder="Lokalite seçin" @bind-Value="EditingLocalityId" />
                 </div>
             </div>
             <div class="modal-footer">
@@ -102,8 +103,7 @@ new ColumnDef { Title = "Lokalite", PropertyName = "LocalityName" }
     private List<InspectorField> inspectorFields = new()
 {
 new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true },
-new InspectorField { Label = "Lokalite", PropertyName = "LocalityName", Editable = false },
-new InspectorField { Label = "Lokalite ID", PropertyName = "LocalityId", Editable = true },
+new InspectorField { Label = "Lokalite", PropertyName = "LocalityName", Editable = true, RenderEditControl = LocalitySelector },
 new InspectorField { Label = "Oluşturma Tarihi", PropertyName = "CreatedDate", Editable = false }
 };
 
@@ -115,6 +115,7 @@ new InspectorField { Label = "Oluşturma Tarihi", PropertyName = "CreatedDate", 
         errorMessage = null;
         try
         {
+            await EnsureOptionsAsync();
             var response = await Http.PostAsJsonAsync("api/etnokullanim/query", currentFilter);
             if (response.IsSuccessStatusCode)
             {
@@ -158,6 +159,7 @@ new InspectorField { Label = "Oluşturma Tarihi", PropertyName = "CreatedDate", 
     private void OpenAddModal()
     {
         editingItem = new() { CreatedDate = DateTime.Now };
+        EditingLocalityId = null;
         isEditingInModal = false;
         showAddModal = true;
     }
@@ -169,6 +171,11 @@ new InspectorField { Label = "Oluşturma Tarihi", PropertyName = "CreatedDate", 
         if (string.IsNullOrWhiteSpace(editingItem.Description))
         {
             await JS.InvokeVoidAsync("alert", "Açıklama zorunludur.");
+            return;
+        }
+        if (EditingLocalityId == null)
+        {
+            await JS.InvokeVoidAsync("alert", "Lokalite seçilmelidir.");
             return;
         }
         isCreating = true;
@@ -201,6 +208,7 @@ new InspectorField { Label = "Oluşturma Tarihi", PropertyName = "CreatedDate", 
     {
         try
         {
+            SyncLocality(item);
             var r = await AuthHttp.PutAsJsonAsync($"api/etnokullanim/{item.Id}", item);
             if (r.IsSuccessStatusCode)
             {
@@ -222,7 +230,7 @@ new InspectorField { Label = "Oluşturma Tarihi", PropertyName = "CreatedDate", 
 
     private async Task HandleDelete(EtnokullanimViewModel item)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"ID {item.Id} silinsin mi?"))
+        if (await JS.InvokeAsync<bool>("confirm", $"{item.LocalityName} kaydı silinsin mi?"))
         {
             try
             {
@@ -245,4 +253,40 @@ new InspectorField { Label = "Oluşturma Tarihi", PropertyName = "CreatedDate", 
             catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
         }
     }
+
+    private List<SelectOption> localityOptions = new();
+
+    private long? EditingLocalityId
+    {
+        get => editingItem.LocalityId == 0 ? null : editingItem.LocalityId;
+        set
+        {
+            editingItem.LocalityId = value.HasValue ? (int)value.Value : 0;
+            editingItem.LocalityName = localityOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private async Task EnsureOptionsAsync()
+    {
+        if (!localityOptions.Any())
+        {
+            var localities = await Http.GetFromJsonAsync<List<EtnolokaliteViewModel>>("api/etnolokalite") ?? new();
+            localityOptions = localities.OrderBy(l => l.LocalName).Select(l => new SelectOption(l.Id, l.LocalName ?? $"Lokalite #{l.Id}")).ToList();
+        }
+    }
+
+    private void SyncLocality(EtnokullanimViewModel item)
+    {
+        item.LocalityName = localityOptions.FirstOrDefault(o => o.Id == item.LocalityId)?.Name ?? item.LocalityName;
+    }
+
+    private RenderFragment<EtnokullanimViewModel> LocalitySelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", localityOptions);
+        builder.AddAttribute(2, "Placeholder", "Lokalite seçin");
+        builder.AddAttribute(3, "Value", (long?)item.LocalityId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id => { item.LocalityId = id.HasValue ? (int)id.Value : 0; SyncLocality(item); }));
+        builder.CloseComponent();
+    };
 }

@@ -52,7 +52,8 @@ namespace Bitki.Infrastructure.Repositories
                     g.genus AS GenusName
                 FROM dbo.bitki b
                 LEFT JOIN dbo.genus g ON b.genusno = g.genusid
-                LEFT JOIN dbo.familya f ON g.familyano = f.familyaid";
+                LEFT JOIN dbo.familya f ON g.familyano = f.familyaid
+                ORDER BY b.turkce";
             return await connection.QueryAsync<Plant>(sql);
         }
 
@@ -476,4 +477,3 @@ namespace Bitki.Infrastructure.Repositories
         }
     }
 }
-

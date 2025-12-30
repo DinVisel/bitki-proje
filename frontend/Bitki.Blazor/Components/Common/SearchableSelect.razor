@@ -1,0 +1,47 @@
+@using Bitki.Blazor.Models
+
+<div class="searchable-select">
+    <input class="form-control form-control-sm mb-1" type="text" placeholder="@SearchPlaceholder"
+           @bind="searchText" @bind:event="oninput" />
+    <select class="form-select form-select-sm" @onchange="OnValueChanged" value="@Value">
+        <option value="">@Placeholder</option>
+        @foreach (var option in FilteredOptions)
+        {
+            <option value="@option.Id">@option.Name</option>
+        }
+    </select>
+</div>
+
+@code {
+    [Parameter] public IEnumerable<SelectOption> Options { get; set; } = Enumerable.Empty<SelectOption>();
+    [Parameter] public long? Value { get; set; }
+    [Parameter] public EventCallback<long?> ValueChanged { get; set; }
+    [Parameter] public string Placeholder { get; set; } = "Seçiniz";
+    [Parameter] public string SearchPlaceholder { get; set; } = "Ara...";
+
+    private string searchText = string.Empty;
+
+    private IEnumerable<SelectOption> FilteredOptions =>
+        Options.Where(o => string.IsNullOrWhiteSpace(searchText)
+            || o.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+               .OrderBy(o => o.Name)
+               .Take(100);
+
+    private async Task OnValueChanged(ChangeEventArgs e)
+    {
+        if (long.TryParse(Convert.ToString(e.Value), out var parsed))
+        {
+            await ValueChanged.InvokeAsync(parsed);
+        }
+        else
+        {
+            await ValueChanged.InvokeAsync(null);
+        }
+    }
+}
+
+<style>
+    .searchable-select select {
+        min-width: 240px;
+    }
+</style>

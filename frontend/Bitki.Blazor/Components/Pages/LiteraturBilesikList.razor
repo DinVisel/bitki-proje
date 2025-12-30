@@ -57,12 +57,14 @@
             </div>
             <div class="modal-body">
                 <div class="form-group mb-3">
-                    <label class="form-label">Literatür ID *</label>
-                    <input type="number" class="form-control" @bind="editingItem.LiteratureId" />
+                    <label class="form-label">Literatür *</label>
+                    <SearchableSelect Options="literatureOptions" Placeholder="Literatür seçin"
+                                      @bind-Value="EditingLiteratureId" />
                 </div>
                 <div class="form-group mb-3">
-                    <label class="form-label">Bileşik ID *</label>
-                    <input type="number" class="form-control" @bind="editingItem.CompoundId" />
+                    <label class="form-label">Bileşik *</label>
+                    <SearchableSelect Options="compoundOptions" Placeholder="Bileşik seçin"
+                                      @bind-Value="EditingCompoundId" />
                 </div>
                 <div class="form-group">
                     <label class="form-label">Açıklama</label>
@@ -106,10 +108,8 @@ new ColumnDef { Title = "Açıklama", PropertyName = "Description" }
 
     private List<InspectorField> inspectorFields = new()
 {
-new InspectorField { Label = "Literatür", PropertyName = "LiteratureName", Editable = false },
-new InspectorField { Label = "Bileşik", PropertyName = "CompoundName", Editable = false },
-new InspectorField { Label = "Literatür ID", PropertyName = "LiteratureId", Editable = true },
-new InspectorField { Label = "Bileşik ID", PropertyName = "CompoundId", Editable = true },
+new InspectorField { Label = "Literatür", PropertyName = "LiteratureName", Editable = true, RenderEditControl = LiteratureSelector },
+new InspectorField { Label = "Bileşik", PropertyName = "CompoundName", Editable = true, RenderEditControl = CompoundSelector },
 new InspectorField { Label = "Açıklama", PropertyName = "Description", Editable = true }
 };
 
@@ -121,6 +121,7 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
         errorMessage = null;
         try
         {
+            await EnsureOptionsAsync();
             var response = await Http.PostAsJsonAsync("api/literaturbilesik/query", currentFilter);
             if (response.IsSuccessStatusCode)
             {
@@ -161,14 +162,14 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
         await LoadDataWithFilter();
     }
 
-    private void OpenAddModal() { editingItem = new(); isEditingInModal = false; showAddModal = true; }
+    private void OpenAddModal() { editingItem = new(); EditingLiteratureId = null; EditingCompoundId = null; isEditingInModal = false; showAddModal = true; }
     private void CloseAddModal() { showAddModal = false; editingItem = new(); isEditingInModal = false; }
 
     private async Task HandleCreateOrUpdate()
     {
-        if (editingItem.LiteratureId == 0 || editingItem.CompoundId == 0)
+        if (EditingLiteratureId == null || EditingCompoundId == null)
         {
-            await JS.InvokeVoidAsync("alert", "Literatür ve Bileşik ID zorunludur.");
+            await JS.InvokeVoidAsync("alert", "Literatür ve Bileşik seçilmelidir.");
             return;
         }
         isCreating = true;
@@ -201,6 +202,7 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
     {
         try
         {
+            SyncNames(item);
             var r = await AuthHttp.PutAsJsonAsync($"api/literaturbilesik/{item.Id}", item);
             if (r.IsSuccessStatusCode)
             {
@@ -222,7 +224,8 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
 
     private async Task HandleDelete(LiteraturBilesikViewModel item)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"ID {item.Id} silinsin mi?"))
+        var label = $"{item.LiteratureName} - {item.CompoundName}";
+        if (await JS.InvokeAsync<bool>("confirm", $"{label} silinsin mi?"))
         {
             try
             {
@@ -245,4 +248,71 @@ new InspectorField { Label = "Açıklama", PropertyName = "Description", Editabl
             catch (Exception ex) { await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}"); }
         }
     }
+
+    private List<SelectOption> literatureOptions = new();
+    private List<SelectOption> compoundOptions = new();
+
+    private long? EditingLiteratureId
+    {
+        get => editingItem.LiteratureId == 0 ? null : editingItem.LiteratureId;
+        set
+        {
+            editingItem.LiteratureId = value.HasValue ? (int)value.Value : 0;
+            editingItem.LiteratureName = literatureOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private long? EditingCompoundId
+    {
+        get => editingItem.CompoundId == 0 ? null : editingItem.CompoundId;
+        set
+        {
+            editingItem.CompoundId = value.HasValue ? (int)value.Value : 0;
+            editingItem.CompoundName = compoundOptions.FirstOrDefault(o => o.Id == value)?.Name;
+        }
+    }
+
+    private async Task EnsureOptionsAsync()
+    {
+        if (!literatureOptions.Any())
+        {
+            var literature = await Http.GetFromJsonAsync<List<LiteraturViewModel>>("api/literatur") ?? new();
+            literatureOptions = literature
+                .OrderBy(l => l.FullName ?? l.ResearchName ?? l.AuthorName)
+                .Select(l => new SelectOption(l.Id, l.FullName ?? l.ResearchName ?? l.AuthorName ?? $"Literatür #{l.Id}"))
+                .ToList();
+        }
+
+        if (!compoundOptions.Any())
+        {
+            var compounds = await Http.GetFromJsonAsync<List<BilesiklerViewModel>>("api/bilesikler") ?? new();
+            compoundOptions = compounds.OrderBy(c => c.Name).Select(c => new SelectOption(c.Id, c.Name ?? $"Bileşik #{c.Id}")).ToList();
+        }
+    }
+
+    private void SyncNames(LiteraturBilesikViewModel item)
+    {
+        item.LiteratureName = literatureOptions.FirstOrDefault(o => o.Id == item.LiteratureId)?.Name ?? item.LiteratureName;
+        item.CompoundName = compoundOptions.FirstOrDefault(o => o.Id == item.CompoundId)?.Name ?? item.CompoundName;
+    }
+
+    private RenderFragment<LiteraturBilesikViewModel> LiteratureSelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", literatureOptions);
+        builder.AddAttribute(2, "Placeholder", "Literatür seçin");
+        builder.AddAttribute(3, "Value", (long?)item.LiteratureId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id => { item.LiteratureId = id.HasValue ? (int)id.Value : 0; SyncNames(item); }));
+        builder.CloseComponent();
+    };
+
+    private RenderFragment<LiteraturBilesikViewModel> CompoundSelector => item => builder =>
+    {
+        builder.OpenComponent<SearchableSelect>(0);
+        builder.AddAttribute(1, "Options", compoundOptions);
+        builder.AddAttribute(2, "Placeholder", "Bileşik seçin");
+        builder.AddAttribute(3, "Value", (long?)item.CompoundId);
+        builder.AddAttribute(4, "ValueChanged", EventCallback.Factory.Create<long?>(this, id => { item.CompoundId = id.HasValue ? (int)id.Value : 0; SyncNames(item); }));
+        builder.CloseComponent();
+    };
 }

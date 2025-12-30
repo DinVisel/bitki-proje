@@ -6,5 +6,7 @@ namespace Bitki.Core.Entities
         public int? CompoundId { get; set; }
         public double? Amount { get; set; }
         public string? Unit { get; set; }
+        public string? EssentialOilName { get; set; }
+        public string? CompoundName { get; set; }
     }
 }
