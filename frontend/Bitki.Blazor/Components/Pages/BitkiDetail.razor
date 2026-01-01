@@ -79,6 +79,7 @@
                             @if (!isEditMode)
                             {
                                 <button class="btn btn-sm btn-outline-primary" @onclick="EnableEditMode">Düzenle</button>
+                                <button class="btn btn-sm btn-outline-danger ms-2" @onclick="DeleteBitki">Sil</button>
                             }
                         </Authorized>
                     </AuthorizeView>
@@ -1308,6 +1309,32 @@ new(bitki.DisplayName)
             else
             {
                 await JS.InvokeVoidAsync("alert", "Silinemedi. Yetkinizi kontrol edin.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Hata: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteBitki()
+    {
+        if (bitki == null) return;
+
+        if (!await JS.InvokeAsync<bool>("confirm", $"{bitki.TurkishName} kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz!"))
+            return;
+
+        try
+        {
+            var response = await AuthHttp.DeleteAsync($"api/bitki/{bitki.Id}");
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Bitki başarıyla silindi.");
+                Navigation.NavigateTo("/bitki");
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "Silme işlemi başarısız oldu. Lütfen yetkinizi kontrol edin.");
             }
         }
         catch (Exception ex)
