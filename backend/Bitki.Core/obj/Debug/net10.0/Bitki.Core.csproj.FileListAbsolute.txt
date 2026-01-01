@@ -11,3 +11,16 @@
 /Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Core/obj/Debug/net10.0/ref/Bitki.Core.dll
 /Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Core/obj/Debug/net10.0/Bitki.Core.sourcelink.json
 /Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Core/obj/Debug/net10.0/Bitki.Core.csproj.AssemblyReference.cache
+C:\Users\arda3\OneDrive\Masaüstü\Projects\bitki-proje\backend\Bitki.Core\bin\Debug\net10.0\Bitki.Core.deps.json
+C:\Users\arda3\OneDrive\Masaüstü\Projects\bitki-proje\backend\Bitki.Core\bin\Debug\net10.0\Bitki.Core.dll
+C:\Users\arda3\OneDrive\Masaüstü\Projects\bitki-proje\backend\Bitki.Core\bin\Debug\net10.0\Bitki.Core.pdb
+C:\Users\arda3\OneDrive\Masaüstü\Projects\bitki-proje\backend\Bitki.Core\obj\Debug\net10.0\Bitki.Core.csproj.AssemblyReference.cache
+C:\Users\arda3\OneDrive\Masaüstü\Projects\bitki-proje\backend\Bitki.Core\obj\Debug\net10.0\Bitki.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\arda3\OneDrive\Masaüstü\Projects\bitki-proje\backend\Bitki.Core\obj\Debug\net10.0\Bitki.Core.AssemblyInfoInputs.cache
+C:\Users\arda3\OneDrive\Masaüstü\Projects\bitki-proje\backend\Bitki.Core\obj\Debug\net10.0\Bitki.Core.AssemblyInfo.cs
+C:\Users\arda3\OneDrive\Masaüstü\Projects\bitki-proje\backend\Bitki.Core\obj\Debug\net10.0\Bitki.Core.csproj.CoreCompileInputs.cache
+C:\Users\arda3\OneDrive\Masaüstü\Projects\bitki-proje\backend\Bitki.Core\obj\Debug\net10.0\Bitki.Core.sourcelink.json
+C:\Users\arda3\OneDrive\Masaüstü\Projects\bitki-proje\backend\Bitki.Core\obj\Debug\net10.0\Bitki.Core.dll
+C:\Users\arda3\OneDrive\Masaüstü\Projects\bitki-proje\backend\Bitki.Core\obj\Debug\net10.0\refint\Bitki.Core.dll
+C:\Users\arda3\OneDrive\Masaüstü\Projects\bitki-proje\backend\Bitki.Core\obj\Debug\net10.0\Bitki.Core.pdb
+C:\Users\arda3\OneDrive\Masaüstü\Projects\bitki-proje\backend\Bitki.Core\obj\Debug\net10.0\ref\Bitki.Core.dll

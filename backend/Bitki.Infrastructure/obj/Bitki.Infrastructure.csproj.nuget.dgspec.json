@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Infrastructure/Bitki.Infrastructure.csproj": {}
+    "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\backend\\Bitki.Infrastructure\\Bitki.Infrastructure.csproj": {}
   },
   "projects": {
-    "/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Core/Bitki.Core.csproj": {
+    "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\backend\\Bitki.Core\\Bitki.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Core/Bitki.Core.csproj",
+        "projectUniqueName": "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\backend\\Bitki.Core\\Bitki.Core.csproj",
         "projectName": "Bitki.Core",
-        "projectPath": "/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Core/Bitki.Core.csproj",
-        "packagesPath": "/Users/ardaozcan/.nuget/packages/",
-        "outputPath": "/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Core/obj/",
+        "projectPath": "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\backend\\Bitki.Core\\Bitki.Core.csproj",
+        "packagesPath": "C:\\Users\\arda3\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\backend\\Bitki.Core\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/ardaozcan/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\arda3\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
@@ -65,7 +65,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.101/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
@@ -343,17 +343,17 @@
         }
       }
     },
-    "/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Infrastructure/Bitki.Infrastructure.csproj": {
+    "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\backend\\Bitki.Infrastructure\\Bitki.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Infrastructure/Bitki.Infrastructure.csproj",
+        "projectUniqueName": "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\backend\\Bitki.Infrastructure\\Bitki.Infrastructure.csproj",
         "projectName": "Bitki.Infrastructure",
-        "projectPath": "/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Infrastructure/Bitki.Infrastructure.csproj",
-        "packagesPath": "/Users/ardaozcan/.nuget/packages/",
-        "outputPath": "/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Infrastructure/obj/",
+        "projectPath": "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\backend\\Bitki.Infrastructure\\Bitki.Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\arda3\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\backend\\Bitki.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/ardaozcan/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\arda3\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
@@ -365,8 +365,8 @@
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Core/Bitki.Core.csproj": {
-                "projectPath": "/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Core/Bitki.Core.csproj"
+              "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\backend\\Bitki.Core\\Bitki.Core.csproj": {
+                "projectPath": "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\backend\\Bitki.Core\\Bitki.Core.csproj"
               }
             }
           }
@@ -442,7 +442,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.101/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",

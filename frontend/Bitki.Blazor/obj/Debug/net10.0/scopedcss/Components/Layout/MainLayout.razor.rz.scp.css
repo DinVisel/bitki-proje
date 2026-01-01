@@ -1,82 +1,49 @@
-.page[b-95gqjqgv3t] {
-    position: relative;
+.page[b-u1plb6nvd0] {
+    /* Full viewport height, no scroll on body */
+    height: 100vh;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
+    position: relative;
+    width: 100%;
 }
 
-main[b-95gqjqgv3t] {
+main[b-u1plb6nvd0] {
+    /* Main content takes remaining space and scrolls independently */
     flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
-.sidebar[b-95gqjqgv3t] {
+.sidebar[b-u1plb6nvd0] {
     background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
 }
 
-.top-row[b-95gqjqgv3t] {
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #d6d5d5;
-    justify-content: flex-end;
-    height: 3.5rem;
-    display: flex;
-    align-items: center;
-}
-
-    .top-row[b-95gqjqgv3t]  a, .top-row[b-95gqjqgv3t]  .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
-        text-decoration: none;
-    }
-
-    .top-row[b-95gqjqgv3t]  a:hover, .top-row[b-95gqjqgv3t]  .btn-link:hover {
-        text-decoration: underline;
-    }
-
-    .top-row[b-95gqjqgv3t]  a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-@media (max-width: 640.98px) {
-    .top-row[b-95gqjqgv3t] {
-        justify-content: space-between;
-    }
-
-    .top-row[b-95gqjqgv3t]  a, .top-row[b-95gqjqgv3t]  .btn-link {
-        margin-left: 0;
-    }
-}
+/* Mobile Layout Default (Column) - Sidebar is top bar */
 
 @media (min-width: 641px) {
-    .page[b-95gqjqgv3t] {
+    .page[b-u1plb6nvd0] {
         flex-direction: row;
     }
 
-    .sidebar[b-95gqjqgv3t] {
+    .sidebar[b-u1plb6nvd0] {
         width: 250px;
-        height: 100vh;
-        position: sticky;
-        top: 0;
+        height: 100%; /* Fill parent */
+        overflow-y: auto; /* Independent scroll */
+        /* Remove sticky/fixed behavior */
+        position: static;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
     }
 
-    .top-row[b-95gqjqgv3t] {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-    }
-
-    .top-row.auth[b-95gqjqgv3t]  a:first-child {
-        flex: 1;
-        text-align: right;
-        width: 0;
-    }
-
-    .top-row[b-95gqjqgv3t], article[b-95gqjqgv3t] {
-        padding-left: 2rem !important;
-        padding-right: 1.5rem !important;
-    }
+    /* 
+       Since sidebar is now a flex child in a row,
+       it will naturally sit on the left.
+    */
 }
 
-#blazor-error-ui[b-95gqjqgv3t] {
+#blazor-error-ui[b-u1plb6nvd0] {
     color-scheme: light only;
     background: lightyellow;
     bottom: 0;
@@ -90,7 +57,7 @@ main[b-95gqjqgv3t] {
     z-index: 1000;
 }
 
-    #blazor-error-ui .dismiss[b-95gqjqgv3t] {
+    #blazor-error-ui .dismiss[b-u1plb6nvd0] {
         cursor: pointer;
         position: absolute;
         right: 0.75rem;

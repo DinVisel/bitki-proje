@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "Oae63fgSpWg=",
+  "dgSpecHash": "P3feRhHrzwo=",
   "success": true,
-  "projectFilePath": "/Users/ardaozcan/Documents/bitki-proje/backend/Bitki.Core/Bitki.Core.csproj",
+  "projectFilePath": "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\backend\\Bitki.Core\\Bitki.Core.csproj",
   "expectedPackageFiles": [
-    "/Users/ardaozcan/.nuget/packages/dapper/2.1.35/dapper.2.1.35.nupkg.sha512"
+    "C:\\Users\\arda3\\.nuget\\packages\\dapper\\2.1.35\\dapper.2.1.35.nupkg.sha512"
   ],
   "logs": []
 }

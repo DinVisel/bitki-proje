@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "oyYU1qHIPYw=",
+  "dgSpecHash": "f5NDcXntGPQ=",
   "success": true,
-  "projectFilePath": "/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Bitki.Blazor.csproj",
+  "projectFilePath": "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\frontend\\Bitki.Blazor\\Bitki.Blazor.csproj",
   "expectedPackageFiles": [
-    "/Users/ardaozcan/.nuget/packages/microsoft.aspnetcore.app.internal.assets/10.0.1/microsoft.aspnetcore.app.internal.assets.10.0.1.nupkg.sha512"
+    "C:\\Users\\arda3\\.nuget\\packages\\microsoft.aspnetcore.app.internal.assets\\10.0.1\\microsoft.aspnetcore.app.internal.assets.10.0.1.nupkg.sha512"
   ],
   "logs": []
 }
