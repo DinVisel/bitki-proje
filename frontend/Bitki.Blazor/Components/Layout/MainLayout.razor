@@ -2,15 +2,19 @@
 
 <div class="page">
     <div class="sidebar">
-        <NavMenu />
-        <div class="sidebar-user-info">
-            <LoginDisplay />
-        </div>
+        <ErrorBoundary>
+            <NavMenu />
+            <div class="sidebar-user-info">
+                <LoginDisplay />
+            </div>
+        </ErrorBoundary>
     </div>
 
     <main>
         <article class="page-container px-4">
-            @Body
+            <ErrorBoundary>
+                @Body
+            </ErrorBoundary>
         </article>
     </main>
 </div>

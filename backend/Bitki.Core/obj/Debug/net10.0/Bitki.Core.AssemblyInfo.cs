@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Bitki.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c923df3090fa5d260310e51f3ebc0f225bbe4132")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f5aa25f5efb76635a246d925cad41d9f325c1c38")]
 [assembly: System.Reflection.AssemblyProductAttribute("Bitki.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Bitki.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

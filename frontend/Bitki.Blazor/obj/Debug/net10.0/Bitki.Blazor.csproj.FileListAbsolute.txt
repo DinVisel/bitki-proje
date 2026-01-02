@@ -168,5 +168,5 @@ C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/ob
 C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/ref/Bitki.Blazor.dll
 C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/compressed/jyn5w5q4po-{0}-rw3b7ee5xz-rw3b7ee5xz.gz
 C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/compressed/20b4mvbxj9-{0}-rw3b7ee5xz-rw3b7ee5xz.gz
-/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/compressed/jyn5w5q4po-{0}-e9hwluhrhj-e9hwluhrhj.gz
-/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/compressed/20b4mvbxj9-{0}-e9hwluhrhj-e9hwluhrhj.gz
+/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/compressed/jyn5w5q4po-{0}-0yn687ignh-0yn687ignh.gz
+/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/Debug/net10.0/compressed/20b4mvbxj9-{0}-0yn687ignh-0yn687ignh.gz

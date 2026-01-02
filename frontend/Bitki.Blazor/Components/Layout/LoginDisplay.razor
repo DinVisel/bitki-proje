@@ -21,21 +21,30 @@
 @code {
     private async Task Logout()
     {
-        var customAuthStateProvider = (CustomAuthenticationStateProvider)AuthStateProvider;
-        await customAuthStateProvider.UpdateAuthenticationState(null);
-        NavigationManager.NavigateTo("/", true);
+        if (AuthStateProvider is CustomAuthenticationStateProvider customAuthStateProvider)
+        {
+            await customAuthStateProvider.UpdateAuthenticationState(null);
+            NavigationManager.NavigateTo("/", true);
+        }
+        else
+        {
+            // Fallback navigation or logging if the provider is not the expected custom type
+            NavigationManager.NavigateTo("/", true);
+        }
     }
 
     private string GetUserRole(ClaimsPrincipal user)
     {
+        if (user == null) return "Unknown";
         var roleClaim = user.FindFirst(ClaimTypes.Role) ?? user.FindFirst("role");
         return roleClaim?.Value ?? "Unknown";
     }
 
     private string GetRoleBadgeClass(ClaimsPrincipal user)
     {
+        if (user == null) return "role-unknown";
         var role = GetUserRole(user);
-        return role.ToLower() switch
+        return role.ToLowerInvariant() switch
         {
             "admin" => "role-admin",
             "user" => "role-viewer",

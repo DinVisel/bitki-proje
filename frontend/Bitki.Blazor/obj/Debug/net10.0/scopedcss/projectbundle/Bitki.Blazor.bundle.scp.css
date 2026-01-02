@@ -1,97 +1,84 @@
 /* /Components/Layout/MainLayout.razor.rz.scp.css */
-.page[b-u1plb6nvd0] {
-    /* Full viewport height, no scroll on body */
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    width: 100%;
+.page[b-95gqjqgv3t] {
+	/* Full viewport height, no scroll on body */
+	height: 100vh;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	width: 100%;
 }
 
-main[b-u1plb6nvd0] {
-    /* Main content takes remaining space and scrolls independently */
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+main[b-95gqjqgv3t] {
+	/* Main content takes remaining space and scrolls independently */
+	flex: 1;
+	overflow-y: auto;
+	overflow-x: hidden;
 }
 
-.sidebar[b-u1plb6nvd0] {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+.sidebar[b-95gqjqgv3t] {
+	background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
 }
 
 /* Mobile Layout Default (Column) - Sidebar is top bar */
 
 @media (min-width: 641px) {
-    .page[b-u1plb6nvd0] {
-        flex-direction: row;
-    }
+	.page[b-95gqjqgv3t] {
+		flex-direction: row;
+	}
 
-    .sidebar[b-u1plb6nvd0] {
-        width: 250px;
-        height: 100%; /* Fill parent */
-        overflow-y: auto; /* Independent scroll */
-        /* Remove sticky/fixed behavior */
-        position: static;
-        z-index: 10;
-        display: flex;
-        flex-direction: column;
-    }
+	.sidebar[b-95gqjqgv3t] {
+		width: 250px;
+		height: 100%; /* Fill parent */
+		overflow-y: auto; /* Independent scroll */
+		/* Enable z-index by using relative positioning */
+		position: relative;
+		z-index: 10;
+		display: flex;
+		flex-direction: column;
+	}
 
-    /* 
+	/* 
        Since sidebar is now a flex child in a row,
        it will naturally sit on the left.
     */
 }
 
-#blazor-error-ui[b-u1plb6nvd0] {
-    color-scheme: light only;
-    background: lightyellow;
-    bottom: 0;
-    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
-    box-sizing: border-box;
-    display: none;
-    left: 0;
-    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
-    position: fixed;
-    width: 100%;
-    z-index: 1000;
+#blazor-error-ui[b-95gqjqgv3t] {
+	color-scheme: light only;
+	background: lightyellow;
+	bottom: 0;
+	box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+	box-sizing: border-box;
+	display: none;
+	left: 0;
+	padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+	position: fixed;
+	width: 100%;
+	z-index: 1000;
 }
 
-    #blazor-error-ui .dismiss[b-u1plb6nvd0] {
-        cursor: pointer;
-        position: absolute;
-        right: 0.75rem;
-        top: 0.5rem;
-    }
+#blazor-error-ui .dismiss[b-95gqjqgv3t] {
+	cursor: pointer;
+	position: absolute;
+	right: 0.75rem;
+	top: 0.5rem;
+}
 /* /Components/Layout/NavMenu.razor.rz.scp.css */
-.navbar-toggler[b-i6ld4cc65c] {
-    appearance: none;
-    cursor: pointer;
-    width: 3.5rem;
-    height: 2.5rem;
-    color: white;
-    position: absolute;
-    top: 0.5rem;
-    right: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.55%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.75rem rgba(255, 255, 255, 0.1);
+.navbar-toggler[b-mfrjpi1e2g] {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
-.navbar-toggler:checked[b-i6ld4cc65c] {
-    background-color: rgba(255, 255, 255, 0.5);
-}
-
-.top-row[b-i6ld4cc65c] {
+.top-row[b-mfrjpi1e2g] {
     min-height: 3.5rem;
     background-color: rgba(0, 0, 0, 0.4);
 }
 
-.navbar-brand[b-i6ld4cc65c] {
+.navbar-brand[b-mfrjpi1e2g] {
     font-size: 1.1rem;
 }
 
-.bi[b-i6ld4cc65c] {
+.bi[b-mfrjpi1e2g] {
     display: inline-block;
     position: relative;
     width: 1.25rem;
@@ -101,32 +88,32 @@ main[b-u1plb6nvd0] {
     background-size: cover;
 }
 
-.bi-house-door-fill-nav-menu[b-i6ld4cc65c] {
+.bi-house-door-fill-nav-menu[b-mfrjpi1e2g] {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' class='bi bi-house-door-fill' viewBox='0 0 16 16'%3E%3Cpath d='M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5Z'/%3E%3C/svg%3E");
 }
 
-.bi-plus-square-fill-nav-menu[b-i6ld4cc65c] {
+.bi-plus-square-fill-nav-menu[b-mfrjpi1e2g] {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' class='bi bi-plus-square-fill' viewBox='0 0 16 16'%3E%3Cpath d='M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm6.5 4.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3a.5.5 0 0 1 1 0z'/%3E%3C/svg%3E");
 }
 
-.bi-list-nested-nav-menu[b-i6ld4cc65c] {
+.bi-list-nested-nav-menu[b-mfrjpi1e2g] {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' class='bi bi-list-nested' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M4.5 11.5A.5.5 0 0 1 5 11h10a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm-2-4A.5.5 0 0 1 3 7h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm-2-4A.5.5 0 0 1 1 3h10a.5.5 0 0 1 0 1H1a.5.5 0 0 1-.5-.5z'/%3E%3C/svg%3E");
 }
 
-.nav-item[b-i6ld4cc65c] {
+.nav-item[b-mfrjpi1e2g] {
     font-size: 0.9rem;
     padding-bottom: 0.5rem;
 }
 
-.nav-item:first-of-type[b-i6ld4cc65c] {
+.nav-item:first-of-type[b-mfrjpi1e2g] {
     padding-top: 1rem;
 }
 
-.nav-item:last-of-type[b-i6ld4cc65c] {
+.nav-item:last-of-type[b-mfrjpi1e2g] {
     padding-bottom: 1rem;
 }
 
-.nav-item[b-i6ld4cc65c]  .nav-link {
+.nav-item[b-mfrjpi1e2g]  .nav-link {
     color: #d7d7d7;
     background: none;
     border: none;
@@ -138,36 +125,24 @@ main[b-u1plb6nvd0] {
     width: 100%;
 }
 
-.nav-item[b-i6ld4cc65c]  a.active {
+.nav-item[b-mfrjpi1e2g]  a.active {
     background-color: rgba(255, 255, 255, 0.37);
     color: white;
 }
 
-.nav-item[b-i6ld4cc65c]  .nav-link:hover {
+.nav-item[b-mfrjpi1e2g]  .nav-link:hover {
     background-color: rgba(255, 255, 255, 0.1);
     color: white;
 }
 
-.nav-scrollable[b-i6ld4cc65c] {
-    display: none;
-}
-
-.navbar-toggler:checked~.nav-scrollable[b-i6ld4cc65c] {
-    display: block;
-}
-
 @media (min-width: 641px) {
-    .navbar-toggler[b-i6ld4cc65c] {
+    .navbar-toggler[b-mfrjpi1e2g] {
         display: none;
     }
 
-    .nav-scrollable[b-i6ld4cc65c] {
+    .collapse[b-mfrjpi1e2g] {
         /* Never collapse the sidebar for wide screens */
         display: block;
-
-        /* Removed strict height calculation - relying on parent container */
-        height: auto;
-        overflow-y: visible;
     }
 }
 /* /Components/Layout/ReconnectModal.razor.rz.scp.css */
