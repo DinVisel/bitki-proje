@@ -1,0 +1,125 @@
+@page "/herbarium"
+@rendermode InteractiveServer
+@using Bitki.Blazor.Components.Pages.Herbarium
+@using Bitki.Blazor.Models
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Herbaryum Kayıtları</PageTitle>
+
+<div class="container-fluid h-100 p-0">
+    <div class="row g-0 h-100">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-3 border-end bg-white" style="height: calc(100vh - 56px); overflow-y: auto;">
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
+                <h5 class="mb-0">Bitkiler</h5>
+                <button class="btn btn-sm btn-outline-primary" @onclick="AddNew">
+                    <i class="bi bi-plus-lg"></i> Yeni Kayıt
+                </button>
+            </div>
+            <HerbariumListSideBar @ref="sidebar" SelectedPlantId="@_selectedPlantId"
+                OnPlantSelected="HandlePlantSelection" />
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-9 bg-light" style="height: calc(100vh - 56px); overflow-y: auto;">
+            <div class="p-4">
+                @if (_showDetail)
+                {
+                    <div class="card shadow rounded-3 border-0">
+                        <div class="card-body">
+                            <HerbariumDetail HerbariumId="@_selectedHerbariumId" PreSelectedPlantId="@_selectedPlantId"
+                                OnSaved="HandleSaved" OnCancel="HandleCancel" />
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="d-flex flex-column justify-content-center align-items-center h-100 text-muted"
+                        style="min-height: 400px;">
+                        <i class="bi bi-flower1 display-4 mb-3" style="opacity: 0.5;"></i>
+                        <p class="lead">Sol menüden bir bitki seçin veya yeni kayıt oluşturun.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int? _selectedPlantId;
+    private int _selectedHerbariumId = 0; // 0 means Create mode
+    private bool _showDetail = false;
+
+    private HerbariumListSideBar? sidebar;
+
+    private async Task HandlePlantSelection(int plantId)
+    {
+        _selectedPlantId = plantId;
+        _selectedHerbariumId = 0; // Default to create mode
+
+        // Check if an herbarium record exists for this plant
+        try
+        {
+            var request = new FilterRequest
+            {
+                PageSize = 1,
+                Filters = new Dictionary<string, string> { { "PlantId", plantId.ToString() } }
+            };
+
+            var response = await Http.PostAsJsonAsync("api/Herbarium/query", request);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<FilterResponse<HerbariumViewModel>>();
+                var existing = result?.Data?.FirstOrDefault();
+
+                if (existing != null)
+                {
+                    _selectedHerbariumId = existing.Id;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error checking existing record: {ex.Message}");
+        }
+
+        // Set _showDetail after state is ready
+        _showDetail = true;
+        StateHasChanged();
+    }
+
+    private void AddNew()
+    {
+        // Reset state for manual creation without a selected plant (initially)
+        _selectedPlantId = null;
+        _selectedHerbariumId = 0;
+        _showDetail = true;
+        StateHasChanged();
+    }
+
+    private async Task HandleSaved()
+    {
+        // Refresh helps if we added a record regarding a plant in the list
+        // Ideally we might want to refresh the list to show an indicator, but simple refresh is fine
+        if (_selectedPlantId.HasValue)
+        {
+            // Re-fetch to ensure we switch to Edit mode if we just saved
+            await HandlePlantSelection(_selectedPlantId.Value);
+        }
+        else
+        {
+            // If we created a new one without pre-selected plant, maybe just clear or stay?
+            // Requirement says "Allow the user to create...".
+            // Let's reset for now or keep editing the new one?
+            // Usually simpler to just keep passing the saved ID if we had it, but for now let's just refresh logic.
+        }
+    }
+
+    private void HandleCancel()
+    {
+        _selectedPlantId = null;
+        _selectedHerbariumId = 0;
+        _showDetail = false;
+    }
+}

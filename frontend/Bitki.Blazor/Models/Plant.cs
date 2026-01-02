@@ -13,11 +13,20 @@ namespace Bitki.Blazor.Models
 
         public string? Family { get; set; }
 
+        // API returns FamilyName and GenusName from JOIN
+        public string? FamilyName { get; set; }
+        public string? GenusName { get; set; }
+
         public int? GenusId { get; set; }
 
         public string? Habitat { get; set; }
 
         public string? Description { get; set; }
+
+        // Computed display name - use actual name or fallback to latin/id
+        public string DisplayName => !string.IsNullOrEmpty(Name) ? Name
+            : !string.IsNullOrEmpty(LatinName) ? LatinName
+            : $"(İsimsiz Bitki #{Id})";
 
         // Boolean Flags
         public bool IsMedicinal { get; set; }

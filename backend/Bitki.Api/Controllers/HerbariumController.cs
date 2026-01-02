@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Bitki.Core.Entities;
+using Bitki.Core.Models;
 using Bitki.Core.Interfaces.Repositories.Herbarium;
 
 namespace Bitki.Api.Controllers
@@ -23,6 +24,13 @@ namespace Bitki.Api.Controllers
             var item = await _repository.GetByIdAsync(id);
             if (item == null) return NotFound();
             return Ok(item);
+        }
+
+        [HttpPost("query")]
+        public async Task<ActionResult<FilterResponse<Herbarium>>> Query([FromBody] FilterRequest request)
+        {
+            var result = await _repository.QueryAsync(request);
+            return Ok(result);
         }
 
         [HttpPost]

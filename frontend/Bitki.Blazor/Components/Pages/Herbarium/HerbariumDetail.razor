@@ -1,0 +1,656 @@
+@using Bitki.Blazor.Models
+@inject HttpClient Http
+
+@if (IsLoading)
+{
+    <div class="d-flex justify-content-center align-items-center h-100">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Yükleniyor...</span>
+        </div>
+    </div>
+}
+else
+{
+    <EditForm Model="@Model" OnValidSubmit="SaveHerbarium">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <!-- Herbarium Card Header -->
+        <div class="herbarium-card">
+            <div class="herbarium-header d-flex justify-content-between align-items-center p-3 border-bottom">
+                <div>
+                    <h4 class="mb-0">
+                        @if (Model.Id == 0)
+                        {
+                            <span class="text-success"><i class="bi bi-plus-circle"></i> Yeni Herbaryum Kaydı</span>
+                        }
+                        else
+                        {
+                            <span><i class="bi bi-journal-bookmark"></i> Herbaryum Kartı</span>
+                        }
+                    </h4>
+                </div>
+                @if (Model.Id > 0 && !string.IsNullOrEmpty(Model.HerbariumNo))
+                {
+                    <span class="badge bg-dark fs-6 px-3 py-2">No: @Model.HerbariumNo</span>
+                }
+            </div>
+
+            <!-- Table-like Data Layout -->
+            <div class="herbarium-body p-3">
+                <!-- Row 1: Identification -->
+                <table class="table table-bordered herbarium-table mb-0">
+                    <tbody>
+                        <tr class="table-light">
+                            <th colspan="4" class="text-center bg-secondary text-white">KİMLİK BİLGİLERİ</th>
+                        </tr>
+                        <tr>
+                            <th style="width: 15%">Bitki Adı <span class="text-danger">*</span></th>
+                            <td style="width: 35%">
+                                @if (PreSelectedPlantId.HasValue)
+                                {
+                                    <input type="text" class="form-control form-control-sm bg-light"
+                                        value="@(GetPlantName(PreSelectedPlantId.Value))" readonly />
+                                    <input type="hidden" @bind="Model.PlantId" />
+                                }
+                                else
+                                {
+                                    <div class="input-group input-group-sm">
+                                        <select class="form-select form-select-sm" @onchange="OnPlantChange" required>
+                                            <option value="">Seçiniz...</option>
+                                            @foreach (var p in Plants)
+                                            {
+                                                <option value="@p.Id" selected="@(p.Id == Model.PlantId)">@p.Name</option>
+                                            }
+                                        </select>
+                                        <button type="button" class="btn btn-outline-success btn-sm"
+                                            @onclick="ShowNewPlantModal" title="Yeni Bitki Ekle">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
+                                    </div>
+                                }
+                            </td>
+                            <th style="width: 15%">Familya</th>
+                            <td style="width: 35%">
+                                <input type="text" class="form-control form-control-sm bg-light" value="@Model.FamilyName"
+                                    readonly />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Herbaryum No <span class="text-danger">*</span></th>
+                            <td>
+                                <InputText @bind-Value="Model.HerbariumNo" class="form-control form-control-sm"
+                                    placeholder="Örn: HRB-2024-001" required />
+                            </td>
+                            <th>Tipus</th>
+                            <td>
+                                <InputText @bind-Value="Model.Tipus" class="form-control form-control-sm"
+                                    placeholder="Tip" />
+                            </td>
+                        </tr>
+
+                        <!-- Row 2: Location -->
+                        <tr class="table-light">
+                            <th colspan="4" class="text-center bg-secondary text-white">KONUM BİLGİLERİ</th>
+                        </tr>
+                        <tr>
+                            <th>İl</th>
+                            <td>
+                                <select class="form-select form-select-sm" @onchange="OnCityChange">
+                                    <option value="">Seçiniz...</option>
+                                    @foreach (var c in Cities)
+                                    {
+                                        <option value="@c.Id" selected="@(c.Id == Model.CityId)">@c.Name</option>
+                                    }
+                                </select>
+                            </td>
+                            <th>İlçe</th>
+                            <td>
+                                <select class="form-select form-select-sm" @bind="Model.DistrictId"
+                                    disabled="@(Model.CityId == null)">
+                                    <option value="">Seçiniz...</option>
+                                    @foreach (var d in Districts)
+                                    {
+                                        <option value="@d.Id">@d.Name</option>
+                                    }
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Köy</th>
+                            <td>
+                                <InputText @bind-Value="Model.Village" class="form-control form-control-sm"
+                                    placeholder="Köy adı" />
+                            </td>
+                            <th>Yer (Lokalite)</th>
+                            <td>
+                                <InputText @bind-Value="Model.Yer" class="form-control form-control-sm"
+                                    placeholder="Detaylı konum" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>ITF Karesi</th>
+                            <td>
+                                <InputText @bind-Value="Model.ItfKaresi" class="form-control form-control-sm"
+                                    placeholder="ITF grid" />
+                            </td>
+                            <th>GPS Koordinatları</th>
+                            <td>
+                                <InputText @bind-Value="Model.Gps" class="form-control form-control-sm"
+                                    placeholder="Lat, Long" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Yükseklik (m)</th>
+                            <td>
+                                <InputNumber @bind-Value="Model.Yukseklik" class="form-control form-control-sm"
+                                    placeholder="Metre" />
+                            </td>
+                            <th>Rakım (m)</th>
+                            <td>
+                                <InputNumber @bind-Value="Model.Altitude" class="form-control form-control-sm"
+                                    placeholder="Metre" />
+                            </td>
+                        </tr>
+
+                        <!-- Row 3: Ecological Data -->
+                        <tr class="table-light">
+                            <th colspan="4" class="text-center bg-secondary text-white">EKOLOJİK VERİLER</th>
+                        </tr>
+                        <tr>
+                            <th>Habitat</th>
+                            <td>
+                                <InputText @bind-Value="Model.Habitat" class="form-control form-control-sm"
+                                    placeholder="Habitat tanımı" />
+                            </td>
+                            <th>Substrat</th>
+                            <td>
+                                <InputText @bind-Value="Model.Substrat" class="form-control form-control-sm"
+                                    placeholder="Substrat tipi" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Sıcaklık (°C)</th>
+                            <td>
+                                <InputNumber @bind-Value="Model.Sicaklik" class="form-control form-control-sm"
+                                    placeholder="°C" />
+                            </td>
+                            <th>Nem (%)</th>
+                            <td>
+                                <InputNumber @bind-Value="Model.Nem" class="form-control form-control-sm" placeholder="%" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Yoğunluk</th>
+                            <td>
+                                <InputText @bind-Value="Model.Yogunluk" class="form-control form-control-sm"
+                                    placeholder="Yoğunluk" />
+                            </td>
+                            <th>Çiçek Rengi</th>
+                            <td>
+                                <InputText @bind-Value="Model.CicekRengi" class="form-control form-control-sm"
+                                    placeholder="Renk" />
+                            </td>
+                        </tr>
+
+                        <!-- Row 4: Collection Data -->
+                        <tr class="table-light">
+                            <th colspan="4" class="text-center bg-secondary text-white">TOPLAMA BİLGİLERİ</th>
+                        </tr>
+                        <tr>
+                            <th>Toplama Tarihi</th>
+                            <td>
+                                <InputDate @bind-Value="Model.CollectionDate" class="form-control form-control-sm" />
+                            </td>
+                            <th>Örnek Sayısı</th>
+                            <td>
+                                <InputNumber @bind-Value="Model.OrnekSayisi" class="form-control form-control-sm"
+                                    placeholder="Adet" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Geldiği Herbaryum</th>
+                            <td>
+                                <InputText @bind-Value="Model.GeldigiHerbaryum" class="form-control form-control-sm"
+                                    placeholder="Kaynak herbaryum" />
+                            </td>
+                            <th>Gittiği Herbaryum</th>
+                            <td>
+                                <InputText @bind-Value="Model.GittigiHerbaryum" class="form-control form-control-sm"
+                                    placeholder="Hedef herbaryum" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Eksik Teşhis</th>
+                            <td>
+                                <div class="form-check">
+                                    <InputCheckbox @bind-Value="Model.EksikTeshis" class="form-check-input"
+                                        id="eksikTeshis" />
+                                    <label class="form-check-label" for="eksikTeshis">Teşhis eksik</label>
+                                </div>
+                            </td>
+                            <th>Resim Yolu</th>
+                            <td>
+                                <InputText @bind-Value="Model.ImagePath" class="form-control form-control-sm"
+                                    placeholder="Resim dosya yolu" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Açıklama</th>
+                            <td colspan="3">
+                                <InputTextArea @bind-Value="Model.LocationDescription" class="form-control form-control-sm"
+                                    rows="2" placeholder="Genel notlar ve açıklamalar" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Properties Section -->
+                <div class="mt-3">
+                    <h6 class="text-secondary mb-2"><i class="bi bi-list-check"></i> Morfolojik ve Ekolojik Özellikler</h6>
+                    <div class="row g-2">
+                        @if (_lookupError != null)
+                        {
+                            <div class="col-12">
+                                <div class="alert alert-warning small py-2">
+                                    <i class="bi bi-exclamation-triangle"></i> Özellikler yüklenirken hata: @_lookupError
+                                </div>
+                            </div>
+                        }
+                        else if (PropertyTypes.Any())
+                        {
+                            @foreach (var type in PropertyTypes)
+                            {
+                                <div class="col-md-4 col-sm-6">
+                                    <label class="form-label small mb-1 text-primary">@type.Name</label>
+                                    <select class="form-select form-select-sm" @onchange="@(e => OnPropertySelect(type.Id, e))">
+                                        <option value="">- Seçiniz -</option>
+                                        @foreach (var prop in GetPropertiesByType(type.Id))
+                                        {
+                                            <option value="@prop.Id" selected="@IsPropertySelected(prop.Id)">@prop.Name</option>
+                                        }
+                                    </select>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="col-12 text-muted small">
+                                <i class="bi bi-info-circle"></i> Özellik tipleri yüklenemedi veya henüz tanımlanmadı.
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="herbarium-footer d-flex justify-content-between p-3 border-top bg-light">
+                @if (Model.Id > 0)
+                {
+                    <button type="button" class="btn btn-sm btn-outline-danger" @onclick="DeleteRecord">
+                        <i class="bi bi-trash"></i> Kaydı Sil
+                    </button>
+                }
+                else
+                {
+                    <div></div>
+                }
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-secondary" @onclick="OnCancel">İptal</button>
+                    <button type="submit" class="btn btn-sm btn-primary px-4">
+                        <i class="bi bi-save"></i> Kaydet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </EditForm>
+}
+
+<!-- New Plant Modal -->
+@if (_showNewPlantModal)
+{
+    <div class="modal show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-flower1"></i> Yeni Bitki Ekle</h5>
+                    <button type="button" class="btn-close" @onclick="HideNewPlantModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Bitki Adı (Türkçe) <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" @bind="_newPlantName" placeholder="Örn: Papatya" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Latin Adı</label>
+                        <input type="text" class="form-control" @bind="_newPlantLatinName"
+                            placeholder="Örn: Matricaria chamomilla" />
+                    </div>
+                    @if (!string.IsNullOrEmpty(_newPlantError))
+                    {
+                        <div class="alert alert-danger small py-2">@_newPlantError</div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="HideNewPlantModal">İptal</button>
+                    <button type="button" class="btn btn-success" @onclick="CreateNewPlant" disabled="@_isCreatingPlant">
+                        @if (_isCreatingPlant)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-plus-lg"></i>
+                        }
+                        Ekle
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .herbarium-card {
+        background: #fff;
+        border: 2px solid #2c3e50;
+        border-radius: 4px;
+    }
+
+    .herbarium-table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+        font-size: 0.85rem;
+        vertical-align: middle;
+    }
+
+    .herbarium-table td {
+        vertical-align: middle;
+    }
+
+    .herbarium-table .form-control,
+    .herbarium-table .form-select {
+        border-radius: 2px;
+    }
+</style>
+
+@code {
+    [Parameter] public int HerbariumId { get; set; }
+    [Parameter] public int? PreSelectedPlantId { get; set; }
+
+    [Parameter] public EventCallback OnSaved { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private HerbariumViewModel Model { get; set; } = new();
+    private bool IsLoading = false;
+    private bool _lookupsLoaded = false;
+    private string? _lookupError;
+
+    // New Plant Modal State
+    private bool _showNewPlantModal = false;
+    private string _newPlantName = "";
+    private string _newPlantLatinName = "";
+    private string? _newPlantError;
+    private bool _isCreatingPlant = false;
+
+    // Lookups
+    private List<Plant> Plants { get; set; } = new();
+    private List<SehirViewModel> Cities { get; set; } = new();
+    private List<IlceViewModel> Districts { get; set; } = new();
+    private List<PropertyTypeViewModel> PropertyTypes { get; set; } = new();
+    private List<OzellikViewModel> AllProperties { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLookups();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Ensure lookups are ready before loading record
+        if (!_lookupsLoaded)
+            await LoadLookups();
+        await LoadRecord();
+    }
+
+    private async Task LoadLookups()
+    {
+        try
+        {
+            var t1 = Http.GetFromJsonAsync<List<PropertyTypeViewModel>>("api/PropertyType");
+            var t2 = Http.GetFromJsonAsync<List<OzellikViewModel>>("api/Ozellik");
+            var t3 = Http.GetFromJsonAsync<List<SehirViewModel>>("api/Sehir");
+            var t4 = Http.PostAsJsonAsync("api/Bitki/query", new FilterRequest { PageSize = 50000 });
+
+            await Task.WhenAll(t1, t2, t3, t4);
+
+            PropertyTypes = (await t1) ?? new();
+            AllProperties = (await t2) ?? new();
+            Cities = (await t3) ?? new();
+
+            var r4 = await t4;
+            if (r4.IsSuccessStatusCode)
+            {
+                var content = await r4.Content.ReadFromJsonAsync<FilterResponse<Plant>>();
+                Plants = content?.Data?.ToList() ?? new();
+            }
+            _lookupsLoaded = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Lookup Load Error: {ex.Message}");
+            Console.WriteLine($"Stack: {ex.StackTrace}");
+            _lookupError = ex.Message;
+        }
+    }
+
+    private async Task LoadRecord()
+    {
+        IsLoading = true;
+        try
+        {
+            if (HerbariumId > 0)
+            {
+                // Edit Mode
+                Model = await Http.GetFromJsonAsync<HerbariumViewModel>($"api/Herbarium/{HerbariumId}") ?? new();
+                if (Model.CityId.HasValue) await LoadDistricts(Model.CityId.Value);
+            }
+            else
+            {
+                // Create Mode
+                Model = new HerbariumViewModel();
+                if (PreSelectedPlantId.HasValue)
+                {
+                    Model.PlantId = PreSelectedPlantId.Value;
+                    var p = Plants.FirstOrDefault(x => x.Id == Model.PlantId);
+                    if (p != null)
+                    {
+                        Model.PlantName = p.Name;
+                        Model.FamilyName = p.Family;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Record Load Error: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private string GetPlantName(int id)
+    {
+        // First try the model's pre-loaded name (from API response)
+        if (!string.IsNullOrEmpty(Model?.PlantName) && Model.PlantId == id)
+            return Model.PlantName;
+        // Then try lookup from loaded plants list
+        var p = Plants.FirstOrDefault(x => x.Id == id);
+        return p?.Name ?? (id > 0 ? $"Bitki #{id}" : "Seçilmedi");
+    }
+
+    private async Task SaveHerbarium()
+    {
+        HttpResponseMessage response;
+
+        if (PreSelectedPlantId.HasValue && Model.PlantId == 0)
+        {
+            Model.PlantId = PreSelectedPlantId.Value;
+        }
+
+        if (Model.Id == 0)
+            response = await Http.PostAsJsonAsync("api/Herbarium", Model);
+        else
+            response = await Http.PutAsJsonAsync($"api/Herbarium/{Model.Id}", Model);
+
+        if (response.IsSuccessStatusCode)
+        {
+            await OnSaved.InvokeAsync();
+        }
+    }
+
+    private async Task DeleteRecord()
+    {
+        if (Model.Id > 0)
+        {
+            var response = await Http.DeleteAsync($"api/Herbarium/{Model.Id}");
+            if (response.IsSuccessStatusCode)
+            {
+                await OnSaved.InvokeAsync();
+            }
+        }
+    }
+
+    // New Plant Methods
+    private void ShowNewPlantModal()
+    {
+        _newPlantName = "";
+        _newPlantLatinName = "";
+        _newPlantError = null;
+        _showNewPlantModal = true;
+    }
+
+    private void HideNewPlantModal()
+    {
+        _showNewPlantModal = false;
+    }
+
+    private async Task CreateNewPlant()
+    {
+        if (string.IsNullOrWhiteSpace(_newPlantName))
+        {
+            _newPlantError = "Bitki adı zorunludur.";
+            return;
+        }
+
+        _isCreatingPlant = true;
+        _newPlantError = null;
+
+        try
+        {
+            var newPlant = new Plant
+            {
+                Name = _newPlantName.Trim(),
+                LatinName = string.IsNullOrWhiteSpace(_newPlantLatinName) ? null : _newPlantLatinName.Trim()
+            };
+
+            var response = await Http.PostAsJsonAsync("api/Bitki", newPlant);
+            if (response.IsSuccessStatusCode)
+            {
+                var newId = await response.Content.ReadFromJsonAsync<int>();
+
+                // Refresh plant list
+                await LoadLookups();
+
+                // Select the new plant
+                Model.PlantId = newId;
+                var p = Plants.FirstOrDefault(x => x.Id == newId);
+                if (p != null)
+                {
+                    Model.PlantName = p.Name;
+                    Model.FamilyName = p.Family;
+                }
+
+                HideNewPlantModal();
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _newPlantError = $"Kayıt başarısız: {error}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _newPlantError = $"Hata: {ex.Message}";
+        }
+        finally
+        {
+            _isCreatingPlant = false;
+        }
+    }
+
+    // Helper Methods
+    private async Task OnCityChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int cityId))
+        {
+            Model.CityId = cityId;
+            Model.DistrictId = null;
+            await LoadDistricts(cityId);
+        }
+        else
+        {
+            Model.CityId = null;
+            Model.DistrictId = null;
+            Districts.Clear();
+        }
+    }
+
+    private async Task LoadDistricts(int cityId)
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/Ilce/query", new FilterRequest
+            {
+                Filters = new Dictionary<string, string> { { "sehirid", cityId.ToString() } },
+                PageSize = 100
+            });
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadFromJsonAsync<FilterResponse<IlceViewModel>>();
+                Districts = content?.Data?.ToList() ?? new();
+            }
+        }
+        catch { }
+    }
+
+    private void OnPlantChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int pid))
+        {
+            Model.PlantId = pid;
+            var plant = Plants.FirstOrDefault(p => p.Id == pid);
+            if (plant != null)
+            {
+                Model.PlantName = plant.Name;
+                Model.FamilyName = plant.Family;
+            }
+        }
+    }
+
+    private IEnumerable<OzellikViewModel> GetPropertiesByType(int typeId) => AllProperties.Where(p => p.TypeId == typeId);
+    private bool IsPropertySelected(long propId) => Model.PropertyIds.Contains(propId);
+
+    private void OnPropertySelect(int typeId, ChangeEventArgs e)
+    {
+        var propsOfType = AllProperties.Where(p => p.TypeId == typeId).Select(p => p.Id).ToList();
+        Model.PropertyIds.RemoveAll(id => propsOfType.Contains(id));
+
+        if (long.TryParse(e.Value?.ToString(), out long newPropId) && newPropId > 0)
+        {
+            Model.PropertyIds.Add(newPropId);
+        }
+    }
+}

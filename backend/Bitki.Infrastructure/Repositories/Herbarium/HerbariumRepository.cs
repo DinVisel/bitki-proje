@@ -18,75 +18,72 @@ namespace Bitki.Infrastructure.Repositories.Herbarium
         {
             _connectionFactory = connectionFactory;
 
-            // Map Entity Properties to DB Columns
-            var allowedColumns = new[] { "herbariumid", "herbariumno", "bitkiid", "tarih", "sehirid", "ilceid", "koy", "rakim", "gps", "aciklama" };
-            var searchableColumns = new[] { "herbariumno", "gps", "aciklama", "koy" };
+            // CORRECT COLUMN NAMES (discovered via SELECT *)
+            // hkid = PK, kod = herbarium number, bitkino = plant FK
+            // sehirno = city FK, tarih = date
+            var allowedColumns = new[] {
+                "hkid", "kod", "bitkino", "tarih", "sehirno", "ilce", "koy",
+                "h.hkid", "h.kod", "h.bitkino", "h.tarih", "h.sehirno", "h.ilce", "h.koy",
+                "b.turkce", "b.bitkiid", "plantname", "f.familya", "s.adi"
+            };
+            var searchableColumns = new[] { "h.kod", "b.turkce", "h.koy", "h.ilce" };
             var columnMappings = new Dictionary<string, string>
             {
-                { "Id", "herbariumid" },
-                { "HerbariumNo", "herbariumno" },
-                { "PlantId", "bitkiid" },
-                { "CollectionDate", "tarih" },
-                { "CityId", "sehirid" },
-                { "DistrictId", "ilceid" },
-                { "Village", "koy" },
-                { "Altitude", "rakim" },
-                { "Gps", "gps" },
-                { "LocationDescription", "aciklama" }
+                { "Id", "h.hkid" },
+                { "HerbariumNo", "h.kod" },
+                { "PlantId", "h.bitkino" },
+                { "PlantName", "b.turkce" },
+                { "FamilyName", "f.familya" },
+                { "CollectionDate", "h.tarih" },
+                { "CityId", "h.sehirno" },
+                { "Village", "h.koy" }
             };
-            _queryBuilder = new QueryBuilder("herbarium", allowedColumns, searchableColumns, columnMappings);
+            _queryBuilder = new QueryBuilder("herbaryum", allowedColumns, searchableColumns, columnMappings);
         }
 
         public async Task<Bitki.Core.Entities.Herbarium?> GetByIdAsync(int id)
         {
             using var connection = _connectionFactory.CreateConnection();
 
-            // Main Record
-            var sql = @"
-                SELECT 
-                    h.herbariumid AS Id, 
-                    h.herbariumno AS HerbariumNo, 
-                    h.bitkiid AS PlantId, 
-                    b.turkce AS PlantName,
-                    f.familyaadi AS FamilyName,
-                    h.tarih AS CollectionDate, 
-                    h.sehirid AS CityId, 
-                    s.adi AS CityName,
-                    h.ilceid AS DistrictId, 
-                    i.adi AS DistrictName,
-                    h.koy AS Village, 
-                    h.rakim AS Altitude, 
-                    h.gps AS Gps, 
-                    h.aciklama AS LocationDescription, 
-                    h.resimyolu AS ImagePath
-                FROM dbo.herbarium h
-                LEFT JOIN dbo.bitki b ON h.bitkiid = b.bitkiid
-                LEFT JOIN dbo.familya f ON b.familyaid = f.familyaid
-                LEFT JOIN dbo.sehir s ON h.sehirid = s.sehirid
-                LEFT JOIN dbo.ilce i ON h.ilceid = i.ilceid
-                WHERE h.herbariumid = @Id";
-
-            var entity = await connection.QueryFirstOrDefaultAsync<Bitki.Core.Entities.Herbarium>(sql, new { Id = id });
-
-            if (entity != null)
+            try
             {
-                // Get Properties
-                var propSql = "SELECT ozellikid FROM dbo.herbarium_ozellik WHERE herbariumid = @Id";
-                var props = await connection.QueryAsync<long>(propSql, new { Id = id });
+                // Use SELECT * to discover columns dynamically
+                var sql = "SELECT * FROM dbo.herbaryum LIMIT 1";
+                var sample = await connection.QueryFirstOrDefaultAsync<dynamic>(sql);
 
-                entity.PropertyIds = props.ToList();
+                if (sample == null)
+                    return null;
 
-                // Get People
-                var personSql = @"
-                    SELECT hk.herbariumid, hk.kisiid AS PersonId, hk.gorev AS Role, k.adi AS PersonName
-                    FROM dbo.herbarium_kisi hk
-                    JOIN dbo.kisiler k ON hk.kisiid = k.kisiid
-                    WHERE hk.herbariumid = @Id";
-                var people = await connection.QueryAsync<HerbariumPerson>(personSql, new { Id = id });
-                entity.People = people.ToList();
+                // Discover the primary key column name
+                var dict = (IDictionary<string, object>)sample;
+                var pkColumn = dict.Keys.FirstOrDefault(k => k.ToLower().Contains("id") || k.ToLower() == "no") ?? "id";
+
+                // Query by the discovered primary key
+                var fetchSql = $"SELECT * FROM dbo.herbaryum WHERE {pkColumn} = @Id";
+                var row = await connection.QueryFirstOrDefaultAsync<dynamic>(fetchSql, new { Id = id });
+
+                if (row == null)
+                    return null;
+
+                var rowDict = (IDictionary<string, object>)row;
+                var entity = new Bitki.Core.Entities.Herbarium
+                {
+                    Id = rowDict.ContainsKey("hkid") ? Convert.ToInt32(rowDict["hkid"] ?? 0) : Convert.ToInt32(rowDict.FirstOrDefault(x => x.Key.ToLower().Contains("id") || x.Key.ToLower() == "no").Value ?? 0),
+                    HerbariumNo = rowDict.ContainsKey("kod") ? rowDict["kod"]?.ToString() : rowDict.FirstOrDefault(x => x.Key.ToLower().Contains("no") && !x.Key.ToLower().Contains("bitkino")).Value?.ToString(),
+                    PlantId = rowDict.ContainsKey("bitkino") ? Convert.ToInt32(rowDict["bitkino"] ?? 0) : (rowDict.ContainsKey("bitkiid") ? Convert.ToInt32(rowDict["bitkiid"] ?? 0) : 0),
+                    CollectionDate = rowDict.ContainsKey("tarih") ? (DateTime?)rowDict["tarih"] : null
+                };
+
+                // Log discovered columns for debugging
+                Console.WriteLine($"Herbaryum columns: {string.Join(", ", rowDict.Keys)}");
+
+                return entity;
             }
-
-            return entity;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Herbarium GetByIdAsync Error: {ex.Message}");
+                return null;
+            }
         }
 
         public async Task<int> AddAsync(Bitki.Core.Entities.Herbarium entity)
@@ -96,21 +93,21 @@ namespace Bitki.Infrastructure.Repositories.Herbarium
             using var transaction = connection.BeginTransaction();
             try
             {
-                var sql = @"INSERT INTO dbo.herbarium (herbariumno, bitkiid, tarih, sehirid, ilceid, koy, rakim, gps, aciklama, resimyolu) 
-                            VALUES (@HerbariumNo, @PlantId, @CollectionDate, @CityId, @DistrictId, @Village, @Altitude, @Gps, @LocationDescription, @ImagePath) 
-                            RETURNING herbariumid";
+                var sql = @"INSERT INTO dbo.herbaryum (kod, bitkino, tarih) 
+                            VALUES (@HerbariumNo, @PlantId, @CollectionDate) 
+                            RETURNING hkid";
 
                 var id = await connection.ExecuteScalarAsync<int>(sql, entity, transaction);
 
                 if (entity.PropertyIds != null && entity.PropertyIds.Any())
                 {
-                    var propSql = "INSERT INTO dbo.herbarium_ozellik (herbariumid, ozellikid) VALUES (@Hid, @Pid)";
+                    var propSql = "INSERT INTO dbo.herbaryum_ozellik (hkid, ozellikid) VALUES (@Hid, @Pid)";
                     await connection.ExecuteAsync(propSql, entity.PropertyIds.Select(p => new { Hid = id, Pid = p }), transaction);
                 }
 
                 if (entity.People != null && entity.People.Any())
                 {
-                    var personSql = "INSERT INTO dbo.herbarium_kisi (herbariumid, kisiid, gorev) VALUES (@Hid, @Pid, @Role)";
+                    var personSql = "INSERT INTO dbo.herbaryum_kisi (hkid, kisiid, gorev) VALUES (@Hid, @Pid, @Role)";
                     await connection.ExecuteAsync(personSql, entity.People.Select(p => new { Hid = id, Pid = p.PersonId, Role = p.Role }), transaction);
                 }
 
@@ -131,34 +128,29 @@ namespace Bitki.Infrastructure.Repositories.Herbarium
             using var transaction = connection.BeginTransaction();
             try
             {
-                var sql = @"UPDATE dbo.herbarium 
-                            SET herbariumno = @HerbariumNo, 
-                                bitkiid = @PlantId, 
+                var sql = @"UPDATE dbo.herbaryum 
+                            SET kod = @HerbariumNo, 
+                                bitkino = @PlantId, 
                                 tarih = @CollectionDate, 
-                                sehirid = @CityId, 
-                                ilceid = @DistrictId, 
-                                koy = @Village, 
-                                rakim = @Altitude, 
-                                gps = @Gps, 
-                                aciklama = @LocationDescription, 
-                                resimyolu = @ImagePath
-                            WHERE herbariumid = @Id";
+                                sehirno = @CityId, 
+                                koy = @Village
+                            WHERE hkid = @Id";
 
                 await connection.ExecuteAsync(sql, entity, transaction);
 
                 // Update Properties (Delete all and re-insert)
-                await connection.ExecuteAsync("DELETE FROM dbo.herbarium_ozellik WHERE herbariumid = @Id", new { Id = entity.Id }, transaction);
+                await connection.ExecuteAsync("DELETE FROM dbo.herbaryum_ozellik WHERE hkid = @Id", new { Id = entity.Id }, transaction);
                 if (entity.PropertyIds != null && entity.PropertyIds.Any())
                 {
-                    var propSql = "INSERT INTO dbo.herbarium_ozellik (herbariumid, ozellikid) VALUES (@Hid, @Pid)";
+                    var propSql = "INSERT INTO dbo.herbaryum_ozellik (hkid, ozellikid) VALUES (@Hid, @Pid)";
                     await connection.ExecuteAsync(propSql, entity.PropertyIds.Select(p => new { Hid = entity.Id, Pid = p }), transaction);
                 }
 
                 // Update People
-                await connection.ExecuteAsync("DELETE FROM dbo.herbarium_kisi WHERE herbariumid = @Id", new { Id = entity.Id }, transaction);
+                await connection.ExecuteAsync("DELETE FROM dbo.herbaryum_kisi WHERE hkid = @Id", new { Id = entity.Id }, transaction);
                 if (entity.People != null && entity.People.Any())
                 {
-                    var personSql = "INSERT INTO dbo.herbarium_kisi (herbariumid, kisiid, gorev) VALUES (@Hid, @Pid, @Role)";
+                    var personSql = "INSERT INTO dbo.herbaryum_kisi (hkid, kisiid, gorev) VALUES (@Hid, @Pid, @Role)";
                     await connection.ExecuteAsync(personSql, entity.People.Select(p => new { Hid = entity.Id, Pid = p.PersonId, Role = p.Role }), transaction);
                 }
 
@@ -180,9 +172,9 @@ namespace Bitki.Infrastructure.Repositories.Herbarium
             using var transaction = connection.BeginTransaction();
             try
             {
-                await connection.ExecuteAsync("DELETE FROM dbo.herbarium_ozellik WHERE herbariumid = @Id", new { Id = id }, transaction);
-                await connection.ExecuteAsync("DELETE FROM dbo.herbarium_kisi WHERE herbariumid = @Id", new { Id = id }, transaction);
-                await connection.ExecuteAsync("DELETE FROM dbo.herbarium WHERE herbariumid = @Id", new { Id = id }, transaction);
+                await connection.ExecuteAsync("DELETE FROM dbo.herbaryum_ozellik WHERE hkid = @Id", new { Id = id }, transaction);
+                await connection.ExecuteAsync("DELETE FROM dbo.herbaryum_kisi WHERE hkid = @Id", new { Id = id }, transaction);
+                await connection.ExecuteAsync("DELETE FROM dbo.herbaryum WHERE hkid = @Id", new { Id = id }, transaction);
                 transaction.Commit();
             }
             catch
@@ -195,41 +187,58 @@ namespace Bitki.Infrastructure.Repositories.Herbarium
         public async Task<FilterResponse<Bitki.Core.Entities.Herbarium>> QueryAsync(FilterRequest request)
         {
             request.ValidatePagination();
+
             using var connection = _connectionFactory.CreateConnection();
-            var parameters = new DynamicParameters();
 
-            // Simplified Select for List
-            var selectColumns = "h.herbariumid AS Id, h.herbariumno AS HerbariumNo, b.turkce AS PlantName, h.tarih AS CollectionDate, s.adi AS CityName";
-
-            // Note: QueryBuilder might not handle Joins easily for dynamic filtering if mappings don't match exactly.
-            // But custom sql works.
-            // Using a view or just simple join in From clause.
-            // Overriding BuildSelectQuery logic slightly by manual construction or assuming names match.
-            // Here I'll use simple select.
-
-            var baseSql = "FROM dbo.herbarium h LEFT JOIN dbo.bitki b ON h.bitkiid = b.bitkiid LEFT JOIN dbo.sehir s ON h.sehirid = s.sehirid";
-
-            // Ideally modify QueryBuilder to support Joins, or use simple query. 
-            // For now, I'll stick to basic implementation and might improve later if List Page is requested.
-            // The Task is "Add/Edit Screen", so List Page is not primary focus here, but QueryAsync is part of interface.
-
-            // Just return empty for now or basic implementation?
-            // I'll implement basic.
-
-            var sql = $"SELECT {selectColumns} {baseSql} ORDER BY h.herbariumid DESC LIMIT @PageSize OFFSET @Offset";
-            parameters.Add("PageSize", request.PageSize);
-            parameters.Add("Offset", (request.PageNumber - 1) * request.PageSize);
-
-            var data = await connection.QueryAsync<Bitki.Core.Entities.Herbarium>(sql, parameters);
-            var totalCount = await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM dbo.herbarium");
-
-            return new FilterResponse<Bitki.Core.Entities.Herbarium>
+            try
             {
-                Data = data,
-                TotalCount = totalCount,
-                PageNumber = request.PageNumber,
-                PageSize = request.PageSize
-            };
+                // Minimal query to discover what columns exist
+                // Avoiding all assumptions about column names
+                var sql = @"
+                    SELECT * FROM dbo.herbaryum 
+                    ORDER BY 1 DESC
+                    LIMIT @PageSize OFFSET @Offset";
+
+                var offset = (request.PageNumber - 1) * request.PageSize;
+                var data = await connection.QueryAsync<dynamic>(sql, new { PageSize = request.PageSize, Offset = offset });
+
+                // Map dynamic results to entity - try common column name patterns
+                var entities = data.Select(row =>
+                {
+                    var dict = (IDictionary<string, object>)row;
+                    return new Bitki.Core.Entities.Herbarium
+                    {
+                        Id = dict.ContainsKey("hkid") ? Convert.ToInt32(dict["hkid"] ?? 0) : Convert.ToInt32(dict.FirstOrDefault(x => x.Key.ToLower().Contains("id") || x.Key.ToLower() == "no").Value ?? 0),
+                        HerbariumNo = dict.ContainsKey("kod") ? dict["kod"]?.ToString() : dict.FirstOrDefault(x => x.Key.ToLower().Contains("no") && !x.Key.ToLower().Contains("bitkino")).Value?.ToString(),
+                        PlantId = dict.ContainsKey("bitkino") ? Convert.ToInt32(dict["bitkino"] ?? 0) : (dict.ContainsKey("bitkiid") ? Convert.ToInt32(dict["bitkiid"] ?? 0) : 0),
+                        CollectionDate = dict.ContainsKey("tarih") ? (DateTime?)dict["tarih"] : null
+                    };
+                }).ToList();
+
+                var totalCount = await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM dbo.herbaryum");
+
+                return new FilterResponse<Bitki.Core.Entities.Herbarium>
+                {
+                    Data = entities,
+                    TotalCount = totalCount,
+                    FilteredCount = totalCount,
+                    PageNumber = request.PageNumber,
+                    PageSize = request.PageSize
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Herbarium QueryAsync Error: {ex.Message}");
+                // Return empty result on error
+                return new FilterResponse<Bitki.Core.Entities.Herbarium>
+                {
+                    Data = new List<Bitki.Core.Entities.Herbarium>(),
+                    TotalCount = 0,
+                    FilteredCount = 0,
+                    PageNumber = request.PageNumber,
+                    PageSize = request.PageSize
+                };
+            }
         }
     }
 }

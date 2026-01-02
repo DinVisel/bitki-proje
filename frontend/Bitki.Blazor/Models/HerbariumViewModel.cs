@@ -15,6 +15,22 @@ namespace Bitki.Blazor.Models
         public string? LocationDescription { get; set; }
         public string? ImagePath { get; set; }
 
+        // Additional Herbarium Card Fields
+        public string? Tipus { get; set; }              // Type/Category
+        public string? ItfKaresi { get; set; }          // ITF Grid Square
+        public string? Substrat { get; set; }           // Substrate
+        public string? Habitat { get; set; }            // Habitat description
+        public decimal? Sicaklik { get; set; }          // Temperature
+        public decimal? Nem { get; set; }               // Humidity
+        public string? Yogunluk { get; set; }           // Density
+        public int? OrnekSayisi { get; set; }           // Sample Count
+        public string? GeldigiHerbaryum { get; set; }   // Source Herbarium
+        public string? GittigiHerbaryum { get; set; }   // Destination Herbarium
+        public string? CicekRengi { get; set; }         // Flower Color
+        public bool EksikTeshis { get; set; }           // Incomplete Identification
+        public int? Yukseklik { get; set; }             // Height/Elevation
+        public string? Yer { get; set; }                // Locality (detailed location)
+
         // Navigation properties (optional, for display)
         public string? PlantName { get; set; }
         public string? FamilyName { get; set; }
