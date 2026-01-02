@@ -1,0 +1,391 @@
+@page "/herbarium/new"
+@page "/herbarium/edit/{Id:int}"
+@using Bitki.Blazor.Models
+@using Microsoft.AspNetCore.Authorization
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>@(Id == 0 ? "Yeni Herbaryum Kaydı" : "Herbaryum Düzenle")</PageTitle>
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>@(Id == 0 ? "Yeni Herbaryum Kaydı" : $"Herbaryum Düzenle #{Id}")</h3>
+        <button class="btn btn-secondary" @onclick="GoBack">Geri Dön</button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Yükleniyor...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <EditForm Model="@Model" OnValidSubmit="SaveHerbarium">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <!-- Identification -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light fw-bold">Kimlik Bilgileri</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Herbarium No <span class="text-danger">*</span></label>
+                            <InputText @bind-Value="Model.HerbariumNo" class="form-control" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Bitki <span class="text-danger">*</span></label>
+                            <select class="form-select" @onchange="OnPlantChange" required>
+                                <option value="">Seçiniz...</option>
+                                @foreach (var p in Plants)
+                                {
+                                    <option value="@p.Id" selected="@(p.Id == Model.PlantId)">@p.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Familya</label>
+                            <input class="form-control" value="@Model.FamilyName" readonly />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collection & Location -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light fw-bold">Koleksiyon & Konum</div>
+                <div class="card-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Tarih</label>
+                            <InputDate @bind-Value="Model.CollectionDate" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Şehir</label>
+                            <select class="form-select" @onchange="OnCityChange">
+                                <option value="">Seçiniz...</option>
+                                @foreach (var c in Cities)
+                                {
+                                    <option value="@c.Id" selected="@(c.Id == Model.CityId)">@c.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">İlçe</label>
+                            <select class="form-select" @bind="Model.DistrictId" disabled="@(Model.CityId == null)">
+                                <option value="">Seçiniz...</option>
+                                @foreach (var d in Districts)
+                                {
+                                    <option value="@d.Id">@d.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Köy/Mahalle</label>
+                            <InputText @bind-Value="Model.Village" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Rakım (m)</label>
+                            <InputNumber @bind-Value="Model.Altitude" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">GPS</label>
+                            <InputText @bind-Value="Model.Gps" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Konum Açıklaması</label>
+                            <InputTextArea @bind-Value="Model.LocationDescription" class="form-control" rows="1" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ecological & Morphological Properties (Dynamic) -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light fw-bold">Ekolojik & Morfolojik Özellikler</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        @foreach (var type in PropertyTypes)
+                        {
+                            <div class="col-md-3">
+                                <label class="form-label">@type.Name</label>
+                                <select class="form-select" @onchange="@(e => OnPropertySelect(type.Id, e))">
+                                    <option value="">Seçiniz...</option>
+                                    @foreach (var prop in GetPropertiesByType(type.Id))
+                                    {
+                                        <option value="@prop.Id" selected="@IsPropertySelected(prop.Id)">@prop.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- People -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light fw-bold">Kişiler</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Toplayan</label>
+                            <select class="form-select" @bind="CollectorId">
+                                <option value="">Seçiniz...</option>
+                                @foreach (var p in PeopleList)
+                                {
+                                    <option value="@p.Id">@p.FullName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teşhis Eden</label>
+                            <select class="form-select" @bind="IdentifierId">
+                                <option value="">Seçiniz...</option>
+                                @foreach (var p in PeopleList)
+                                {
+                                    <option value="@p.Id">@p.FullName</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Image -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light fw-bold">Görsel</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Resim Yolu / URL</label>
+                        <InputText @bind-Value="Model.ImagePath" class="form-control" placeholder="/images/..." />
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.ImagePath))
+                    {
+                        <div class="border rounded p-2 text-center" style="max-width: 300px;">
+                            <img src="@Model.ImagePath" class="img-fluid" alt="Önizleme" onerror="this.style.display='none'" />
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mb-5">
+                <button type="button" class="btn btn-secondary" @onclick="GoBack">İptal</button>
+                <button type="submit" class="btn btn-primary px-4">Kaydet</button>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private HerbariumViewModel Model { get; set; } = new();
+    private bool isLoading = true;
+
+    // Lookups
+    private List<Plant> Plants { get; set; } = new();
+    private List<SehirViewModel> Cities { get; set; } = new();
+    private List<IlceViewModel> Districts { get; set; } = new();
+    private List<PropertyTypeViewModel> PropertyTypes { get; set; } = new();
+    private List<OzellikViewModel> AllProperties { get; set; } = new();
+    private List<KisilerViewModel> PeopleList { get; set; } = new();
+
+    // Form Temporary State
+    private long? CollectorId;
+    private long? IdentifierId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+            // Parallel fetch of lookups
+            var tasks = new List<Task>
+{
+Task.Run(async () => PropertyTypes = await Http.GetFromJsonAsync<List<PropertyTypeViewModel>>("api/PropertyType") ?? new
+List<PropertyTypeViewModel>()),
+Task.Run(async () => AllProperties = await Http.GetFromJsonAsync<List<OzellikViewModel>>("api/Ozellik") ?? new
+List<OzellikViewModel>()),
+Task.Run(async () => Cities = await Http.GetFromJsonAsync<List<SehirViewModel>>("api/Sehir") ?? new
+List<SehirViewModel>()),
+Task.Run(async () => {
+try {
+var res = await Http.PostAsJsonAsync("api/Kisiler/query", new FilterRequest { PageSize = 1000 });
+if(res.IsSuccessStatusCode) {
+var content = await res.Content.ReadFromJsonAsync<FilterResponse<KisilerViewModel>>();
+PeopleList = content?.Data?.ToList() ?? new List<KisilerViewModel>();
+} else {
+PeopleList = await Http.GetFromJsonAsync<List<KisilerViewModel>>("api/Kisiler") ?? new List<KisilerViewModel>();
+}
+} catch {
+PeopleList = new List<KisilerViewModel>();
+}
+}),
+Task.Run(async () => {
+try {
+var response = await Http.PostAsJsonAsync("api/Bitki/query", new FilterRequest { PageSize = 1000 });
+if(response.IsSuccessStatusCode) {
+var content = await response.Content.ReadFromJsonAsync<FilterResponse<Plant>>();
+Plants = content?.Data?.ToList() ?? new List<Plant>();
+}
+} catch {
+Plants = new List<Plant>();
+}
+})
+};
+
+            await Task.WhenAll(tasks);
+
+            if (Id != 0)
+            {
+                Model = await Http.GetFromJsonAsync<HerbariumViewModel>($"api/Herbarium/{Id}") ?? new();
+                if (Model.CityId.HasValue)
+                {
+                    await LoadDistricts(Model.CityId.Value);
+                }
+
+                // Populate Roles
+                var collector = Model.People.FirstOrDefault(p => p.Role == "Collector");
+                if (collector != null) CollectorId = collector.PersonId;
+
+                var identifier = Model.People.FirstOrDefault(p => p.Role == "Identifier");
+                if (identifier != null) IdentifierId = identifier.PersonId;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error init: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnCityChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int cityId))
+        {
+            Model.CityId = cityId;
+            Model.DistrictId = null; // Reset district
+            await LoadDistricts(cityId);
+        }
+        else
+        {
+            Model.CityId = null;
+            Model.DistrictId = null;
+            Districts.Clear();
+        }
+    }
+
+    private async Task LoadDistricts(int cityId)
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/Ilce/query", new FilterRequest
+            {
+                Filters = new Dictionary<string, string> { { "sehirid", cityId.ToString() } },
+                PageSize = 100
+            });
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadFromJsonAsync<FilterResponse<IlceViewModel>>();
+                Districts = content?.Data?.ToList() ?? new();
+            }
+        }
+        catch { }
+    }
+
+    private void OnPlantChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int pid))
+        {
+            Model.PlantId = pid;
+            var plant = Plants.FirstOrDefault(p => p.Id == pid);
+            if (plant != null)
+            {
+                Model.PlantName = plant.Name;
+                Model.FamilyName = plant.Family;
+            }
+        }
+        else
+        {
+            Model.PlantId = null;
+            Model.PlantName = null;
+            Model.FamilyName = null;
+        }
+    }
+
+    private IEnumerable<OzellikViewModel> GetPropertiesByType(int typeId)
+    {
+        return AllProperties.Where(p => p.TypeId == typeId);
+    }
+
+    private bool IsPropertySelected(long propId)
+    {
+        return Model.PropertyIds.Contains(propId);
+    }
+
+    private void OnPropertySelect(int typeId, ChangeEventArgs e)
+    {
+        // Enforce Single Select per Type
+        var propsOfType = AllProperties.Where(p => p.TypeId == typeId).Select(p => p.Id).ToList();
+
+        Model.PropertyIds.RemoveAll(id => propsOfType.Contains(id));
+
+        if (long.TryParse(e.Value?.ToString(), out long newPropId))
+        {
+            Model.PropertyIds.Add(newPropId);
+        }
+    }
+
+    private async Task SaveHerbarium()
+    {
+        // Compile People
+        Model.People.Clear();
+        if (CollectorId.HasValue)
+        {
+            Model.People.Add(new HerbariumPersonViewModel
+            {
+                PersonId = CollectorId.Value,
+                Role = "Collector",
+                HerbariumId = Model.Id
+            });
+        }
+        if (IdentifierId.HasValue)
+        {
+            Model.People.Add(new HerbariumPersonViewModel
+            {
+                PersonId = IdentifierId.Value,
+                Role = "Identifier",
+                HerbariumId =
+            Model.Id
+            });
+        }
+
+        HttpResponseMessage response;
+        if (Id == 0)
+        {
+            response = await Http.PostAsJsonAsync("api/Herbarium", Model);
+        }
+        else
+        {
+            response = await Http.PutAsJsonAsync($"api/Herbarium/{Id}", Model);
+        }
+
+        if (response.IsSuccessStatusCode)
+        {
+            Navigation.NavigateTo("/bitki");
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/bitki");
+    }
+}

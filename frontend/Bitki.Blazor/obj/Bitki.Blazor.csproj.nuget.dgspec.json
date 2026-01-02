@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\frontend\\Bitki.Blazor\\Bitki.Blazor.csproj": {}
+    "/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Bitki.Blazor.csproj": {}
   },
   "projects": {
-    "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\frontend\\Bitki.Blazor\\Bitki.Blazor.csproj": {
+    "/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Bitki.Blazor.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\frontend\\Bitki.Blazor\\Bitki.Blazor.csproj",
+        "projectUniqueName": "/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Bitki.Blazor.csproj",
         "projectName": "Bitki.Blazor",
-        "projectPath": "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\frontend\\Bitki.Blazor\\Bitki.Blazor.csproj",
-        "packagesPath": "C:\\Users\\arda3\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\arda3\\OneDrive\\Masaüstü\\Projects\\bitki-proje\\frontend\\Bitki.Blazor\\obj\\",
+        "projectPath": "/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Bitki.Blazor.csproj",
+        "packagesPath": "/Users/ardaozcan/.nuget/packages/",
+        "outputPath": "/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\arda3\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "/Users/ardaozcan/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
@@ -70,7 +70,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.101/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
             "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

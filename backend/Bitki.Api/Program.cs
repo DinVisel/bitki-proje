@@ -111,6 +111,11 @@ builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Cleanup.IUcuyagRep
 // Ozellik
 builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Ozellik.IOzellikRepository, Bitki.Infrastructure.Repositories.Ozellik.OzellikRepository>();
 builder.Services.AddScoped<Bitki.Core.Interfaces.Services.IOzellikService, Bitki.Infrastructure.Services.OzellikService>();
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Ozellik.IPropertyTypeRepository, Bitki.Infrastructure.Repositories.Ozellik.PropertyTypeRepository>();
+
+// Herbarium
+builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Herbarium.IHerbariumRepository, Bitki.Infrastructure.Repositories.Herbarium.HerbariumRepository>();
+
 
 // Rapor
 builder.Services.AddScoped<Bitki.Core.Interfaces.Repositories.Rapor.IRaporRepository, Bitki.Infrastructure.Repositories.Rapor.RaporRepository>();

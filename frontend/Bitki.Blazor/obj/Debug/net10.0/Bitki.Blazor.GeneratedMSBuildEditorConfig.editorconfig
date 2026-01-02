@@ -11,233 +11,237 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = Bitki.Blazor
 build_property.RootNamespace = Bitki.Blazor
-build_property.ProjectDir = C:\Users\arda3\OneDrive\Masaüstü\Projects\bitki-proje\frontend\Bitki.Blazor\
+build_property.ProjectDir = /Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 9.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\Users\arda3\OneDrive\Masaüstü\Projects\bitki-proje\frontend\Bitki.Blazor
+build_property.MSBuildProjectDirectory = /Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 10.0
 build_property.EnableCodeStyleSeverity = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/App.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBcHAucmF6b3I=
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/App.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9BcHAucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Common/Breadcrumb.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cQnJlYWRjcnVtYi5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Common/Breadcrumb.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db21tb24vQnJlYWRjcnVtYi5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Common/CollapsibleSection.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cQ29sbGFwc2libGVTZWN0aW9uLnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Common/CollapsibleSection.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db21tb24vQ29sbGFwc2libGVTZWN0aW9uLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Common/DataGrid.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cRGF0YUdyaWQucmF6b3I=
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Common/DataGrid.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db21tb24vRGF0YUdyaWQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Common/ImageGallery.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cSW1hZ2VHYWxsZXJ5LnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Common/ImageGallery.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db21tb24vSW1hZ2VHYWxsZXJ5LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Common/ImageRenderer.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cSW1hZ2VSZW5kZXJlci5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Common/ImageRenderer.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db21tb24vSW1hZ2VSZW5kZXJlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Common/PaginationControls.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cUGFnaW5hdGlvbkNvbnRyb2xzLnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Common/PaginationControls.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db21tb24vUGFnaW5hdGlvbkNvbnRyb2xzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Common/RecordExplorer.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cUmVjb3JkRXhwbG9yZXIucmF6b3I=
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Common/RecordExplorer.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db21tb24vUmVjb3JkRXhwbG9yZXIucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Common/RecordInspector.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cUmVjb3JkSW5zcGVjdG9yLnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Common/RecordInspector.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db21tb24vUmVjb3JkSW5zcGVjdG9yLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Common/SearchableSelect.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cU2VhcmNoYWJsZVNlbGVjdC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Common/SearchableSelect.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db21tb24vU2VhcmNoYWJsZVNlbGVjdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Layout/LoginDisplay.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTG9naW5EaXNwbGF5LnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Layout/LoginDisplay.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTG9naW5EaXNwbGF5LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/AktiviteBitkilitList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBa3Rpdml0ZUJpdGtpbGl0TGlzdC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/AktiviteBitkilitList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Ba3Rpdml0ZUJpdGtpbGl0TGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/AktiviteCalismaList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBa3Rpdml0ZUNhbGlzbWFMaXN0LnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/AktiviteCalismaList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Ba3Rpdml0ZUNhbGlzbWFMaXN0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/AktiviteEtkiList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBa3Rpdml0ZUV0a2lMaXN0LnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/AktiviteEtkiList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Ba3Rpdml0ZUV0a2lMaXN0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/AktiviteLokaliteList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBa3Rpdml0ZUxva2FsaXRlTGlzdC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/AktiviteLokaliteList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Ba3Rpdml0ZUxva2FsaXRlTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/AktiviteSaflastirmaList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBa3Rpdml0ZVNhZmxhc3Rpcm1hTGlzdC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/AktiviteSaflastirmaList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Ba3Rpdml0ZVNhZmxhc3Rpcm1hTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/AktiviteTestYeriList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBa3Rpdml0ZVRlc3RZZXJpTGlzdC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/AktiviteTestYeriList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Ba3Rpdml0ZVRlc3RZZXJpTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/AktiviteYontemList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBa3Rpdml0ZVlvbnRlbUxpc3QucmF6b3I=
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/AktiviteYontemList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Ba3Rpdml0ZVlvbnRlbUxpc3QucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/BilesikDetail.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xCaWxlc2lrRGV0YWlsLnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/BilesikDetail.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9CaWxlc2lrRGV0YWlsLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/BilesiklerList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xCaWxlc2lrbGVyTGlzdC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/BilesiklerList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9CaWxlc2lrbGVyTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/BitkiBilesikList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xCaXRraUJpbGVzaWtMaXN0LnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/BitkiBilesikList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9CaXRraUJpbGVzaWtMaXN0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/BitkiDetail.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xCaXRraURldGFpbC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/BitkiDetail.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9CaXRraURldGFpbC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/BitkiList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xCaXRraUxpc3QucmF6b3I=
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/BitkiList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9CaXRraUxpc3QucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/BitkiResimleriList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xCaXRraVJlc2ltbGVyaUxpc3QucmF6b3I=
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/BitkiResimleriList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9CaXRraVJlc2ltbGVyaUxpc3QucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Counter.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDb3VudGVyLnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Counter.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Db3VudGVyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Error.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFcnJvci5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Error.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9FcnJvci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/EtkilerList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFdGtpbGVyTGlzdC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/EtkilerList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9FdGtpbGVyTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/EtnobitkilitList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFdG5vYml0a2lsaXRMaXN0LnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/EtnobitkilitList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9FdG5vYml0a2lsaXRMaXN0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/EtnokullanimList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFdG5va3VsbGFuaW1MaXN0LnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/EtnokullanimList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9FdG5va3VsbGFuaW1MaXN0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/EtnolokaliteList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFdG5vbG9rYWxpdGVMaXN0LnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/EtnolokaliteList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9FdG5vbG9rYWxpdGVMaXN0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/FamilyaList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xGYW1pbHlhTGlzdC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/FamilyaList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9GYW1pbHlhTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/GenusList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xHZW51c0xpc3QucmF6b3I=
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/GenusList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9HZW51c0xpc3QucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/IlceList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xJbGNlTGlzdC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Herbarium/HerbariumRecord.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9IZXJiYXJpdW0vSGVyYmFyaXVtUmVjb3JkLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Index.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xJbmRleC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/IlceList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9JbGNlTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/KisilerList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xLaXNpbGVyTGlzdC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9JbmRleC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/KullanimList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xLdWxsYW5pbUxpc3QucmF6b3I=
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/KisilerList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9LaXNpbGVyTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/LiteraturBilesikList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xMaXRlcmF0dXJCaWxlc2lrTGlzdC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/KullanimList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9LdWxsYW5pbUxpc3QucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/LiteraturHatalariList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xMaXRlcmF0dXJIYXRhbGFyaUxpc3QucmF6b3I=
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/LiteraturBilesikList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9MaXRlcmF0dXJCaWxlc2lrTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/LiteraturKonularList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xMaXRlcmF0dXJLb251bGFyTGlzdC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/LiteraturHatalariList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9MaXRlcmF0dXJIYXRhbGFyaUxpc3QucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/LiteraturList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xMaXRlcmF0dXJMaXN0LnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/LiteraturKonularList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9MaXRlcmF0dXJLb251bGFyTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Login.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xMb2dpbi5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/LiteraturList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9MaXRlcmF0dXJMaXN0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/NotFound.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xOb3RGb3VuZC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Mb2dpbi5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/OtorList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xPdG9yTGlzdC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/NotFound.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Ob3RGb3VuZC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/OzellikList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xPemVsbGlrTGlzdC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/OtorList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9PdG9yTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Register.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSZWdpc3Rlci5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/OzellikList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9PemVsbGlrTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/SehirList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xTZWhpckxpc3QucmF6b3I=
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Register.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9SZWdpc3Rlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/UcucuYagBilesikList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xVY3VjdVlhZ0JpbGVzaWtMaXN0LnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/SehirList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9TZWhpckxpc3QucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/UcuyagList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xVY3V5YWdMaXN0LnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/UcucuYagBilesikList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9VY3VjdVlhZ0JpbGVzaWtMaXN0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/UlkeList.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xVbGtlTGlzdC5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/UcuyagList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9VY3V5YWdMaXN0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Weather.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xXZWF0aGVyLnJhem9y
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/UlkeList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9VbGtlTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Routes.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSb3V0ZXMucmF6b3I=
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Pages/Weather.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9XZWF0aGVyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/_Imports.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xfSW1wb3J0cy5yYXpvcg==
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Routes.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Sb3V0ZXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Layout/MainLayout.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTWFpbkxheW91dC5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = b-u1plb6nvd0
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9fSW1wb3J0cy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Layout/NavMenu.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTmF2TWVudS5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = b-i6ld4cc65c
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Layout/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTWFpbkxheW91dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-95gqjqgv3t
 
-[C:/Users/arda3/OneDrive/Masaüstü/Projects/bitki-proje/frontend/Bitki.Blazor/Components/Layout/ReconnectModal.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcUmVjb25uZWN0TW9kYWwucmF6b3I=
-build_metadata.AdditionalFiles.CssScope = b-ajt57ca82j
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Layout/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTmF2TWVudS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-mfrjpi1e2g
+
+[/Users/ardaozcan/Documents/bitki-proje/frontend/Bitki.Blazor/Components/Layout/ReconnectModal.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvUmVjb25uZWN0TW9kYWwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-o116q3uoq1
